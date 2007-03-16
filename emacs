@@ -1,6 +1,8 @@
 ;; -*- mode: emacs-lisp; -*-
 
-(set-frame-font "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")
+(if (x-list-fonts "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")
+    (set-frame-font "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")
+  nil)
 (setq make-backup-files nil)
 (server-start)
 (setq-default indent-tabs-mode nil)
