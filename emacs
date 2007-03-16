@@ -1,3 +1,5 @@
+;; -*- mode: emacs-lisp; -*-
+
 (set-frame-font "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")
 (setq make-backup-files nil)
 (server-start)
