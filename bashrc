@@ -1,3 +1,5 @@
+# -*- mode: sh; -*-
+
 # ~/.bashrc: executed by bash(1) for non-login shells.
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples
@@ -69,8 +71,11 @@ function cd1 {
 
 alias cd='cd1'
 alias ssh='ssh -X'
-alias remacs='/usr/bin/emacs'
-alias emacs='emacsclient -na /usr/bin/emacs'
+
+REAL_EMACS=`which emacs`
+alias remacs=$REAL_EMACS
+alias temacs="$REAL_EMACS -nw"
+alias emacs="emacsclient -na $REAL_EMACS"
 
 export PATH=$HOME"/bin:"$PATH
 export SVN_EDITOR='/usr/bin/editor'
