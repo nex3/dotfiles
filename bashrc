@@ -1,5 +1,10 @@
 # -*- mode: sh; -*-
 
+if [ -e $HOME/.sysname -a -r $HOME/.sysname ]
+then
+    export SYSNAME=`cat $HOME/.sysname`
+fi
+
 # ~/.bashrc: executed by bash(1) for non-login shells.
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples
@@ -36,7 +41,9 @@ PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[0
 
 # enable color support of ls and also add handy aliases
 if [ "$TERM" != "dumb" ]; then
-    eval "`dircolors -b`"
+    if [ "$SYSNAME" != "SAO Mac 2" ]; then
+        eval "`dircolors -b`"
+    fi
     alias ls='ls --color=auto'
     #alias dir='ls --color=auto --format=vertical'
     #alias vdir='ls --color=auto --format=long'
@@ -79,5 +86,11 @@ alias emacs="emacsclient -na $REAL_EMACS"
 
 export PATH=$HOME"/bin:"$PATH
 export SVN_EDITOR='/usr/bin/editor'
+
+if [ "$SYSNAME" == "SAO Mac 2" ]
+then
+    export PATH="/usr/local/bin:/usr/local/sbin:/usr/local/mysql/bin:$PATH"
+    alias ls='ls -G'
+fi
 
 ls
