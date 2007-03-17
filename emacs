@@ -30,6 +30,13 @@
 (setq completion-ignored-extensions
       '(".a" ".so" ".o" "~" ".bak"))
 
+;; 'Tupid toolbar
+(tool-bar-mode -1)
+(menu-bar-mode -1)
+
+;; I hate text wrap
+(toggle-truncate-lines 't)
+
 ;; -- Set default minor modes --
 
 ;; I hate hard tabs!
@@ -40,10 +47,6 @@
 
 ;; I like my backspace key working
 (setq normal-erase-is-backspace-mode 0)
-
-;; 'Tupid toolbar
-(tool-bar-mode -1)
-(menu-bar-mode -1)
 
 ;; ----------
 ;; -- Useful Functions
