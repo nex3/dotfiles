@@ -30,12 +30,12 @@
 (setq completion-ignored-extensions
       '(".a" ".so" ".o" "~" ".bak"))
 
+;; Don't wrap lines
+(setq default-truncate-lines t)
+
 ;; 'Tupid toolbar
 (tool-bar-mode -1)
 (menu-bar-mode -1)
-
-;; I hate text wrap
-(toggle-truncate-lines 't)
 
 ;; -- Set default minor modes --
 
