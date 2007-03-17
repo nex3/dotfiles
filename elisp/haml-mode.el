@@ -50,9 +50,26 @@
   (if (= n 0) ""
     (concat str (string-* str (- n 1)))))
 
+(defun find-if (f lst)
+  "Returns the first element of a list for which a function returns a non-nil value, or nil if no such element is found."
+  (while (not (or (null lst)
+                  (apply f (list (car lst)))))
+    (setq lst (cdr lst)))
+  (if (null lst) nil (car lst)))
+
 (defun hre (str)
   "Prepends a Haml-tab-matching regexp to str."
   (concat "^\\(" (string-* " " haml-indent-offset) "\\)*" str))
+
+;; Font lock
+(defconst haml-font-lock-keywords-1
+  (list
+   '("^ *%\\w+"        . font-lock-function-name-face)
+   '("#\\w+"        . font-lock-keyword-face)
+   '("\\.\\w+"        . font-lock-keyword-face)
+   '("^ *=.*"         . font-lock-string-face)
+   '("^ *-.*"   . font-lock-string-face)
+   '("^!!!.*"          . font-lock-constant-face)))
 
 ;; Constants
 
@@ -99,16 +116,16 @@
   (define-key haml-mode-map "\C-?" 'haml-electric-backspace)
   (define-key haml-mode-map "\C-j" 'newline-and-indent))
 
-(defvar sample-font-lock-keywords
-  '(("function \\(\\sw+\\)" (1 font-lock-function-name-face)))
-  "Keyword highlighting specification for `sample-mode'.")
-
 (define-derived-mode haml-mode fundamental-mode "Haml"
   "Simple mode to edit Haml.
 
 \\{haml-mode-map}"
   (set (make-local-variable 'indent-line-function) 'haml-indent-line)
-  (set (make-local-variable 'font-lock-defaults) '(sample-font-lock-keywords)))
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults
+        '((haml-font-lock-keywords-1)
+          nil
+          t)))
 
 ;; Indentation and electric keys
 
@@ -173,6 +190,9 @@ immediately previous multiple of `haml-indent-offset' spaces."
 
 (provide 'haml-mode)
 
-(add-to-list 'auto-mode-alist '("\\.haml\\'" . haml-mode))
+(unless (find-if
+         #'(lambda(it) (string= it "\\.haml\\'"))
+         (mapcar 'car auto-mode-alist))
+  (add-to-list 'auto-mode-alist '("\\.haml\\'" . haml-mode)))
 
 ;;; haml-mode.el ends here

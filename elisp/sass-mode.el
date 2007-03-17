@@ -50,6 +50,13 @@
   (if (= n 0) ""
     (concat str (string-* str (- n 1)))))
 
+(defun find-if (f lst)
+  "Returns the first element of a list for which a function returns a non-nil value, or nil if no such element is found."
+  (while (not (or (null lst)
+                  (apply f (list (car lst)))))
+    (setq lst (cdr lst)))
+  (if (null lst) nil (car lst)))
+
 (defun sre (str)
   "Prepends a Sass-tab-matching regexp to str."
   (concat "^\\(" (string-* " " sass-indent-offset) "\\)*" str))
@@ -61,7 +68,7 @@
 (defconst sass-blank-line-re "^[ \t]*$"
   "Regexp matching a line containing only whitespace.")
 
-(defconst sass-full-attr-re (sre ":[^ \t]*[ \t]*[^ \t]")
+(defconst sass-full-attr-re (sre ":[^ \t]+[ \t]+[^ \t]")
   "Regexp matching a Sass attribute with content.")
 
 ;; Mode setup
@@ -75,16 +82,11 @@
   (define-key sass-mode-map "\C-?" 'sass-electric-backspace)
   (define-key sass-mode-map "\C-j" 'newline-and-indent))
 
-(defvar sample-font-lock-keywords
-  '(("function \\(\\sw+\\)" (1 font-lock-function-name-face)))
-  "Keyword highlighting specification for `sample-mode'.")
-
 (define-derived-mode sass-mode fundamental-mode "Sass"
   "Simple mode to edit Sass.
 
 \\{sass-mode-map}"
-  (set (make-local-variable 'indent-line-function) 'sass-indent-line)
-  (set (make-local-variable 'font-lock-defaults) '(sample-font-lock-keywords)))
+  (set (make-local-variable 'indent-line-function) 'sass-indent-line))
 
 ;; Indentation and electric keys
 
@@ -144,6 +146,10 @@ immediately previous multiple of `sass-indent-offset' spaces."
 
 (provide 'sass-mode)
 
-(add-to-list 'auto-mode-alist '("\\.sass\\'" . sass-mode))
+
+(unless (find-if
+         #'(lambda(it) (string= it "\\.sass\\'"))
+         (mapcar 'car auto-mode-alist))
+  (add-to-list 'auto-mode-alist '("\\.sass\\'" . sass-mode)))
 
 ;;; sass-mode.el ends here
