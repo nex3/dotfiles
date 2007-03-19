@@ -104,12 +104,14 @@
 (global-unset-key "\C-xp")
 (global-unset-key "\C-xn")
 
-;; C-return also comments and indents
-(define-key global-map [(control return)] 'comment-indent-new-line)
-
 ;; -- Useful Arroy Key / Deletion Bindings --
 
+;; Windowed binding of C-backspace
 (global-set-key "O1;5D" 'backward-kill-word)
+
+;; Terminal binding of C-backspace
+(global-set-key "\C-h" 'backward-kill-word)
+
 (global-set-key "[3;5~" 'kill-word)
 (global-set-key "O1;5C" 'forward-word)
 (global-set-key "O1;5D" 'backward-word)
@@ -127,6 +129,12 @@
 (global-set-key "O1;3B" 'pager-row-down)
 
 ;; -- Other Random Keybindings --
+
+;; C-return also comments and indents
+(define-key global-map [(control return)] 'comment-indent-new-line)
+
+;; M-? gets help
+(define-key global-map "\e?" 'help-command)
 
 (defun select-next-frame ()
   "Switch to the next frame"
