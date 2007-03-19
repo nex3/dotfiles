@@ -119,12 +119,12 @@
 ;; -- Pager Keybindings --
 
 (require 'pager)
-(global-set-key "\C-v"   'pager-page-down)
-(global-set-key [(next)]    'pager-page-down)
-(global-set-key "\ev"   'pager-page-up)
-(global-set-key [(prior)]   'pager-page-up)
-(global-set-key "O1;3A"    'pager-row-up)
-(global-set-key "O1;3B"  'pager-row-down)
+(global-set-key "\C-v" 'pager-page-down)
+(global-set-key [(next)] 'pager-page-down)
+(global-set-key "\ev" 'pager-page-up)
+(global-set-key [(prior)] 'pager-page-up)
+(global-set-key "O1;3A" 'pager-row-up)
+(global-set-key "O1;3B" 'pager-row-down)
 
 ;; -- Other Random Keybindings --
 

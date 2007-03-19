@@ -48,7 +48,7 @@
 ;;
 ;; 2002/11/25 (version 0.3):
 ;;   * changed to use indent-to to obey tab preference (Vasily Korytov)
-
+(require 'cc-mode)
 
 (defgroup css nil
   "Customizations for editing Cascading Style Sheets"
