@@ -3,16 +3,13 @@
 
 ;; -- Useful Reference Variables --
 
-;; Whether or not we're running in a terminal
-(setq is-a-tty (not (eq (tty-color-alist) nil)))
-
 ;; ----------
 ;; -- Random Customizations and Configurations
 ;; ----------
 
 ;; Set the font.
 ;; TODO: Get other fonts for other computers.
-(if (and (not is-a-tty)
+(if (and window-system
          (x-list-fonts "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1"))
     (set-frame-font "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")
   nil)
