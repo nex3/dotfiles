@@ -34,6 +34,9 @@
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 
+; Yes-or-no questions accept y or n
+(fset 'yes-or-no-p 'y-or-n-p)
+
 ;; -- Set default minor modes --
 
 ;; I hate hard tabs!
