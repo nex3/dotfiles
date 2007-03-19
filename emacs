@@ -48,6 +48,9 @@
 ;; I like my backspace key working
 (setq normal-erase-is-backspace-mode 0)
 
+;; Syntax highlighting rocks.
+(global-font-lock-mode 1)
+
 ;; ----------
 ;; -- Useful Functions
 ;; ----------
@@ -66,37 +69,6 @@
       (setq list (cdr list)))))
 
 ;; ----------
-;; -- Keybindings
-;; ----------
-
-;; Wow I hate these.
-(global-unset-key "\C-xp")
-(global-unset-key "\C-xn")
-
-;; C-return also comments and indents
-(define-key global-map [(control return)] 'comment-indent-new-line)
-(global-set-key "O1;5D" 'backward-kill-word)
-(global-set-key "[3;5~" 'kill-word)
-(global-set-key "O1;5C" 'forward-word)
-(global-set-key "O1;5D" 'backward-word)
-(global-set-key "O1;5A" 'backward-paragraph)
-(global-set-key "O1;5B" 'forward-paragraph)
-
-;; M-right switches frame
-(define-key global-map [(meta right)]
-  '(lambda ()
-     "Switch to the next frame"
-     (interactive)
-     (select-window (next-window))))
-
-;; M-left switches frame backwards
-(define-key global-map [(meta left)]
-  '(lambda ()
-     "Switch to the previous frame"
-     (interactive)
-     (select-window (previous-window))))
-
-;; ----------
 ;; -- Loading Modes -- ;;
 ;; ----------
 
@@ -110,6 +82,9 @@
 (require 'sass-mode nil 't)
 (require 'rhtml-mode nil 't)
 (require 'yaml-mode nil 't)
+(require 'ruby-mode nil 't)
+(require 'css-mode nil 't)
+(require 'rhtml-mode nil 't)
 
 (add-to-list 'auto-mode-alist '("\\.js$" . javascript-mode))
 (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
@@ -117,3 +92,56 @@
 (add-to-list 'auto-mode-alist '("\\.nlsp$" . lisp-mode))
 (add-to-list 'auto-mode-alist '("\\.cs$" . csharp-mode))
 (add-to-list 'auto-mode-alist '("\\.xhtml$" . html-mode))
+(add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
+(add-to-list 'auto-mode-alist '("^Rakefile$" . ruby-mode))
+(add-to-list 'auto-mode-alist '("\\.css$" . css-mode))
+
+;; ----------
+;; -- Keybindings
+;; ----------
+
+;; Wow I hate these.
+(global-unset-key "\C-xp")
+(global-unset-key "\C-xn")
+
+;; C-return also comments and indents
+(define-key global-map [(control return)] 'comment-indent-new-line)
+
+;; -- Useful Arroy Key / Deletion Bindings --
+
+(global-set-key "O1;5D" 'backward-kill-word)
+(global-set-key "[3;5~" 'kill-word)
+(global-set-key "O1;5C" 'forward-word)
+(global-set-key "O1;5D" 'backward-word)
+(global-set-key "O1;5A" 'backward-paragraph)
+(global-set-key "O1;5B" 'forward-paragraph)
+
+;; -- Pager Keybindings --
+
+(require 'pager)
+(global-set-key "\C-v"   'pager-page-down)
+(global-set-key [(next)]    'pager-page-down)
+(global-set-key "\ev"   'pager-page-up)
+(global-set-key [(prior)]   'pager-page-up)
+(global-set-key "O1;3A"    'pager-row-up)
+(global-set-key "O1;3B"  'pager-row-down)
+
+;; -- Other Random Keybindings --
+
+(defun select-next-frame ()
+  "Switch to the next frame"
+     (interactive)
+     (select-window (next-window)))
+
+(defun select-previous-frame ()
+  "Switch to the next frame"
+     (interactive)
+     (select-window (previous-window)))
+
+;; M-right switches frame
+(define-key global-map [(meta right)] 'select-next-frame)
+(define-key global-map "O1;3C" 'select-next-frame)
+
+;; M-left switches frame backwards
+(define-key global-map [(meta left)] 'select-previous-frame)
+(define-key global-map "O1;3D" 'select-previous-frame)

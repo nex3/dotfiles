@@ -76,6 +76,6 @@
 (define-key rhtml-mode-map
   "\C-c\C-h" 'rhtml-find-helper)
 
-(require 'rhtml-navigation)
+;(require 'rhtml-navigation)
 
 (provide 'rhtml-mode)

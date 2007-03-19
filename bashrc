@@ -84,8 +84,13 @@ alias remacs=$REAL_EMACS
 alias temacs="$REAL_EMACS -nw"
 alias emacs="emacsclient -na $REAL_EMACS"
 
+if [ ! `which pager &> /dev/null` ]
+then
+    alias pager="less"
+fi
+
 export PATH=$HOME"/bin:"$PATH
-export SVN_EDITOR='/usr/bin/editor'
+export SVN_EDITOR='/usr/bin/emacs'
 
 if [ "$SYSNAME" == "SAO Mac 2" ]
 then
