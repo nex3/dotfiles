@@ -89,8 +89,13 @@ then
     alias pager="less"
 fi
 
+if [ `which rlwrap &> /dev/null` -a ! `which rl &> /dev/null` ]
+then
+    alias rl="rlwrap"
+fi
+
 export PATH=$HOME"/bin:"$PATH
-export SVN_EDITOR='/usr/bin/emacs'
+export SVN_EDITOR='/usr/bin/emacs -nw'
 
 if [ "$SYSNAME" == "SAO Mac 2" ]
 then
