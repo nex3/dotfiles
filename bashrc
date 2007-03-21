@@ -84,12 +84,12 @@ alias remacs=$REAL_EMACS
 alias temacs="$REAL_EMACS -nw"
 alias emacs="emacsclient -na $REAL_EMACS"
 
-if [ ! `which pager &> /dev/null` ]
+if [ ! `which pager 2> /dev/null` ]
 then
     alias pager="less"
 fi
 
-if [ `which rlwrap &> /dev/null` -a ! `which rl &> /dev/null` ]
+if [ `which rlwrap 2> /dev/null` -a ! `which rl 2> /dev/null` ]
 then
     alias rl="rlwrap"
 fi
