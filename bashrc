@@ -94,6 +94,12 @@ then
     alias rl="rlwrap"
 fi
 
+if [ -e $HOME"/gems" ]
+then
+    export GEM_PATH=$HOME"/gems:"$GEM_PATH
+    export PATH=$HOME"/gems/bin:"$PATH
+fi
+
 export PATH=$HOME"/bin:"$PATH
 export SVN_EDITOR='/usr/bin/emacs -nw'
 
