@@ -61,19 +61,31 @@ if [ -f /etc/bash_completion ]; then
     . /etc/bash_completion
 fi
 
+if [ "$SYSNAME" == "SAO Mac 2" ]
+then
+    export PATH="/usr/local/bin:/usr/local/sbin:/usr/local/mysql/bin:$PATH"
+    alias ls='ls -G'
+fi
+
 function cd1 {
   cd "$@";
   wd=`pwd`;
-  if [ `expr length "$wd"` -lt '35' ]; then
+  if [ ${#wd} -lt '35' ]; then
     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
   else
     PS1='\n\[\033[01;34m\]\w\[\033[00m\]\n${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]\$ '
   fi
-  if [ `ls | wc -l` -lt '20' ]; then
-    ls --color=auto
+
+  if [ `/bin/ls | wc -l` -lt '20' ]; then
+    ls
   else
     echo '...'
   fi
+}
+
+function exists {
+    file=`whereis "$@"`;
+    [ ${#file} -gt 1 ]
 }
 
 alias cd='cd1'
@@ -84,14 +96,19 @@ alias remacs=$REAL_EMACS
 alias temacs="$REAL_EMACS -nw"
 alias emacs="emacsclient -na $REAL_EMACS"
 
-if [ ! `which pager 2> /dev/null` ]
-then
+if exists pager
+then false;
+else
     alias pager="less"
 fi
 
-if [ `which rlwrap 2> /dev/null` -a ! `which rl 2> /dev/null` ]
+if exists rlwrap
 then
-    alias rl="rlwrap"
+    if exists rl
+    then false;
+    else
+        alias rl="rlwrap"
+    fi
 fi
 
 if [ -e $HOME"/gems" ]
@@ -102,11 +119,5 @@ fi
 
 export PATH=$HOME"/bin:"$PATH
 export SVN_EDITOR='/usr/bin/emacs -nw'
-
-if [ "$SYSNAME" == "SAO Mac 2" ]
-then
-    export PATH="/usr/local/bin:/usr/local/sbin:/usr/local/mysql/bin:$PATH"
-    alias ls='ls -G'
-fi
 
 ls
