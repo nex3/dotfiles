@@ -117,7 +117,7 @@ then
     export PATH=$HOME"/gems/bin:"$PATH
 fi
 
-export PATH=$HOME"/bin:"$PATH
+export PATH=$HOME"/bin:/var/lib/gems/1.8/bin/:"$PATH
 export SVN_EDITOR='/usr/bin/emacs -nw'
 
 ls
