@@ -78,6 +78,7 @@
 (autoload 'javascript-mode "javascript" nil t)
 (autoload 'csharp-mode "csharp-mode" "Major mode for editing C# code." t)
 
+(require 'textile-mode nil 't)
 (require 'haml-mode nil 't)
 (require 'sass-mode nil 't)
 (require 'rhtml-mode nil 't)
