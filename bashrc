@@ -91,10 +91,7 @@ function exists {
 alias cd='cd1'
 alias ssh='ssh -X'
 
-REAL_EMACS=`which emacs`
-alias remacs=$REAL_EMACS
-alias temacs="$REAL_EMACS -nw"
-alias emacs="emacsclient -na $REAL_EMACS"
+alias temacs="`which emacs` -nw"
 
 if exists pager
 then false;

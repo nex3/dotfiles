@@ -55,6 +55,15 @@
 ;; -- Useful Functions
 ;; ----------
 
+;; Post to my blog
+(defun post-blog-entry ()
+  "Post an entry to my blog"
+  (interactive)
+  (setq title (read-from-minibuffer "Post title: "))
+  (setq result (http-post "http://nex3.leeweiz.net/posts"
+                          '(("post[title]" . title)
+                            ("post[content]" . (buffer-string)) 'utf-8))))
+
 ;; Kill All Buffers without prompting.
 ;; Modified from kill-some-buffers in files.el, which prompts too much.
 ;; Created by Akkana.
@@ -78,6 +87,7 @@
 (autoload 'javascript-mode "javascript" nil t)
 (autoload 'csharp-mode "csharp-mode" "Major mode for editing C# code." t)
 
+(require 'http-post nil 't)
 (require 'textile-mode nil 't)
 (require 'haml-mode nil 't)
 (require 'sass-mode nil 't)
