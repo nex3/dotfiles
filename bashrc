@@ -114,6 +114,11 @@ then
     export PATH=$HOME"/gems/bin:"$PATH
 fi
 
+if [ -e "/usr/lib/junit4.3" ]
+then
+    export CLASSPATH="/usr/lib/junit4.3/junit-4.3.1.jar:"$CLASSPATH
+fi
+
 export PATH=$HOME"/bin:/var/lib/gems/1.8/bin/:"$PATH
 export SVN_EDITOR='/usr/bin/emacs -nw'
 

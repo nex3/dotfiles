@@ -86,6 +86,7 @@
 
 (autoload 'javascript-mode "javascript" nil t)
 (autoload 'csharp-mode "csharp-mode" "Major mode for editing C# code." t)
+(load "~/.elisp/haskell-mode/haskell-site-file")
 
 (require 'http-post nil 't)
 (require 'textile-mode nil 't)
@@ -106,6 +107,10 @@
 (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
 (add-to-list 'auto-mode-alist '("^Rakefile$" . ruby-mode))
 (add-to-list 'auto-mode-alist '("\\.css$" . css-mode))
+
+(add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
+(add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
+;;(add-hook 'haskell-mode-hook 'turn-on-haskell-simple-indent)
 
 ;; ----------
 ;; -- Keybindings

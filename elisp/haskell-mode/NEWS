@@ -1,0 +1,54 @@
+Changes since 2.2:
+
+* Trivial support for Cabal package description files.
+
+* Minor bug fixes.
+
+Changes since 2.1:
+
+* There are now commands to find type and info of identifiers by querying an
+  inferior haskell process.  Available under C-c C-t, C-c C-i, and C-c M-.
+
+* Indentation now looks back further, until a line that has no indentation.
+  To recover the earlier behavior of stopping at the first empty line
+  instead, configure haskell-indent-look-past-empty-line.
+
+* inf-haskell can wait until a file load completes and jump directly to the
+  first error, like haskell-ghci and haskell-hugs used to do.  See the var
+  inferior-haskell-wait-and-jump.
+
+Changes since 2.0:
+
+* inf-haskell uses ghci if hugs is absent.
+
+* Fix up some binding conflicts (C-c C-o in haskell-doc)
+
+* Many (hopefully minor) changes to the indentation.
+
+* New symbols in haskell-font-lock-symbols-alist.
+
+Changes since 1.45:
+
+* keybindings C-c <char> have been replaced by C-c C-<char> so as not
+  to collide with minor modes.
+
+* The following modules are now automatically activated without having to
+  add anything to haskell-mode-hook:
+  haskell-font-lock (just turn on global-font-lock-mode).
+  haskell-decl-scan (just bind `imenu' to some key).
+
+* In recent Emacsen, haskell-doc hooks into eldoc-mode.
+
+* haskell-hugs and haskell-ghci are superceded by inf-haskell.
+
+* Indentation rules have been improved when using layout inside parens/braces.
+
+* Symbols like -> and \ can be displayed as actual arrows and lambdas.
+  See haskell-font-lock-symbols.
+
+* Tweaks to the font-lock settings.  Among other things paren-matching
+  with things like \(x,y) should work correctly now.
+
+* New maintainer <monnier@gnu.org>.
+
+# arch-tag: e50204f2-98e4-438a-bcd1-a49afde5efa5
