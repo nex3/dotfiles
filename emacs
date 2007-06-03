@@ -9,9 +9,11 @@
 
 ;; Set the font.
 ;; TODO: Get other fonts for other computers.
-(if (and window-system
-         (x-list-fonts "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1"))
-    (set-frame-font "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")
+(if window-system
+    (cond ((>= emacs-major-version 23)
+           (set-frame-font "Monospace-10"))
+          ((x-list-fonts "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")
+           (set-frame-font "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")))
   nil)
 
 ;; Stupid annoying backups.
