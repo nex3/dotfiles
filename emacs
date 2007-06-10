@@ -124,37 +124,31 @@
 (global-unset-key "\C-xp")
 (global-unset-key "\C-xn")
 
-;; -- Useful Arroy Key / Deletion Bindings --
+;; -- Useful Arrow Key / Deletion Bindings --
 
-;; Windowed binding of C-backspace
-(global-set-key "O1;5D" 'backward-kill-word)
-
-;; Terminal binding of C-backspace
-(global-set-key "\C-h" 'backward-kill-word)
-
-(global-set-key "[3;5~" 'kill-word)
-(global-set-key "O1;5C" 'forward-word)
-(global-set-key "O1;5D" 'backward-word)
-(global-set-key "O1;5A" 'backward-paragraph)
-(global-set-key "O1;5B" 'forward-paragraph)
-
+(if window-system
+    (global-set-key "O1;5D" 'backward-kill-word)
+  (progn
+    (global-set-key "[3;5~" 'kill-word)
+    (global-set-key "O1;5C" 'forward-word)
+    (global-set-key "O1;5D" 'backward-word)
+    (global-set-key "O1;5A" 'backward-paragraph)
+    (global-set-key "O1;5B" 'forward-paragraph)))
+  
 ;; -- Pager Keybindings --
 
 (require 'pager)
-(global-set-key "\C-v" 'pager-page-down)
-(global-set-key [(next)] 'pager-page-down)
-(global-set-key "\ev" 'pager-page-up)
-(global-set-key [(prior)] 'pager-page-up)
+(global-set-key (kbd "<next>") 'pager-page-down)
+(global-set-key (kbd "<prior>") 'pager-page-up)
 (global-set-key "O1;3A" 'pager-row-up)
 (global-set-key "O1;3B" 'pager-row-down)
 
 ;; -- Other Random Keybindings --
 
 ;; C-return also comments and indents
-(define-key global-map [(control return)] 'comment-indent-new-line)
-
-;; M-? gets help
-(define-key global-map "\e?" 'help-command)
+(define-key global-map (if window-system
+                           [C-return] (kbd "C-j"))
+  'comment-indent-new-line)
 
 (defun select-next-frame ()
   "Switch to the next frame"
@@ -167,9 +161,11 @@
      (select-window (previous-window)))
 
 ;; M-right switches frame
-(define-key global-map [(meta right)] 'select-next-frame)
-(define-key global-map "O1;3C" 'select-next-frame)
+(define-key global-map (if window-system 
+                           [(meta right)] "O1;3C")
+  'select-next-frame)
 
 ;; M-left switches frame backwards
-(define-key global-map [(meta left)] 'select-previous-frame)
-(define-key global-map "O1;3D" 'select-previous-frame)
+(define-key global-map (if window-system 
+                           [(meta right)] "O1;3D")
+  'select-previous-frame)
