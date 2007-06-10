@@ -167,5 +167,5 @@
 
 ;; M-left switches frame backwards
 (define-key global-map (if window-system 
-                           [(meta right)] "O1;3D")
+                           [(meta left)] "O1;3D")
   'select-previous-frame)
