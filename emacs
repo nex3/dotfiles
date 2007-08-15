@@ -19,9 +19,6 @@
 ;; Stupid annoying backups.
 (setq make-backup-files nil)
 
-;; We like to be able to open new files in the same emacs.
-(server-start)
-
 ;; No welcome screen
 (setq inhibit-startup-message t)
 
@@ -35,6 +32,7 @@
 ;; 'Tupid toolbar
 (tool-bar-mode -1)
 (menu-bar-mode -1)
+(toggle-scroll-bar -1)
 
 ; Yes-or-no questions accept y or n
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -77,7 +75,8 @@
       (let* ((buffer (car list))
              (name (buffer-name buffer)))
              (kill-buffer buffer))
-      (setq list (cdr list)))))
+      (setq list (cdr list))))
+  (delete-other-windows))
 
 ;; ----------
 ;; -- Loading Modes -- ;;
@@ -88,6 +87,7 @@
 
 (autoload 'javascript-mode "javascript" nil t)
 (autoload 'csharp-mode "csharp-mode" "Major mode for editing C# code." t)
+(autoload 'd-mode "d-mode" "Major mode for editing D code." t)
 (load "~/.elisp/haskell-mode/haskell-site-file")
 
 (require 'http-post nil 't)
@@ -99,6 +99,7 @@
 (require 'ruby-mode nil 't)
 (require 'css-mode nil 't)
 (require 'rhtml-mode nil 't)
+(require 'color-theme)
 
 (add-to-list 'auto-mode-alist '("\\.js$" . javascript-mode))
 (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
@@ -111,10 +112,22 @@
 (add-to-list 'auto-mode-alist '("Rakefile$" . ruby-mode))
 (add-to-list 'auto-mode-alist '("\\.rake$" . ruby-mode))
 (add-to-list 'auto-mode-alist '("\\.css$" . css-mode))
+(add-to-list 'auto-mode-alist '("\\.d[i]?\\'$" . d-mode))
+(add-to-list 'auto-mode-alist '("blog$" . textile-mode))
 
 (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
 (add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
 ;;(add-hook 'haskell-mode-hook 'turn-on-haskell-simple-indent)
+
+(if window-system
+    (progn (color-theme-initialize)
+           (load-theme 'alexandres)
+           (my-color-theme-dark))
+  nil)
+
+(defun set-four-tabs ()
+  (setq tab-width 4))
+(add-hook 'd-mode-hook 'set-four-tabs)
 
 ;; ----------
 ;; -- Keybindings

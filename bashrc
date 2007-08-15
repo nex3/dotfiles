@@ -27,9 +27,6 @@ if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then
     debian_chroot=$(cat /etc/debian_chroot)
 fi
 
-# set a fancy prompt
-PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
-
 # Alias definitions.
 # You may want to put all your additions into a separate file like
 # ~/.bash_aliases, instead of adding them here directly.
@@ -45,8 +42,11 @@ if [ "$TERM" != "dumb" ]; then
         eval "`dircolors -b`"
     fi
     alias ls='ls --color=auto'
-    #alias dir='ls --color=auto --format=vertical'
-    #alias vdir='ls --color=auto --format=long'
+    
+    # set a fancy prompt
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+else
+    PS1='\u@\h:\w$ '
 fi
 
 # some more ls aliases
@@ -68,19 +68,21 @@ then
 fi
 
 function cd1 {
-  cd "$@";
-  wd=`pwd`;
-  if [ ${#wd} -lt '35' ]; then
-    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
-  else
-    PS1='\n\[\033[01;34m\]\w\[\033[00m\]\n${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]\$ '
-  fi
+    cd "$@";
+    wd=`pwd`;
+    if [ "$TERM" != "dumb" ]; then
+        if [ ${#wd} -lt '35' ]; then
+            PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+        else
+            PS1='\n\[\033[01;34m\]\w\[\033[00m\]\n${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]\$ '
+        fi
+    fi
 
-  if [ `/bin/ls | wc -l` -lt '20' ]; then
-    ls
-  else
-    echo '...'
-  fi
+    if [ `/bin/ls | wc -l` -lt '20' ]; then
+        ls
+    else
+        echo '...'
+    fi
 }
 
 function exists {
