@@ -55,21 +55,26 @@
 ;; -- Useful Functions
 ;; ----------
 
+(defmacro http-try-post (&rest args)
+  `(let ((proc (http-post ,@args)))
+     (while (not http-status-code) (sit-for 0.1))
+     (let ((result (buffer-string))
+           (status http-status-code))
+       (kill-buffer (process-buffer proc))      
+       (if (>= status 400) nil result))))
+
 (defun blog-try-post (title)
-  (let ((proc
-         (http-post "http://nex3.leeweiz.net/posts"
-                    (list (cons "post[title]" title)
-                          (cons "post[content]" (buffer-string))
-                          (cons "admin[pass]" (read-passwd "Password: "))
-                          '("admin[name]" . "Nathan"))
-                    'utf-8)))
-    (while (not http-status-code) (sit-for 0.1))
-    (let ((result (buffer-string))
-          (status http-status-code))
-      (kill-buffer (process-buffer proc))      
-      (if (>= status 400) nil
-        (string-match "<a href=\"\\([^\"]+\\)\">" result)
-        (match-string 1 result)))))
+  (let ((result
+         (http-try-post "http://localhost:3000/posts"
+                        (list (cons "post[title]" title)
+                              (cons "post[content]" (buffer-string))
+                              (cons "admin[pass]" (read-passwd "Password: "))
+                              '("admin[name]" . "Nathan"))
+                        'utf-8)))
+    (and result
+         (progn
+           (string-match "<a href=\"\\([^\"]+\\)\">" result)
+           (match-string 1 result)))))
 
 ;; Post to my blog
 (defun blog-post-entry (&optional title)
