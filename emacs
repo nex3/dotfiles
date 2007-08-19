@@ -56,13 +56,17 @@
 ;; ----------
 
 ;; Post to my blog
-(defun post-blog-entry ()
+(defun blog-post-entry ()
   "Post an entry to my blog"
   (interactive)
-  (setq title (read-from-minibuffer "Post title: "))
-  (setq result (http-post "http://nex3.leeweiz.net/posts"
-                          '(("post[title]" . title)
-                            ("post[content]" . (buffer-string)) 'utf-8))))
+  (http-post "http://nex3.leeweiz.net/posts"
+             (list (cons "post[title]" (read-from-minibuffer "Post title: "))
+                   (cons "post[content]" (buffer-string))
+                   (cons "admin[pass]" (read-passwd "Password: "))
+                   '("admin[name]" . "Nathan"))
+             'utf-8)
+  ; http-post creates a result buffer we don't want to see
+  (kill-buffer (current-buffer)))
 
 ;; Kill All Buffers without prompting.
 ;; Modified from kill-some-buffers in files.el, which prompts too much.
