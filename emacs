@@ -55,18 +55,36 @@
 ;; -- Useful Functions
 ;; ----------
 
+(defun blog-try-post (title)
+  (let ((proc
+         (http-post "http://nex3.leeweiz.net/posts"
+                    (list (cons "post[title]" title)
+                          (cons "post[content]" (buffer-string))
+                          (cons "admin[pass]" (read-passwd "Password: "))
+                          '("admin[name]" . "Nathan"))
+                    'utf-8)))
+    (while (not http-status-code) (sit-for 0.1))
+    (let ((result (buffer-string))
+          (status http-status-code))
+      (kill-buffer (process-buffer proc))      
+      (if (>= status 400) nil
+        (string-match "<a href=\"\\([^\"]+\\)\">" result)
+        (match-string 1 result)))))
+
 ;; Post to my blog
-(defun blog-post-entry ()
+(defun blog-post-entry (&optional title)
   "Post an entry to my blog"
   (interactive)
-  (http-post "http://nex3.leeweiz.net/posts"
-             (list (cons "post[title]" (read-from-minibuffer "Post title: "))
-                   (cons "post[content]" (buffer-string))
-                   (cons "admin[pass]" (read-passwd "Password: "))
-                   '("admin[name]" . "Nathan"))
-             'utf-8)
-  ; http-post creates a result buffer we don't want to see
-  (kill-buffer (current-buffer)))
+  (setq title (or title (read-from-minibuffer "Post title: ")))
+  (let ((link (blog-try-post title)))
+    (if (not link)
+        (progn
+          (message "Invalid password.")
+          (sit-for 1)
+          (blog-post-entry title))
+      (progn
+        (shell-command (concat "firefox " link))
+        (message "Successfully posted.")))))
 
 ;; Kill All Buffers without prompting.
 ;; Modified from kill-some-buffers in files.el, which prompts too much.
