@@ -55,17 +55,20 @@
 ;; -- Useful Functions
 ;; ----------
 
+(defvar blog-url "http://nex3.leeweiz.net"
+  "The URL of my blog.")
+
 (defmacro http-try-post (&rest args)
   `(let ((proc (http-post ,@args)))
-     (while (not http-status-code) (sit-for 0.1))
+     (while (eq (process-status proc) 'open) (sit-for 0.1))
      (let ((result (buffer-string))
            (status http-status-code))
-       (kill-buffer (process-buffer proc))      
+       (kill-buffer (process-buffer proc))
        (if (>= status 400) nil result))))
 
 (defun blog-try-post (title)
   (let ((result
-         (http-try-post "http://localhost:3000/posts"
+         (http-try-post (concat blog-url "/posts"
                         (list (cons "post[title]" title)
                               (cons "post[content]" (buffer-string))
                               (cons "admin[pass]" (read-passwd "Password: "))
@@ -74,9 +77,8 @@
     (and result
          (progn
            (string-match "<a href=\"\\([^\"]+\\)\">" result)
-           (match-string 1 result)))))
+           (match-string 1 result))))))
 
-;; Post to my blog
 (defun blog-post-entry (&optional title)
   "Post an entry to my blog"
   (interactive)
@@ -90,6 +92,28 @@
       (progn
         (shell-command (concat "firefox " link))
         (message "Successfully posted.")))))
+
+(defun blog-preview ()
+  "Preview an entry for my blog"
+  (interactive)
+  (let ((result
+         (http-try-post (concat blog-url "/posts/new.html")
+                        (list  (cons "post[content]" (buffer-string))
+                               (cons "admin[pass]" (read-passwd "Password: "))
+                               '("admin[name]" . "Nathan"))
+                        'utf-8)))
+    (if (not result)
+        (progn
+          (message "Invalid password.")
+          (sit-for 1)
+          (blog-preview))
+      (progn
+        (while (string-match "\\(href\\|src\\)=\\(\"\\|'\\)/" result)
+          (setq result (replace-match (concat "\\1=\\2" blog-url "/") t nil result)))
+        (let ((tmp (concat (make-temp-file "blog") ".html")))
+          (with-temp-file tmp
+            (insert result))
+          (shell-command (concat "firefox " tmp)))))))
 
 ;; Kill All Buffers without prompting.
 ;; Modified from kill-some-buffers in files.el, which prompts too much.
