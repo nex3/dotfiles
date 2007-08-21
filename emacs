@@ -68,7 +68,7 @@
 
 (defun blog-try-post (title)
   (let ((result
-         (http-try-post (concat blog-url "/posts"
+         (http-try-post (concat blog-url "/posts")
                         (list (cons "post[title]" title)
                               (cons "post[content]" (buffer-string))
                               (cons "admin[pass]" (read-passwd "Password: "))
@@ -77,7 +77,7 @@
     (and result
          (progn
            (string-match "<a href=\"\\([^\"]+\\)\">" result)
-           (match-string 1 result))))))
+           (match-string 1 result)))))
 
 (defun blog-post-entry (&optional title)
   "Post an entry to my blog"
