@@ -129,6 +129,11 @@
       (setq list (cdr list))))
   (delete-other-windows))
 
+(defun .emacs ()
+  "Open up the .emacs configuration file."
+  (interactive)
+  (find-file "~/.emacs" t))
+
 ;; ----------
 ;; -- Loading Modes -- ;;
 ;; ----------
