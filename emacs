@@ -147,6 +147,9 @@
 (load "~/.elisp/haskell-mode/haskell-site-file")
 
 (require 'http-post nil 't)
+(require 'color-theme)
+(require 'psvn)
+
 (require 'textile-mode nil 't)
 (require 'haml-mode nil 't)
 (require 'sass-mode nil 't)
@@ -155,7 +158,6 @@
 (require 'ruby-mode nil 't)
 (require 'css-mode nil 't)
 (require 'rhtml-mode nil 't)
-(require 'color-theme)
 
 (add-to-list 'auto-mode-alist '("\\.js$" . javascript-mode))
 (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
