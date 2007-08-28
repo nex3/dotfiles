@@ -140,6 +140,7 @@
 
 (add-to-list 'load-path "/usr/share/emacs/site-lisp")
 (add-to-list 'load-path "~/.elisp")
+(add-to-list 'load-path "~/.elisp/rails")
 
 (autoload 'javascript-mode "javascript" nil t)
 (autoload 'csharp-mode "csharp-mode" "Major mode for editing C# code." t)
@@ -149,6 +150,7 @@
 (require 'http-post nil 't)
 (require 'color-theme)
 (require 'psvn)
+(require 'rails)
 
 (require 'textile-mode nil 't)
 (require 'haml-mode nil 't)
