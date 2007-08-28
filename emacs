@@ -48,6 +48,9 @@
 ;; I like my backspace key working
 (setq normal-erase-is-backspace-mode 0)
 
+;; Annoying quit message
+(setq save-abbrevs nil)
+
 ;; Syntax highlighting rocks.
 (global-font-lock-mode 1)
 
@@ -207,7 +210,7 @@
     (global-set-key "O1;5D" 'backward-word)
     (global-set-key "O1;5A" 'backward-paragraph)
     (global-set-key "O1;5B" 'forward-paragraph)))
-  
+
 ;; -- Pager Keybindings --
 
 (require 'pager)
@@ -234,11 +237,11 @@
      (select-window (previous-window)))
 
 ;; M-right switches frame
-(define-key global-map (if window-system 
+(define-key global-map (if window-system
                            [(meta right)] "O1;3C")
   'select-next-frame)
 
 ;; M-left switches frame backwards
-(define-key global-map (if window-system 
+(define-key global-map (if window-system
                            [(meta left)] "O1;3D")
   'select-previous-frame)
