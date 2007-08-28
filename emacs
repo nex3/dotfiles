@@ -153,7 +153,6 @@
 (require 'http-post nil 't)
 (require 'color-theme)
 (require 'psvn)
-(require 'rails)
 
 (require 'textile-mode nil 't)
 (require 'haml-mode nil 't)
