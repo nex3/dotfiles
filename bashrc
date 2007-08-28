@@ -42,7 +42,7 @@ if [ "$TERM" != "dumb" ]; then
         eval "`dircolors -b`"
     fi
     alias ls='ls --color=auto'
-    
+
     # set a fancy prompt
     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 else
@@ -122,6 +122,6 @@ then
 fi
 
 export PATH=$HOME"/bin:/var/lib/gems/1.8/bin/:"$PATH
-export SVN_EDITOR='/usr/bin/emacs -nw'
+export SVN_EDITOR='emacs -nw'
 
 ls
