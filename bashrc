@@ -110,12 +110,6 @@ then
     fi
 fi
 
-if exists svn
-then
-    alias svne=`which svn`
-    alias svn="`which svn` --ignore-externals"
-fi
-
 if [ -e $HOME"/gems" ]
 then
     export GEM_PATH=$HOME"/gems:"$GEM_PATH
