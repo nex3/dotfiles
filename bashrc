@@ -85,18 +85,12 @@ function cd1 {
     fi
 }
 
-function exists {
-    file=`which "$@"`;
-    [ ${#file} -gt 1 ]
-}
-
 alias cd='cd1'
 alias ssh='ssh -X'
-
-alias temacs="`which emacs` -nw"
-
-if ! exists pager;               then alias pager="less"; fi
-if exists rlwrap && ! exists rl; then alias rl="rlwrap";  fi
+alias svni='svn --ignore-externals'
+alias temacs="emacs -nw"
+alias pager='less'
+alias rl='rlwrap'
 
 if [ -e $HOME"/gems" ]
 then
