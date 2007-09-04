@@ -86,7 +86,7 @@ function cd1 {
 }
 
 function exists {
-    file=`whereis "$@"`;
+    file=`which "$@"`;
     [ ${#file} -gt 1 ]
 }
 
@@ -95,20 +95,8 @@ alias ssh='ssh -X'
 
 alias temacs="`which emacs` -nw"
 
-if exists pager
-then false;
-else
-    alias pager="less"
-fi
-
-if exists rlwrap
-then
-    if exists rl
-    then false;
-    else
-        alias rl="rlwrap"
-    fi
-fi
+if ! exists pager;               then alias pager="less"; fi
+if exists rlwrap && ! exists rl; then alias rl="rlwrap";  fi
 
 if [ -e $HOME"/gems" ]
 then
