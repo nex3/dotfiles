@@ -58,7 +58,7 @@
 ;; -- Useful Functions
 ;; ----------
 
-(defvar blog-url "http://nex3.leeweiz.net"
+(defvar blog-url "http://nex-3.com"
   "The URL of my blog.")
 
 (defmacro http-try-post (&rest args)
