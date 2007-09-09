@@ -1,20 +1,16 @@
-;; -*- mode: emacs-lisp; -*-
+;; -*- mode: emacs-lisp -*-
 ;; Nathan Weizenbaum's .emacs file
-
-;; -- Useful Reference Variables --
 
 ;; ----------
 ;; -- Random Customizations and Configurations
 ;; ----------
 
 ;; Set the font.
-;; TODO: Get other fonts for other computers.
 (if window-system
     (cond ((>= emacs-major-version 23)
            (set-frame-font "Monospace-8"))
           ((x-list-fonts "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")
-           (set-frame-font "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")))
-  nil)
+           (set-frame-font "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1"))))
 
 ;; Stupid annoying backups.
 (setq make-backup-files nil)
@@ -37,8 +33,6 @@
 ; Yes-or-no questions accept y or n
 (fset 'yes-or-no-p 'y-or-n-p)
 
-;; -- Set default minor modes --
-
 ;; I hate hard tabs!
 (setq-default indent-tabs-mode nil)
 
@@ -53,6 +47,52 @@
 
 ;; Syntax highlighting rocks.
 (global-font-lock-mode 1)
+
+;; ----------
+;; -- Loading Modules
+;; ----------
+
+(add-to-list 'load-path "/usr/share/emacs/site-lisp")
+(add-to-list 'load-path "~/.elisp")
+
+(require 'http-post)
+(require 'color-theme)
+(require 'psvn)
+(require 'pager)
+
+(require 'textile-mode)
+(require 'haml-mode)
+(require 'sass-mode)
+(require 'rhtml-mode)
+(require 'yaml-mode)
+(require 'ruby-mode)
+(require 'css-mode)
+(require 'rhtml-mode)
+
+(autoload 'javascript-mode "javascript"  "Major mode for editing Javascript code." t)
+(autoload 'csharp-mode     "csharp-mode" "Major mode for editing C# code." t)
+(autoload 'd-mode          "d-mode"      "Major mode for editing D code." t)
+
+(load "~/.elisp/haskell-mode/haskell-site-file")
+
+(add-to-list 'auto-mode-alist '("\\.js$" . javascript-mode))
+(add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
+(add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
+(add-to-list 'auto-mode-alist '("\\.nlsp$" . lisp-mode))
+(add-to-list 'auto-mode-alist '("\\.cs$" . csharp-mode))
+(add-to-list 'auto-mode-alist '("\\.xhtml$" . html-mode))
+(add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
+(add-to-list 'auto-mode-alist '("\\.rjs$" . ruby-mode))
+(add-to-list 'auto-mode-alist '("Rakefile$" . ruby-mode))
+(add-to-list 'auto-mode-alist '("\\.rake$" . ruby-mode))
+(add-to-list 'auto-mode-alist '("\\.css$" . css-mode))
+(add-to-list 'auto-mode-alist '("\\.d[i]?\\'$" . d-mode))
+(add-to-list 'auto-mode-alist '("blog$" . textile-mode))
+
+(add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
+(add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
+
+(add-hook 'd-mode-hook (lambda () (setq tab-width 4)))
 
 ;; ----------
 ;; -- Useful Functions
@@ -118,8 +158,6 @@
             (insert result))
           (shell-command (concat "firefox " tmp)))))))
 
-;; Kill All Buffers without prompting.
-;; Modified from kill-some-buffers in files.el, which prompts too much.
 ;; Created by Akkana.
 (defun kill-all-buffers ()
   "Kill all buffers without prompting."
@@ -137,120 +175,73 @@
   (interactive)
   (find-file "~/.emacs" t))
 
-;; ----------
-;; -- Loading Modes -- ;;
-;; ----------
+(defun x-clipboard-only-yank ()
+  "Insert the clipboard contents (but never killed text) at the mark"
+  (interactive)
+  (insert (x-get-clipboard)))
 
-(add-to-list 'load-path "/usr/share/emacs/site-lisp")
-(add-to-list 'load-path "~/.elisp")
-(add-to-list 'load-path "~/.elisp/rails")
+(defun select-next-window ()
+  "Switch to the next window"
+     (interactive)
+     (select-window (next-window)))
 
-(autoload 'javascript-mode "javascript" nil t)
-(autoload 'csharp-mode "csharp-mode" "Major mode for editing C# code." t)
-(autoload 'd-mode "d-mode" "Major mode for editing D code." t)
-(load "~/.elisp/haskell-mode/haskell-site-file")
-
-(require 'http-post nil 't)
-(require 'color-theme)
-(require 'psvn)
-
-(require 'textile-mode nil 't)
-(require 'haml-mode nil 't)
-(require 'sass-mode nil 't)
-(require 'rhtml-mode nil 't)
-(require 'yaml-mode nil 't)
-(require 'ruby-mode nil 't)
-(require 'css-mode nil 't)
-(require 'rhtml-mode nil 't)
-
-(add-to-list 'auto-mode-alist '("\\.js$" . javascript-mode))
-(add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
-(add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
-(add-to-list 'auto-mode-alist '("\\.nlsp$" . lisp-mode))
-(add-to-list 'auto-mode-alist '("\\.cs$" . csharp-mode))
-(add-to-list 'auto-mode-alist '("\\.xhtml$" . html-mode))
-(add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
-(add-to-list 'auto-mode-alist '("\\.rjs$" . ruby-mode))
-(add-to-list 'auto-mode-alist '("Rakefile$" . ruby-mode))
-(add-to-list 'auto-mode-alist '("\\.rake$" . ruby-mode))
-(add-to-list 'auto-mode-alist '("\\.css$" . css-mode))
-(add-to-list 'auto-mode-alist '("\\.d[i]?\\'$" . d-mode))
-(add-to-list 'auto-mode-alist '("blog$" . textile-mode))
-
-(add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
-(add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
-;;(add-hook 'haskell-mode-hook 'turn-on-haskell-simple-indent)
-
-(if window-system
-    (progn (color-theme-initialize)
-           (load-theme 'alexandres)
-           (my-color-theme-dark))
-  nil)
-
-(defun set-four-tabs ()
-  (setq tab-width 4))
-(add-hook 'd-mode-hook 'set-four-tabs)
+(defun select-previous-window ()
+  "Switch to the previous window"
+     (interactive)
+     (select-window (previous-window)))
 
 ;; ----------
 ;; -- Keybindings
 ;; ----------
 
-;; Wow I hate these.
-(global-unset-key "\C-xp")
-(global-unset-key "\C-xn")
+(setq real-keyboard-keys
+      '(("M-<up>"        . "O1;3A")
+        ("M-<down>"      . "O1;3B")
+        ("M-<right>"     . "O1;3C")
+        ("M-<left>"      . "O1;3D")
+        ("C-<return>"    . "C-j")
+        ("C-<delete>"    . "[3;5~")
+        ("C-<left>"      . "01;5A")
+        ("C-<right>"     . "01;5B")
+        ("C-<up>"        . "01;5C")
+        ("C-<down>"      . "01;5D")
+        ("C-<backspace>" . "O1;5D")))
+(defun key (desc)
+  (or (and window-system (read-kbd-macro desc))
+      (or (cdr (assoc desc real-keyboard-keys))
+          (read-kbd-macro desc))))
 
-;; -- Useful Arrow Key / Deletion Bindings --
+(global-unset-key (key "C-x p"))
+(global-unset-key (key "C-x n"))
+
+(global-set-key (key "C-<backspace>") 'backward-kill-word)
+(global-set-key (key "C-<delete>")    'kill-word)
+(global-set-key (key "C-<left>")      'backward-word)
+(global-set-key (key "C-<right>")     'forward-word)
+(global-set-key (key "C-<up>")        'backward-paragraph)
+(global-set-key (key "C-<down>")      'forward-paragraph)
+
+(global-set-key (key "<next>")   'pager-page-down)
+(global-set-key (key "<prior>")  'pager-page-up)
+(global-set-key (key "M-<up>")   'pager-row-up)
+(global-set-key (key "M-<down>") 'pager-row-down)
+
+(global-set-key (key "C-v") 'x-clipboard-only-yank)
+(global-set-key (key "C-z") 'clipboard-kill-region)
+
+(global-set-key (key "M-<right>") 'select-next-window)
+(global-set-key (key "M-<left>")  'select-previous-window)
+
+(define-key global-map (key "C-<return>") 'comment-indent-new-line)
+
+
+;; ----------
+;; -- Actual Initialization
+;; ----------
 
 (if window-system
-    (global-set-key "O1;5D" 'backward-kill-word)
-  (progn
-    (global-set-key "[3;5~" 'kill-word)
-    (global-set-key "O1;5C" 'forward-word)
-    (global-set-key "O1;5D" 'backward-word)
-    (global-set-key "O1;5A" 'backward-paragraph)
-    (global-set-key "O1;5B" 'forward-paragraph)))
+    (progn
+      (color-theme-initialize)
+      (load-theme 'alexandres)
+      (my-color-theme-dark)))
 
-;; -- Pager Keybindings --
-
-(require 'pager)
-(global-set-key (kbd "<next>") 'pager-page-down)
-(global-set-key (kbd "<prior>") 'pager-page-up)
-(global-set-key "O1;3A" 'pager-row-up)
-(global-set-key "O1;3B" 'pager-row-down)
-
-;; -- X Clipboard Copy/Paste Keybindings --
-
-(defun x-clipboard-only-yank ()
-  "Insert the clipboard contents (but never killed text)"
-  (interactive)
-  (insert (x-get-clipboard)))
-
-(global-set-key (kbd "C-v") 'x-clipboard-only-yank)
-(global-set-key (kbd "C-z") 'clipboard-kill-region)
-
-;; -- Other Random Keybindings --
-
-;; C-return also comments and indents
-(define-key global-map (if window-system
-                           [C-return] (kbd "C-j"))
-  'comment-indent-new-line)
-
-(defun select-next-frame ()
-  "Switch to the next frame"
-     (interactive)
-     (select-window (next-window)))
-
-(defun select-previous-frame ()
-  "Switch to the next frame"
-     (interactive)
-     (select-window (previous-window)))
-
-;; M-right switches frame
-(define-key global-map (if window-system
-                           [(meta right)] "O1;3C")
-  'select-next-frame)
-
-;; M-left switches frame backwards
-(define-key global-map (if window-system
-                           [(meta left)] "O1;3D")
-  'select-previous-frame)
