@@ -218,6 +218,16 @@
 (global-set-key "O1;3A" 'pager-row-up)
 (global-set-key "O1;3B" 'pager-row-down)
 
+;; -- X Clipboard Copy/Paste Keybindings --
+
+(defun x-clipboard-only-yank ()
+  "Insert the clipboard contents (but never killed text)"
+  (interactive)
+  (insert (x-get-clipboard)))
+
+(global-set-key (kbd "C-v") 'x-clipboard-only-yank)
+(global-set-key (kbd "C-z") 'clipboard-kill-region)
+
 ;; -- Other Random Keybindings --
 
 ;; C-return also comments and indents
