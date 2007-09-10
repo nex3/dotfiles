@@ -2,8 +2,16 @@
 ;; Nathan Weizenbaum's .emacs file
 
 ;; ----------
-;; -- Random Customizations and Configurations
+;; -- Do This First
 ;; ----------
+
+;; No welcome screen
+(setq inhibit-startup-message t)
+
+;; 'Tupid toolbar
+(tool-bar-mode -1)
+(menu-bar-mode -1)
+(toggle-scroll-bar -1)
 
 ;; Set the font.
 (if window-system
@@ -12,51 +20,21 @@
           ((x-list-fonts "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")
            (set-frame-font "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1"))))
 
-;; Stupid annoying backups.
-(setq make-backup-files nil)
+(add-to-list 'load-path "/usr/share/emacs/site-lisp")
+(add-to-list 'load-path "~/.elisp")
+(require 'color-theme)
 
-;; No welcome screen
-(setq inhibit-startup-message t)
-
-;; Ignore extensions for stuff I don't care about
-(setq completion-ignored-extensions
-      '(".a" ".so" ".o" "~" ".bak" ".class" ".hi"))
-
-;; Don't wrap lines
-(setq default-truncate-lines t)
-
-;; 'Tupid toolbar
-(tool-bar-mode -1)
-(menu-bar-mode -1)
-(toggle-scroll-bar -1)
-
-; Yes-or-no questions accept y or n
-(fset 'yes-or-no-p 'y-or-n-p)
-
-;; I hate hard tabs!
-(setq-default indent-tabs-mode nil)
-
-;; Column numbering
-(setq column-number-mode t)
-
-;; I like my backspace key working
-(setq normal-erase-is-backspace-mode 0)
-
-;; Annoying quit message
-(setq save-abbrevs nil)
-
-;; Syntax highlighting rocks.
-(global-font-lock-mode 1)
+(if window-system
+    (progn
+      (color-theme-initialize)
+      (load-theme 'alexandres)
+      (my-color-theme-dark)))
 
 ;; ----------
 ;; -- Loading Modules
 ;; ----------
 
-(add-to-list 'load-path "/usr/share/emacs/site-lisp")
-(add-to-list 'load-path "~/.elisp")
-
 (require 'http-post)
-(require 'color-theme)
 (require 'psvn)
 (require 'pager)
 
@@ -92,7 +70,42 @@
 (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
 (add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
 
-(add-hook 'd-mode-hook (lambda () (setq tab-width 4)))
+(defun d-mode-hook ()
+  (c-set-style "gnu")
+  (c-set-offset 'substatement-open '0))
+(add-hook 'd-mode-hook 'd-mode-hook)
+
+;; ----------
+;; -- Random Customizations and Configurations
+;; ----------
+
+;; Stupid annoying backups.
+(setq make-backup-files nil)
+
+;; Ignore extensions for stuff I don't care about
+(setq completion-ignored-extensions
+      '(".a" ".so" ".o" "~" ".bak" ".class" ".hi"))
+
+;; Don't wrap lines
+(setq default-truncate-lines t)
+
+; Yes-or-no questions accept y or n
+(fset 'yes-or-no-p 'y-or-n-p)
+
+;; I hate hard tabs!
+(setq-default indent-tabs-mode nil)
+
+;; Column numbering
+(setq column-number-mode t)
+
+;; I like my backspace key working
+(setq normal-erase-is-backspace-mode 0)
+
+;; Annoying quit message
+(setq save-abbrevs nil)
+
+;; Syntax highlighting rocks.
+(global-font-lock-mode 1)
 
 ;; ----------
 ;; -- Useful Functions
@@ -233,15 +246,4 @@
 (global-set-key (key "M-<left>")  'select-previous-window)
 
 (define-key global-map (key "C-<return>") 'comment-indent-new-line)
-
-
-;; ----------
-;; -- Actual Initialization
-;; ----------
-
-(if window-system
-    (progn
-      (color-theme-initialize)
-      (load-theme 'alexandres)
-      (my-color-theme-dark)))
 
