@@ -225,6 +225,7 @@
 
 (global-unset-key (key "C-x p"))
 (global-unset-key (key "C-x n"))
+(global-unset-key (key "C-x C-z"))
 
 (if window-system (global-set-key (key "C-<backspace>") 'backward-kill-word))
 
