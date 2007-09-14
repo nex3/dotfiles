@@ -6,8 +6,10 @@
   (interactive)
   ;; highlight the line where the cursor is
   (global-hl-line-mode t)
-  (set-face-background 'hl-line "gray20")
-  (set-face-foreground 'hl-line nil)
+  (if (facep 'hl-line)
+      (progn
+	(set-face-background 'hl-line "gray20")
+	(set-face-foreground 'hl-line nil)))
   ;; main theme
   (color-theme-install
    '(my-color-theme-dark

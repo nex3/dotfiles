@@ -34,7 +34,7 @@
      (textile-ul-bullet-face ((t (:foreground "#398EE6")))))))
 
 (color-theme-initialize)
-(load-theme 'alexandres)
+(load "alexandres-theme")
 (my-color-theme-dark)
 (setq color-theme-is-cumulative t)
 (my-color-theme-mods)
@@ -92,7 +92,7 @@
 (setq make-backup-files nil)
 
 ;; No line highlighting for console mode
-(setq global-hl-line-mode window-system)
+(if (not window-system) (global-hl-line-mode))
 
 ;; Ignore extensions for stuff I don't care about
 (setq completion-ignored-extensions
@@ -226,10 +226,10 @@
         ("M-<left>"      . "[1;3D")
         ("C-<return>"    . "\C-j")
         ("C-<delete>"    . "[3;5~")
-        ("C-<up>"        . "O1;5A")
-        ("C-<down>"      . "O1;5B")
-        ("C-<right>"     . "O1;5C")
-        ("C-<left>"      . "O1;5D")))
+        ("C-<up>"        . "[1;5A")
+        ("C-<down>"      . "[1;5B")
+        ("C-<right>"     . "[1;5C")
+        ("C-<left>"      . "[1;5D")))
 (defun key (desc)
   (or (and window-system (read-kbd-macro desc))
       (or (cdr (assoc desc real-keyboard-keys))
