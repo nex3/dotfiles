@@ -220,10 +220,10 @@
 ;; ----------
 
 (setq real-keyboard-keys
-      '(("M-<up>"        . "O1;3A")
-        ("M-<down>"      . "O1;3B")
-        ("M-<right>"     . "O1;3C")
-        ("M-<left>"      . "O1;3D")
+      '(("M-<up>"        . "[1;3A")
+        ("M-<down>"      . "[1;3B")
+        ("M-<right>"     . "[1;3C")
+        ("M-<left>"      . "[1;3D")
         ("C-<return>"    . "\C-j")
         ("C-<delete>"    . "[3;5~")
         ("C-<up>"        . "O1;5A")
