@@ -24,11 +24,20 @@
 (add-to-list 'load-path "~/.elisp")
 (require 'color-theme)
 
-(if window-system
-    (progn
-      (color-theme-initialize)
-      (load-theme 'alexandres)
-      (my-color-theme-dark)))
+(defun my-color-theme-mods ()
+  (interactive)
+  (color-theme-install
+   '(my-color-theme-mods
+     (())
+     (mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
+     (textile-link-face ((t (:foreground "#398EE6"))))
+     (textile-ul-bullet-face ((t (:foreground "#398EE6")))))))
+
+(color-theme-initialize)
+(load-theme 'alexandres)
+(my-color-theme-dark)
+(setq color-theme-is-cumulative t)
+(my-color-theme-mods)
 
 ;; ----------
 ;; -- Loading Modules
@@ -81,6 +90,9 @@
 
 ;; Stupid annoying backups.
 (setq make-backup-files nil)
+
+;; No line highlighting for console mode
+(setq global-hl-line-mode window-system)
 
 ;; Ignore extensions for stuff I don't care about
 (setq completion-ignored-extensions
