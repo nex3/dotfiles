@@ -43,6 +43,19 @@
 ;; -- Loading Modules
 ;; ----------
 
+(defun try-require (name &rest rest)
+  "Same as require, but catches file errors.
+If the module can't be loaded, sets <name>-required to nil.
+Otherwise, sets it to t."
+  (let ((var (intern (concat (symbol-name name) "-required"))))
+    (condition-case err
+        (progn (apply 'require (cons name rest))
+               (set-variable var t))
+      (file-error (set-variable var nil)))))
+
+(try-require 'erc)
+(if erc-required (load "erc-page-me"))
+
 (require 'http-post)
 (require 'psvn)
 (require 'pager)
@@ -83,6 +96,9 @@
   (c-set-style "gnu")
   (c-set-offset 'substatement-open '0))
 (add-hook 'd-mode-hook 'd-mode-hook)
+
+(if erc-required
+    (setq erc-keywords '("nex3" "Nathan")))
 
 ;; ----------
 ;; -- Random Customizations and Configurations
@@ -205,6 +221,12 @@
   (interactive)
   (insert (x-get-clipboard)))
 
+(defun nex3-erc ()
+  "Open an ERC client with my credentials"
+  (interactive)
+  (let ((passwd (read-passwd "Password: ")))
+    (erc :server "irc.freenode.net" :port "6667" :nick "nex3" :password passwd :full-name "Nathan Weizenbaum")))
+
 (defun select-next-window ()
   "Switch to the next window"
   (interactive)
@@ -258,7 +280,7 @@
 (global-set-key (key "M-<right>") 'select-next-window)
 (global-set-key (key "M-<left>")  'select-previous-window)
 
-(define-key global-map (key "C-<return>") 'comment-indent-new-line)
+(global-set-key (key "C-<return>") 'comment-indent-new-line)
 
 ;; My Keymap
 
@@ -266,3 +288,4 @@
 (global-set-key (key "C-n") nex3-map)
 
 (global-set-key (key "C-n .") '.emacs)
+(global-set-key (key "C-n e") 'nex3-erc)
