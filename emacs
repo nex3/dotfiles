@@ -207,13 +207,13 @@
 
 (defun select-next-window ()
   "Switch to the next window"
-     (interactive)
-     (select-window (next-window)))
+  (interactive)
+  (select-window (next-window)))
 
 (defun select-previous-window ()
   "Switch to the previous window"
-     (interactive)
-     (select-window (previous-window)))
+  (interactive)
+  (select-window (previous-window)))
 
 ;; ----------
 ;; -- Keybindings
@@ -260,3 +260,9 @@
 
 (define-key global-map (key "C-<return>") 'comment-indent-new-line)
 
+;; My Keymap
+
+(define-prefix-command 'nex3 'nex3-map)
+(global-set-key (key "C-n") nex3-map)
+
+(global-set-key (key "C-n .") '.emacs)
