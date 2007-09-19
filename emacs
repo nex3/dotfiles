@@ -87,7 +87,6 @@ Otherwise, sets it to t."
 (add-to-list 'auto-mode-alist '("\\.rake$" . ruby-mode))
 (add-to-list 'auto-mode-alist '("\\.css$" . css-mode))
 (add-to-list 'auto-mode-alist '("\\.d[i]?\\'$" . d-mode))
-(add-to-list 'auto-mode-alist '("blog$" . textile-mode))
 
 (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
 (add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
@@ -150,10 +149,11 @@ Otherwise, sets it to t."
        (kill-buffer (process-buffer proc))
        (if (>= status 400) nil result))))
 
-(defun blog-try-post (title)
+(defun blog-try-post (title tags)
   (let ((result
          (http-try-post (concat blog-url "/posts")
                         (list (cons "post[title]" title)
+                              (cons "post[tag_string]" tags)
                               (cons "post[content]" (buffer-string))
                               (cons "admin[pass]" (read-passwd "Password: "))
                               '("admin[name]" . "Nathan"))
@@ -163,11 +163,12 @@ Otherwise, sets it to t."
            (string-match "<a href=\"\\([^\"]+\\)\">" result)
            (match-string 1 result)))))
 
-(defun blog-post-entry (&optional title)
+(defun blog-post-entry (&optional title tags)
   "Post an entry to my blog"
   (interactive)
   (setq title (or title (read-from-minibuffer "Post title: ")))
-  (let ((link (blog-try-post title)))
+  (setq tags  (or tags  (read-from-minibuffer "Tags: ")))
+  (let ((link (blog-try-post title tags)))
     (if (not link)
         (progn
           (message "Invalid password.")
@@ -198,6 +199,10 @@ Otherwise, sets it to t."
           (with-temp-file tmp
             (insert result))
           (shell-command (concat "firefox " tmp)))))))
+
+(defun blog ()
+  (find-file "/tmp/blog")
+  (textile-mode))
 
 ;; Created by Akkana.
 (defun kill-all-buffers ()
@@ -289,3 +294,4 @@ Otherwise, sets it to t."
 
 (global-set-key (key "C-n .") '.emacs)
 (global-set-key (key "C-n e") 'nex3-erc)
+(global-set-key (key "C-n b") 'blog)
