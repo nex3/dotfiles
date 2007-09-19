@@ -201,6 +201,8 @@ Otherwise, sets it to t."
           (shell-command (concat "firefox " tmp)))))))
 
 (defun blog ()
+  "Open up my blog file"
+  (interactive)
   (find-file "/tmp/blog")
   (textile-mode))
 
