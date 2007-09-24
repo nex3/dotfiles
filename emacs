@@ -203,7 +203,7 @@ Otherwise, sets it to t."
         (progn
           (message "Invalid password.")
           (sit-for 1)
-          (blog-post-entry title))
+          (blog-post-entry title tags))
       (progn
         (shell-command (concat "firefox " link))
         (message "Successfully posted.")))))
