@@ -39,6 +39,22 @@
 (setq color-theme-is-cumulative t)
 (my-color-theme-mods)
 
+(setq real-keyboard-keys
+      '(("M-<up>"        . "[1;3A")
+        ("M-<down>"      . "[1;3B")
+        ("M-<right>"     . "[1;3C")
+        ("M-<left>"      . "[1;3D")
+        ("C-<return>"    . "\C-j")
+        ("C-<delete>"    . "[3;5~")
+        ("C-<up>"        . "[1;5A")
+        ("C-<down>"      . "[1;5B")
+        ("C-<right>"     . "[1;5C")
+        ("C-<left>"      . "[1;5D")))
+(defun key (desc)
+  (or (and window-system (read-kbd-macro desc))
+      (or (cdr (assoc desc real-keyboard-keys))
+          (read-kbd-macro desc))))
+
 ;; ----------
 ;; -- Loading Modules
 ;; ----------
@@ -55,6 +71,8 @@ Otherwise, sets it to t."
 
 (try-require 'erc)
 (if erc-required (load "erc-page-me"))
+
+(try-require 'xscheme)
 
 (require 'http-post)
 (require 'psvn)
@@ -98,6 +116,18 @@ Otherwise, sets it to t."
 
 (if erc-required
     (setq erc-keywords '("nex3" "Nathan")))
+
+(if xscheme-required
+    (progn
+      (defvar xscheme-image-location "/home/nex3/etc/xscheme.image")
+      (setq scheme-program-arguments (concat "-emacs -band " xscheme-image-location))
+
+      (defun save-xscheme-image ()
+        (interactive)
+        (xscheme-send-string (concat "(disk-save \"" xscheme-image-location "\")"))
+        (message (concat "Saved xscheme image to " xscheme-image-location)))
+
+      (define-key scheme-interaction-mode-map (key "C-x C-s") 'save-xscheme-image)))
 
 ;; ----------
 ;; -- Random Customizations and Configurations
@@ -247,22 +277,6 @@ Otherwise, sets it to t."
 ;; ----------
 ;; -- Keybindings
 ;; ----------
-
-(setq real-keyboard-keys
-      '(("M-<up>"        . "[1;3A")
-        ("M-<down>"      . "[1;3B")
-        ("M-<right>"     . "[1;3C")
-        ("M-<left>"      . "[1;3D")
-        ("C-<return>"    . "\C-j")
-        ("C-<delete>"    . "[3;5~")
-        ("C-<up>"        . "[1;5A")
-        ("C-<down>"      . "[1;5B")
-        ("C-<right>"     . "[1;5C")
-        ("C-<left>"      . "[1;5D")))
-(defun key (desc)
-  (or (and window-system (read-kbd-macro desc))
-      (or (cdr (assoc desc real-keyboard-keys))
-          (read-kbd-macro desc))))
 
 (global-unset-key (key "C-x p"))
 (global-unset-key (key "C-x n"))
