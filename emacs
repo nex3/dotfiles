@@ -78,6 +78,9 @@ Otherwise, sets it to t."
 (require 'psvn)
 (require 'pager)
 
+(require 'inf-ruby)
+(require 'rdebug)
+
 (require 'textile-mode)
 (require 'haml-mode)
 (require 'sass-mode)

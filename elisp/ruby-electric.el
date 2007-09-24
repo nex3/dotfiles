@@ -1,6 +1,6 @@
 ;; -*-Emacs-Lisp-*-
 ;;
-;; ruby-electric.el --- electric commands editing for ruby files
+;; ruby-electric.el --- electric editing commands for ruby files
 ;;
 ;; Copyright (C) 2005 by Dee Zsombor <dee dot zsombor at gmail dot com>.
 ;; Released under same license terms as Ruby.
@@ -23,6 +23,8 @@
 ;;
 ;;            (require 'ruby-electric)
 ;;
+;;       note that you need to have font lock enabled beforehand.
+;;
 ;;    2) toggle Ruby Electric Mode on/off with ruby-electric-mode.
 ;;
 ;; Changelog:
@@ -41,10 +43,16 @@
 ;;
 ;;  2005/Feb/01: explicitly provide default argument of 1 to
 ;;  'backward-word' as it requires it on Emacs 21.3
-
+;;
+;;  2005/Mar/06: now stored inside ruby CVS; customize pages now have
+;;  ruby as parent; cosmetic fixes.
 
 
 (require 'ruby-mode)
+
+(defgroup ruby-electric nil
+  "Minor mode providing electric editing commands for ruby files"
+  :group 'ruby) 
 
 (defconst ruby-electric-expandable-do-re
   "do\\s-$")
@@ -76,7 +84,7 @@ inserted. The word 'all' will do all insertions."
 	      (const :tag "Quote" ?\' )
 	      (const :tag "Double quote" ?\" )
 	      (const :tag "Back quote" ?\` )
-	      (const :tag "Veritcal bar" ?\| ))
+	      (const :tag "Vertical bar" ?\| ))
   :group 'ruby-electric) 
 
 (defcustom ruby-electric-newline-before-closing-bracket nil
@@ -85,7 +93,7 @@ closing bracket or not."
   :type 'boolean :group 'ruby-electric)
 
 (define-minor-mode ruby-electric-mode
-  "Toggle Ruby Electric mode.
+  "Toggle Ruby Electric minor mode.
 With no argument, this command toggles the mode.  Non-null prefix
 argument turns on the mode.  Null prefix argument turns off the
 mode.
