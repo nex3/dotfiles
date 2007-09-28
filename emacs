@@ -74,6 +74,7 @@ Otherwise, sets it to t."
 (if erc-required (load "erc-page-me"))
 
 (try-require 'xscheme)
+(setq auctex-required (load "auctex" t))
 
 (require 'http-post)
 (require 'psvn)
@@ -132,6 +133,13 @@ Otherwise, sets it to t."
         (message (concat "Saved xscheme image to " xscheme-image-location)))
 
       (define-key scheme-interaction-mode-map (key "C-x C-s") 'save-xscheme-image)))
+
+(if auctex-required
+    (progn
+      (with-temp-buffer (LaTeX-mode))
+      (TeX-global-PDF-mode)
+      (setcdr (assoc "^pdf$" TeX-output-view-style)
+              '("." "evince %o"))))
 
 ;; ----------
 ;; -- Random Customizations and Configurations
