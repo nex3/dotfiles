@@ -245,7 +245,7 @@ Otherwise, sets it to t."
 (defun blog ()
   "Open up my blog file"
   (interactive)
-  (find-file "/tmp/blog")
+  (find-file "~/etc/blog")
   (textile-mode))
 
 ;; Created by Akkana.
