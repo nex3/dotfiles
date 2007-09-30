@@ -324,3 +324,4 @@ Otherwise, sets it to t."
 (global-set-key (key "C-n e") 'nex3-erc)
 (global-set-key (key "C-n b") 'blog)
 (global-set-key (key "C-n c") 'comment-region)
+(global-set-key (key "C-n u") 'comment-region)
