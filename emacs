@@ -323,3 +323,4 @@ Otherwise, sets it to t."
 (global-set-key (key "C-n .") '.emacs)
 (global-set-key (key "C-n e") 'nex3-erc)
 (global-set-key (key "C-n b") 'blog)
+(global-set-key (key "C-n c") 'comment-region)
