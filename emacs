@@ -176,6 +176,9 @@ Otherwise, sets it to t."
 ;; Syntax highlighting rocks.
 (global-font-lock-mode 1)
 
+;; Don't ask about version-controlled symlinks.
+(setq vc-follow-symlinks t)
+
 ;; ----------
 ;; -- Useful Functions
 ;; ----------
@@ -314,6 +317,8 @@ Otherwise, sets it to t."
 (global-set-key (key "M-<left>")  'select-previous-window)
 
 (global-set-key (key "C-<return>") 'comment-indent-new-line)
+
+(global-set-key (key "M-/") 'hippie-expand)
 
 ;; My Keymap
 
