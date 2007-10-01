@@ -325,3 +325,11 @@ Otherwise, sets it to t."
 (global-set-key (key "C-n b") 'blog)
 (global-set-key (key "C-n c") 'comment-region)
 (global-set-key (key "C-n u") 'uncomment-region)
+
+(defun make-directory-from-line ()
+  "Create a directory at the location given by the minibuffer,
+which should be selected."
+  (interactive)
+  (make-directory (minibuffer-contents) t)
+  (princ (concat "Created directory " (minibuffer-contents))))
+(global-set-key (key "C-n m") 'make-directory-from-line)
