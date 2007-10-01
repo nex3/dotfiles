@@ -40,17 +40,20 @@
 (setq color-theme-is-cumulative t)
 (my-color-theme-mods)
 
-(setq real-keyboard-keys
-      '(("M-<up>"        . "[1;3A")
-        ("M-<down>"      . "[1;3B")
-        ("M-<right>"     . "[1;3C")
-        ("M-<left>"      . "[1;3D")
-        ("C-<return>"    . "\C-j")
-        ("C-<delete>"    . "[3;5~")
-        ("C-<up>"        . "[1;5A")
-        ("C-<down>"      . "[1;5B")
-        ("C-<right>"     . "[1;5C")
-        ("C-<left>"      . "[1;5D")))
+(defvar real-keyboard-keys
+  '(("M-<up>"        . "\M-[1;3A")
+    ("M-<down>"      . "\M-[1;3B")
+    ("M-<right>"     . "\M-[1;3C")
+    ("M-<left>"      . "\M-[1;3D")
+    ("C-<return>"    . "\C-j")
+    ("C-<delete>"    . "\M-[3;5~")
+    ("C-<up>"        . "\M-[1;5A")
+    ("C-<down>"      . "\M-[1;5B")
+    ("C-<right>"     . "\M-[1;5C")
+    ("C-<left>"      . "\M-[1;5D"))
+  "An assoc list of pretty key strings
+and their terminal equivalents.")
+
 (defun key (desc)
   (or (and window-system (read-kbd-macro desc))
       (or (cdr (assoc desc real-keyboard-keys))
