@@ -182,6 +182,9 @@ Otherwise, sets it to t."
 ;; Don't ask about version-controlled symlinks.
 (setq vc-follow-symlinks t)
 
+;; Confirm killing emacs
+(setq confirm-kill-emacs 'y-or-n-p)
+
 ;; ----------
 ;; -- Useful Functions
 ;; ----------
