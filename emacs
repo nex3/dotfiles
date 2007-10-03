@@ -286,16 +286,6 @@ Otherwise, sets it to t."
   (let ((passwd (read-passwd "Password: ")))
     (erc :server "irc.freenode.net" :port "6667" :nick "nex3" :password passwd :full-name "Nathan Weizenbaum")))
 
-(defun select-next-window ()
-  "Switch to the next window"
-  (interactive)
-  (select-window (next-window)))
-
-(defun select-previous-window ()
-  "Switch to the previous window"
-  (interactive)
-  (select-window (previous-window)))
-
 (defun make-directory-from-minibuffer ()
   "Create a directory at the location given by the minibuffer,
 which should be selected."
@@ -321,14 +311,14 @@ which should be selected."
 
 (global-set-key (key "<next>")   'pager-page-down)
 (global-set-key (key "<prior>")  'pager-page-up)
-(global-set-key (key "M-<up>")   'pager-row-up)
-(global-set-key (key "M-<down>") 'pager-row-down)
 
 (global-set-key (key "C-v") 'x-clipboard-only-yank)
 (global-set-key (key "C-z") 'clipboard-kill-region)
 
-(global-set-key (key "M-<right>") 'select-next-window)
-(global-set-key (key "M-<left>")  'select-previous-window)
+(global-set-key (key "M-<right>") 'windmove-right)
+(global-set-key (key "M-<left>")  'windmove-left)
+(global-set-key (key "M-<up>")  'windmove-up)
+(global-set-key (key "M-<down>")  'windmove-down)
 
 (global-set-key (key "C-<return>") 'comment-indent-new-line)
 
