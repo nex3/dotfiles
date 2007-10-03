@@ -254,6 +254,7 @@ Otherwise, sets it to t."
 (defun blog ()
   "Open up my blog file"
   (interactive)
+  (unless (file-exists-p "~/etc") (make-directory "~/etc"))
   (find-file "~/etc/blog")
   (textile-mode))
 
