@@ -185,6 +185,9 @@ Otherwise, sets it to t."
 ;; Confirm killing emacs
 (setq confirm-kill-emacs 'y-or-n-p)
 
+;; M-<direction> wraps
+(setq windmove-wrap-around t)
+
 ;; ----------
 ;; -- Useful Functions
 ;; ----------
