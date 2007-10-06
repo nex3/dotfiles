@@ -73,11 +73,20 @@ Otherwise, sets it to t."
                (set-variable var t))
       (file-error (set-variable var nil)))))
 
+(defun try-load (name &rest rest)
+  "Same as load, but if the file doesn't exist,
+sets <name>-required to nil. Otherwise, sets it to t.
+All optional args are the same, except that
+try-load doesn't take a noerror option."
+  (set-variable
+   (intern (concat name "-required"))
+   (apply 'load (cons name (cons t rest)))))
+
 (try-require 'erc)
 (if erc-required (load "erc-page-me"))
 
 (try-require 'xscheme)
-(setq auctex-required (load "auctex" t))
+(try-load "auctex")
 
 (require 'http-post)
 (require 'psvn)
