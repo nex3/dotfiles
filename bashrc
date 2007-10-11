@@ -26,7 +26,11 @@ shopt -s checkwinsize
 # enable color ls
 if [ "$TERM" != "dumb" ]; then
     [ -x /usr/bin/dircolors ] && eval "`dircolors -b`"
-    alias ls='ls --color=auto'
+    if [ $SYSNAME = Calliope ]; then
+        alias ls='ls -G'
+    else
+        alias ls='ls --color=auto'
+    fi
 fi
 
 ## Pretty Prompt Configuration
@@ -91,7 +95,7 @@ then
     export PATH=$HOME"/gems/bin:"$PATH
 fi
 
-export PATH=$HOME"/bin:/var/lib/gems/1.8/bin/:"$PATH
+export PATH=$HOME"/bin:/var/lib/gems/1.8/bin/:/usr/local/bin:"$PATH
 export SVN_EDITOR='emacs -nw'
 
 ## ----------
