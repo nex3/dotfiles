@@ -26,7 +26,7 @@ shopt -s checkwinsize
 # enable color ls
 if [ "$TERM" != "dumb" ]; then
     [ -x /usr/bin/dircolors ] && eval "`dircolors -b`"
-    if [ $SYSNAME = Calliope ]; then
+    if [ "$SYSNAME" = Calliope ]; then
         alias ls='ls -G'
     else
         alias ls='ls --color=auto'
