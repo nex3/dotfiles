@@ -91,6 +91,7 @@ try-load doesn't take a noerror option."
 (require 'http-post)
 (require 'psvn)
 (require 'pager)
+(require 'maxframe)
 
 (require 'inf-ruby)
 (require 'rdebug)
@@ -103,7 +104,7 @@ try-load doesn't take a noerror option."
 (require 'ruby-mode)
 (require 'css-mode)
 (require 'rhtml-mode)
-(require 'maxframe)
+(load "graphviz-dot-mode.el")
 
 (autoload 'javascript-mode "javascript"  "Major mode for editing Javascript code." t)
 (autoload 'csharp-mode     "csharp-mode" "Major mode for editing C# code." t)
