@@ -103,6 +103,7 @@ try-load doesn't take a noerror option."
 (require 'ruby-mode)
 (require 'css-mode)
 (require 'rhtml-mode)
+(require 'maxframe)
 
 (autoload 'javascript-mode "javascript"  "Major mode for editing Javascript code." t)
 (autoload 'csharp-mode     "csharp-mode" "Major mode for editing C# code." t)
@@ -132,7 +133,9 @@ try-load doesn't take a noerror option."
 (add-hook 'd-mode-hook 'd-mode-hook)
 
 (if erc-required
-    (setq erc-keywords '("nex3" "Nathan")))
+    (progn 
+      (setq erc-keywords '("nex3" "Nathan"))
+      (setq my-erc-page-timeout 5)))
 
 (if xscheme-required
     (progn
@@ -196,6 +199,16 @@ try-load doesn't take a noerror option."
 
 ;; M-<direction> wraps
 (setq windmove-wrap-around t)
+
+;; Don't yell at me for narrowing the region
+(put 'narrow-to-region 'disabled nil)
+
+;; Maximize the window on load for Macs, where there's no full maximization,
+;; and Windows, where Emacs can access the full maximization.
+(if (and window-system
+         (or (string-match system-configuration "apple")
+             (string-match system-configuration "windows")))
+    (maximize-frame))
 
 ;; ----------
 ;; -- Useful Functions
@@ -310,7 +323,6 @@ which should be selected."
 ;; ----------
 
 (global-unset-key (key "C-x p"))
-(global-unset-key (key "C-x n"))
 (global-unset-key (key "C-x C-z"))
 
 (if window-system (global-set-key (key "C-<backspace>") 'backward-kill-word))
