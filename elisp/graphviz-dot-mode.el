@@ -238,7 +238,7 @@ is loaded, so changes to this are not immediately visible."
     "octagon" "doublecircle" "doubleoctagon" "tripleoctagon" "invtriangle"
     "invtrapezium" "invhouse" "Mdiamond" "Msquare" "Mcircle" "record"
     "Mrecord" "dashed" "dotted" "solid" "invis" "bold" "filled"
-    "diagonals" "rounded" ) 
+    "diagonals" "rounded") 
   "*Keywords for attribute values. This is used by the auto completion
 code. The actual completion tables are built when the mode is loaded,
 so changes to this are not immediately visible."
@@ -400,13 +400,10 @@ The list of constant is available at http://www.research.att.com/~erg/graphviz\
     (define-key map ";"        'electric-graphviz-dot-semi)
     (define-key map "\M-\t"    'graphviz-dot-complete-word)
     (define-key map "\C-\M-q"  'graphviz-dot-indent-graph)
-    (define-key map "\C-cp"    'graphviz-dot-preview)
-    (define-key map "\C-cc"    'compile)
-    (define-key map "\C-cv"    'graphviz-dot-view)
-    (define-key map "\C-c\C-c" 'comment-region)
-    (define-key map "\C-c\C-u" 'graphviz-dot-uncomment-region)
-    (setq graphviz-dot-mode-map map)
-    ))
+    (define-key map "\C-c\C-p"    'graphviz-dot-preview)
+    (define-key map "\C-c\C-c"    'compile)
+    (define-key map "\C-c\C-v"    'graphviz-dot-view)
+    (setq graphviz-dot-mode-map map)))
 
 ;;; Syntax table
 (defvar graphviz-dot-mode-syntax-table nil
@@ -425,8 +422,7 @@ The list of constant is available at http://www.research.att.com/~erg/graphviz\
     (modify-syntax-entry ?[  "("      st)
     (modify-syntax-entry ?]  ")"      st)
     (modify-syntax-entry ?\" "\""     st)
-    (setq graphviz-dot-mode-syntax-table st)
-  ))
+    (setq graphviz-dot-mode-syntax-table st)))
 
 (defvar graphviz-dot-font-lock-keywords
   `(("\\(:?di\\|sub\\)?graph \\(\\sw+\\)"
@@ -511,19 +507,23 @@ Turning on Graphviz Dot mode calls the value of the variable
   ;; buffer file name...
   (if (buffer-file-name)
       (set (make-local-variable 'compile-command) 
-       (concat graphviz-dot-dot-program
-               " -T" graphviz-dot-preview-extension " "
-               buffer-file-name
-               " > "
-               (file-name-sans-extension
-                buffer-file-name)
-               "." graphviz-dot-preview-extension)))
+       (concat (graphviz-dot-compile-command graphviz-dot-preview-extension)
+               " && "
+               (graphviz-dot-compile-command "png"))))
   (set (make-local-variable 'compilation-parse-errors-function)
        'graphviz-dot-compilation-parse-errors)
   (if dot-menu
       (easy-menu-add dot-menu))
-  (run-hooks 'graphviz-dot-mode-hook)
-  )
+  (run-hooks 'graphviz-dot-mode-hook))
+
+(defun graphviz-dot-compile-command (ext)
+  (concat graphviz-dot-dot-program
+          " -T" ext " "
+          buffer-file-name
+          " > "
+          (file-name-sans-extension
+           buffer-file-name)
+          "." ext))
 
 ;;;; Menu definitions
 
@@ -548,8 +548,7 @@ package. Note that the latest X/Emacs releases contain this package.")
               (not (buffer-modified-p)))]
         ["External Viewer"    graphviz-dot-view             (buffer-file-name)]
         "-"
-        ["Customize..."       graphviz-dot-customize        t]
-        )))
+        ["Customize..."       graphviz-dot-customize        t])))
 
 ;;;; Compilation
 
@@ -605,7 +604,7 @@ See variable `compilation-parse-errors-functions' for interface."
           (point-marker)))
        compilation-error-list))))
     (t t))
-  (forward-line 1)) )))
+  (forward-line 1)))))
 
 ;;;;
 ;;;; Indentation
@@ -662,7 +661,7 @@ See variable `compilation-parse-errors-functions' for interface."
                        (t
                         ;; default case, indent the
                         ;; same as previous line
-                        (current-indentation)) ))) )))
+                        (current-indentation))))))))
 
 (defun graphviz-dot-indent-graph ()
   "Indent the graph/digraph/subgraph where point is at.
@@ -909,8 +908,7 @@ buffer is saved before the command is executed."
              (momentary-string-display "" (point))
              (if graphviz-dot-delete-completions
                  (delete-window 
-                  (get-buffer-window (get-buffer "*Completions*"))))
-             )))))
+                  (get-buffer-window (get-buffer "*Completions*")))))))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.dot\\'" . graphviz-dot-mode))
