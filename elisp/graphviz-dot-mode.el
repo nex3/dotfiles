@@ -509,7 +509,7 @@ Turning on Graphviz Dot mode calls the value of the variable
       (set (make-local-variable 'compile-command) 
        (concat (graphviz-dot-compile-command graphviz-dot-preview-extension)
                " && "
-               (graphviz-dot-compile-command "png"))))
+               (graphviz-dot-compile-command "pdf"))))
   (set (make-local-variable 'compilation-parse-errors-function)
        'graphviz-dot-compilation-parse-errors)
   (if dot-menu
@@ -521,8 +521,7 @@ Turning on Graphviz Dot mode calls the value of the variable
           " -T" ext " "
           buffer-file-name
           " > "
-          (file-name-sans-extension
-           buffer-file-name)
+          (file-name-sans-extension buffer-file-name)
           "." ext))
 
 ;;;; Menu definitions
