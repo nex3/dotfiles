@@ -211,9 +211,6 @@ try-load doesn't take a noerror option."
              (string-match system-configuration "windows")))
     (maximize-frame))
 
-;; Compile to ps with graphviz
-(setq graphviz-dot-preview-extension "ps")
-
 ;; ----------
 ;; -- Useful Functions
 ;; ----------
