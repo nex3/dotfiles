@@ -141,7 +141,8 @@ try-load doesn't take a noerror option."
 (if xscheme-required
     (progn
       (defvar xscheme-image-location "/home/nex3/etc/xscheme.image")
-      (setq scheme-program-arguments (concat "-emacs -band " xscheme-image-location))
+      (if (file-exists-p xscheme-image-location)
+          (setq scheme-program-arguments (concat "-emacs -band " xscheme-image-location)))
 
       (defun save-xscheme-image ()
         (interactive)
@@ -206,9 +207,10 @@ try-load doesn't take a noerror option."
 
 ;; Maximize the window on load for Macs, where there's no full maximization,
 ;; and Windows, where Emacs can access the full maximization.
-(if (and window-system
-         (or (string-match system-configuration "apple")
-             (string-match system-configuration "windows")))
+;(if (string-equal system-name "Calliope.local") (setq mf-max-height 750))
+
+(if (or (eq window-system 'mac)
+        (eq window-system 'w32))
     (maximize-frame))
 
 ;; ----------
