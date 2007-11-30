@@ -216,6 +216,9 @@ try-load doesn't take a noerror option."
 ;; Allow left-scrolling
 (put 'scroll-left 'disabled nil)
 
+;; Start server
+(server-start)
+
 ;; ----------
 ;; -- Useful Functions
 ;; ----------
