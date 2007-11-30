@@ -9,14 +9,16 @@ IRB.conf[:AUTO_INDENT] = true
 IRB.conf[:SAVE_HISTORY] = 100
 IRB.conf[:HISTORY_FILE] = "#{ENV['HOME']}/.irb.history"
 
-IRB.conf[:PROMPT][:SNAZZY] = {
-  :PROMPT_I => ">> ",
-  :PROMPT_C => "*> ",
-  :PROMPT_N => "%i> ",
-  :PROMPT_S => "%l> ",
-  :RETURN   => "==> %s\n"
-}
-IRB.conf[:PROMPT_MODE] = :SNAZZY
+if IRB.conf[:PROMPT]
+  IRB.conf[:PROMPT][:SNAZZY] = {
+    :PROMPT_I => ">> ",
+    :PROMPT_C => "*> ",
+    :PROMPT_N => "%i> ",
+    :PROMPT_S => "%l> ",
+    :RETURN   => "==> %s\n"
+  }
+  IRB.conf[:PROMPT_MODE] = :SNAZZY
+end
 
 class Object
   def local_methods(obj = self)
