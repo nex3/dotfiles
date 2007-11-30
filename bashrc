@@ -97,6 +97,7 @@ then
 fi
 
 export PATH=$HOME"/bin:/var/lib/gems/1.8/bin/:/usr/local/bin:"$PATH
+export EDITOR='emacs -nw'
 export SVN_EDITOR='emacs -nw'
 
 ## ----------
