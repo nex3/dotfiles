@@ -213,6 +213,9 @@ try-load doesn't take a noerror option."
         (eq window-system 'w32))
     (maximize-frame))
 
+;; Allow left-scrolling
+(put 'scroll-left 'disabled nil)
+
 ;; ----------
 ;; -- Useful Functions
 ;; ----------
