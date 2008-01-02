@@ -128,10 +128,13 @@ try-load doesn't take a noerror option."
 (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
 (add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
 
-(defun d-mode-hook ()
+(defun my-c-style ()
   (c-set-style "gnu")
-  (c-set-offset 'substatement-open '0))
-(add-hook 'd-mode-hook 'd-mode-hook)
+  (c-set-offset 'substatement-open '0)
+  (c-set-offset 'arglist-intro 2)
+  (c-set-offset 'arglist-close 0))
+(add-hook 'd-mode-hook 'my-c-style)
+(add-hook 'cc-mode-hook 'my-c-style)
 
 (if erc-required
     (progn 
