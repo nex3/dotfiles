@@ -33,6 +33,20 @@ if [ "$TERM" != "dumb" ]; then
     fi
 fi
 
+# Thanks to Bill Clementson for this snippet
+# http://bc.tech.coop/
+function start_or_join_screen {
+    if [ "$PS1" != "" -a "${STARTED_SCREEN:-x}" = x -a "${SSH_TTY:-x}" ]
+    then
+        STARTED_SCREEN=1 ; export STARTED_SCREEN
+        sleep 1
+        screen -RR && exit 0
+
+        # normally, execution of this rc script ends here...
+        echo "Screen failed! continuing with normal bash startup"
+    fi
+}
+
 ## Pretty Prompt Configuration
 
 # Black/white prompt for dumb terminals
@@ -41,10 +55,8 @@ PROMPT_DIR='\w'
 
 # Colorful prompt for smart terminals
 if [ "$TERM" != "dumb" ]; then
-    shared='\[\033]0;Terminal - \u@\h\007\]'
-
-    PROMPT_MAIN="$shared\[\033[01;32m\]\u@\h\[\033[00m\]"
-    PROMPT_DIR="$shared\[\033[01;34m\]\w\[\033[00m\]"
+    PROMPT_MAIN="\[\033[01;32m\]\u@\h\[\033[00m\]"
+    PROMPT_DIR="\[\033[01;34m\]\w\[\033[00m\]"
 fi
 
 # Escape directories so the forward slashes
@@ -108,4 +120,15 @@ export SVN_EDITOR='emacs -nw'
 ## -- Initialization Commands
 ## ----------
 
+# Set title
+if [ $TERM = "xterm" ]
+then
+    echo -ne '\033]0;Terminal\007'
+fi
+
+start_or_join_screen
+
+# Everything after here will only be executed on an in-screen terminal
+
 cd .
+

@@ -1,0 +1,16 @@
+altscreen on
+startup_message off
+autodetach on
+vbell off
+
+defscrollback 10000
+
+escape ^za
+
+hardstatus alwayslastline "%{.bW}%-w%{.rW}%n %t%{-}%+w %=%{..G} %H %{..Y} %m/%d %C%a "
+
+# ------------------------------------------------------------------------------
+# STARTUP SCREENS
+# ------------------------------------------------------------------------------
+
+screen -t Shell 0 bash
