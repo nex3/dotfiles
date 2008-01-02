@@ -41,8 +41,10 @@ PROMPT_DIR='\w'
 
 # Colorful prompt for smart terminals
 if [ "$TERM" != "dumb" ]; then
-    PROMPT_MAIN='\[\033[01;32m\]\u@\h\[\033[00m\]'
-    PROMPT_DIR='\[\033[01;34m\]\w\[\033[00m\]'
+    shared='\[\033]0;Terminal - \u@\h\007\]'
+
+    PROMPT_MAIN="$shared\[\033[01;32m\]\u@\h\[\033[00m\]"
+    PROMPT_DIR="$shared\[\033[01;34m\]\w\[\033[00m\]"
 fi
 
 # Escape directories so the forward slashes
@@ -96,6 +98,7 @@ then
     export PATH=$HOME"/gems/bin:"$PATH
 fi
 
+export LD_LIBRARY_PATH="/usr/local/lib:"$LD_LIBRARY_PATH
 export PATH=$HOME"/bin:/var/lib/gems/1.8/bin/:/usr/local/bin:"$PATH
 export EDITOR='emacs -nw'
 export DARCS_EDITOR=emacsclient
