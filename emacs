@@ -63,14 +63,14 @@ and their terminal equivalents.")
 ;; -- Loading Modules
 ;; ----------
 
-(autoload 'erc "erc")
-
-(require 'http-post)
 (require 'pager)
-(require 'maxframe)
 
-(autoload 'run-ruby "inf-ruby")
-(autoload 'rdebug "rdebug")
+(autoload 'erc "erc" "ERC is a powerful, modular, and extensible IRC client.
+This function is the main entry point for ERC." t)
+(autoload 'run-ruby "inf-ruby" "Run an inferior Ruby process, input and output via buffer *ruby*." t)
+(autoload 'rdebug "rdebug" "Run the Ruby debugger." t)
+(autoload 'maximize-frame "maxframe" "Maximize the Emacs frame." t)
+(autoload 'blog "blog-mode" "Open up my blog file." t)
 
 (defun autoload-mode (name regex &optional file)
   "Automatically loads a language mode
@@ -193,75 +193,6 @@ By default, it's `name'-mode.el."
 ;; ----------
 ;; -- Useful Functions
 ;; ----------
-
-(defvar blog-url "http://nex-3.com"
-  "The URL of my blog.")
-
-(defmacro http-try-post (&rest args)
-  `(let ((proc (http-post ,@args)))
-     (while (eq (process-status proc) 'open) (sit-for 0.1))
-     (let ((result (buffer-string))
-           (status http-status-code))
-       (kill-buffer (process-buffer proc))
-       (if (>= status 400) nil result))))
-
-(defun blog-try-post (title tags)
-  (let ((result
-         (http-try-post (concat blog-url "/posts")
-                        (list (cons "post[title]" title)
-                              (cons "post[tag_string]" tags)
-                              (cons "post[content]" (buffer-string))
-                              (cons "admin[pass]" (read-passwd "Password: "))
-                              '("admin[name]" . "Nathan"))
-                        'utf-8)))
-    (and result
-         (progn
-           (string-match "<a href=\"\\([^\"]+\\)\">" result)
-           (match-string 1 result)))))
-
-(defun blog-post-entry (&optional title tags)
-  "Post an entry to my blog"
-  (interactive)
-  (setq title (or title (read-from-minibuffer "Post title: ")))
-  (setq tags  (or tags  (read-from-minibuffer "Tags: ")))
-  (let ((link (blog-try-post title tags)))
-    (if (not link)
-        (progn
-          (message "Invalid password.")
-          (sit-for 1)
-          (blog-post-entry title tags))
-      (progn
-        (shell-command (concat "firefox " link))
-        (message "Successfully posted.")))))
-
-(defun blog-preview ()
-  "Preview an entry for my blog"
-  (interactive)
-  (let ((result
-         (http-try-post (concat blog-url "/posts/new.html")
-                        (list  (cons "post[content]" (buffer-string))
-                               (cons "admin[pass]" (read-passwd "Password: "))
-                               '("admin[name]" . "Nathan"))
-                        'utf-8)))
-    (if (not result)
-        (progn
-          (message "Invalid password.")
-          (sit-for 1)
-          (blog-preview))
-      (progn
-        (while (string-match "\\(href\\|src\\)=\\(\"\\|'\\)/" result)
-          (setq result (replace-match (concat "\\1=\\2" blog-url "/") t nil result)))
-        (let ((tmp (concat (make-temp-file "blog") ".html")))
-          (with-temp-file tmp
-            (insert result))
-          (shell-command (concat "firefox " tmp)))))))
-
-(defun blog ()
-  "Open up my blog file"
-  (interactive)
-  (unless (file-exists-p "~/etc") (make-directory "~/etc"))
-  (find-file "~/etc/blog")
-  (textile-mode))
 
 ;; Created by Akkana.
 (defun kill-all-buffers ()
