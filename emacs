@@ -63,70 +63,45 @@ and their terminal equivalents.")
 ;; -- Loading Modules
 ;; ----------
 
-(defun try-require (name &rest rest)
-  "Same as require, but catches file errors.
-If the module can't be loaded, sets <name>-required to nil.
-Otherwise, sets it to t."
-  (let ((var (intern (concat (symbol-name name) "-required"))))
-    (condition-case err
-        (progn (apply 'require (cons name rest))
-               (set-variable var t))
-      (file-error (set-variable var nil)))))
-
-(defun try-load (name &rest rest)
-  "Same as load, but if the file doesn't exist,
-sets <name>-required to nil. Otherwise, sets it to t.
-All optional args are the same, except that
-try-load doesn't take a noerror option."
-  (set-variable
-   (intern (concat name "-required"))
-   (apply 'load (cons name (cons t rest)))))
-
-(try-require 'erc)
-(if erc-required (load "erc-page-me"))
-
-(try-require 'xscheme)
-(try-load "auctex")
+(autoload 'erc "erc")
 
 (require 'http-post)
-(require 'psvn)
 (require 'pager)
 (require 'maxframe)
 
-(require 'inf-ruby)
-(require 'rdebug)
+(autoload 'run-ruby "inf-ruby")
+(autoload 'rdebug "rdebug")
 
-(require 'textile-mode)
-(require 'haml-mode)
-(require 'sass-mode)
-(require 'rhtml-mode)
-(require 'yaml-mode)
-(require 'ruby-mode)
-(require 'css-mode)
-(require 'rhtml-mode)
-(load "graphviz-dot-mode.el")
+(defun autoload-mode (name regex &optional file)
+  "Automatically loads a language mode
+when opening a file of the appropriate type.
 
-(autoload 'javascript-mode "javascript"  "Major mode for editing Javascript code." t)
-(autoload 'csharp-mode     "csharp-mode" "Major mode for editing C# code." t)
-(autoload 'd-mode          "d-mode"      "Major mode for editing D code." t)
+`name' is the name of the mode.
+E.g. for javascript-mode, `name' would be \"javascript\".
 
-(load "~/.elisp/haskell-mode/haskell-site-file")
+`regex' is the regular expression matching filenames of the appropriate type.
 
-(add-to-list 'auto-mode-alist '("\\.js$" . javascript-mode))
-(add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
-(add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
-(add-to-list 'auto-mode-alist '("\\.nlsp$" . lisp-mode))
-(add-to-list 'auto-mode-alist '("\\.cs$" . csharp-mode))
-(add-to-list 'auto-mode-alist '("\\.xhtml$" . html-mode))
-(add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
-(add-to-list 'auto-mode-alist '("\\.rjs$" . ruby-mode))
-(add-to-list 'auto-mode-alist '("Rakefile$" . ruby-mode))
-(add-to-list 'auto-mode-alist '("\\.rake$" . ruby-mode))
-(add-to-list 'auto-mode-alist '("\\.css$" . css-mode))
-(add-to-list 'auto-mode-alist '("\\.d[i]?\\'$" . d-mode))
+`file' is the name of the file
+from which the mode function should be loaded.
+By default, it's `name'-mode.el."
+  (let* ((name-mode (concat name "-mode"))
+         (name-sym (intern name-mode)))
+    (autoload name-sym (or file name-mode)
+      (format "Major mode for editing %s." name) t)
+    (add-to-list 'auto-mode-alist (cons regex name-sym))))
 
-(add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
-(add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
+(autoload-mode "tex" "\\.tex$" "auctex")
+(autoload-mode "javascript" "\\.js$" "javascript")
+(autoload-mode "csharp" "\\.cs$")
+(autoload-mode "d" "\\.d[i]?\\'$")
+(autoload-mode "textile" "\\.textile$")
+(autoload-mode "haml" "\\.haml$")
+(autoload-mode "sass" "\\.sass$")
+(autoload-mode "rhtml" "\\.\\(rhtml\\|erb\\)$")
+(autoload-mode "yaml" "\\.ya?ml$")
+(autoload-mode "ruby" "\\(\\.\\(rb\\|rake\\|rjs\\)\\|Rakefile\\)$")
+(autoload-mode "css" "\\.css$")
+(autoload-mode "haskell" "\\.l?hs$" "haskell-mode/haskell-site-file")
 
 (defun my-c-style ()
   (c-set-style "gnu")
@@ -136,30 +111,23 @@ try-load doesn't take a noerror option."
 (add-hook 'd-mode-hook 'my-c-style)
 (add-hook 'cc-mode-hook 'my-c-style)
 
-(if erc-required
-    (progn 
-      (setq erc-keywords '("nex3" "Nathan"))
-      (setq my-erc-page-timeout 5)))
+(eval-after-load "erc"
+  '(progn
+     (load "erc-page-me")
+     (setq erc-keywords '("nex3" "Nathan"))
+     (setq my-erc-page-timeout 5)))
 
-(if xscheme-required
-    (progn
-      (defvar xscheme-image-location "/home/nex3/etc/xscheme.image")
-      (if (file-exists-p xscheme-image-location)
-          (setq scheme-program-arguments (concat "-emacs -band " xscheme-image-location)))
+(eval-after-load "auctex"
+  '(progn
+     (with-temp-buffer (LaTeX-mode))
+     (TeX-global-PDF-mode)
+     (setcdr (assoc "^pdf$" TeX-output-view-style)
+             '("." "evince %o"))))
 
-      (defun save-xscheme-image ()
-        (interactive)
-        (xscheme-send-string (concat "(disk-save \"" xscheme-image-location "\")"))
-        (message (concat "Saved xscheme image to " xscheme-image-location)))
-
-      (define-key scheme-interaction-mode-map (key "C-x C-s") 'save-xscheme-image)))
-
-(if auctex-required
-    (progn
-      (with-temp-buffer (LaTeX-mode))
-      (TeX-global-PDF-mode)
-      (setcdr (assoc "^pdf$" TeX-output-view-style)
-              '("." "evince %o"))))
+(eval-after-load "haskell-mode"
+  '(progn
+     (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
+     (add-hook 'haskell-mode-hook 'turn-on-haskell-indent)))
 
 ;; ----------
 ;; -- Random Customizations and Configurations
