@@ -46,7 +46,7 @@
     ("M-<right>"     . "\M-[1;3C")
     ("M-<left>"      . "\M-[1;3D")
     ("C-<return>"    . "\C-j")
-    ("C-<delete>"    . "\M-[3;5~")
+    ("M-<backspace>" . "\M-[3;3~")
     ("C-<up>"        . "\M-[1;5A")
     ("C-<down>"      . "\M-[1;5B")
     ("C-<right>"     . "\M-[1;5C")
@@ -236,9 +236,10 @@ which should be selected."
 (global-unset-key (key "C-x p"))
 (global-unset-key (key "C-x C-z"))
 
-(if window-system (global-set-key (key "C-<backspace>") 'backward-kill-word))
+(if window-system (global-unset-key (key "C-<backspace>")))
 
 (global-set-key (key "C-<delete>")    'kill-word)
+(global-set-key (key "M-<backspace>") 'backward-kill-word)
 (global-set-key (key "C-<left>")      'backward-word)
 (global-set-key (key "C-<right>")     'forward-word)
 (global-set-key (key "C-<up>")        'backward-paragraph)
