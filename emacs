@@ -72,6 +72,15 @@ This function is the main entry point for ERC." t)
 (autoload 'maximize-frame "maxframe" "Maximize the Emacs frame." t)
 (autoload 'blog "blog-mode" "Open up my blog file." t)
 
+(autoload 'pastie-region "pastie"
+"Post the current region as a new paste at pastie.caboo.se.
+Copies the URL into the kill ring." t)
+(autoload 'pastie-buffer "pastie"
+"Post the current buffer as a new paste at pastie.caboo.se.
+Copies the URL into the kill ring." t)
+(autoload 'pastie-get "pastie"
+"Fetch the contents of the paste from pastie.caboo.se into a new buffer." t)
+
 (defun autoload-mode (name regex &optional file)
   "Automatically loads a language mode
 when opening a file of the appropriate type.
@@ -267,5 +276,10 @@ which should be selected."
 (global-set-key (key "C-n b") 'blog)
 (global-set-key (key "C-n c") 'comment-region)
 (global-set-key (key "C-n u") 'uncomment-region)
-
 (global-set-key (key "C-n m") 'make-directory-from-minibuffer)
+
+(define-prefix-command 'nex3-pastie 'nex3-pastie-map)
+(global-set-key (key "C-n C-p") nex3-pastie-map)
+(global-set-key (key "C-n C-p p") 'pastie-region)
+(global-set-key (key "C-n C-p b") 'pastie-buffer)
+(global-set-key (key "C-n C-p g") 'pastie-get)
