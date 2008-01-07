@@ -108,13 +108,12 @@ By default, it's `name'-mode.el."
   (c-set-offset 'substatement-open '0)
   (c-set-offset 'arglist-intro 2)
   (c-set-offset 'arglist-close 0))
-(add-hook 'd-mode-hook 'my-c-style)
 (add-hook 'cc-mode-hook 'my-c-style)
 
 (eval-after-load "erc"
   '(progn
      (load "erc-page-me")
-     (setq erc-keywords '("nex3" "Nathan"))
+     (setq erc-keywords '("nex3"))
      (setq my-erc-page-timeout 5)))
 
 (eval-after-load "auctex"
@@ -178,8 +177,6 @@ By default, it's `name'-mode.el."
 
 ;; Maximize the window on load for Macs, where there's no full maximization,
 ;; and Windows, where Emacs can access the full maximization.
-;(if (string-equal system-name "Calliope.local") (setq mf-max-height 750))
-
 (if (or (eq window-system 'mac)
         (eq window-system 'w32))
     (maximize-frame))
