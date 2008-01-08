@@ -41,11 +41,12 @@
 (my-color-theme-mods)
 
 (defvar real-keyboard-keys
-  '(("M-<up>"        . "\M-[1;3A")
-    ("M-<down>"      . "\M-[1;3B")
-    ("M-<right>"     . "\M-[1;3C")
-    ("M-<left>"      . "\M-[1;3D")
+  '(("M-<up>"        . "\M-[1;9A")
+    ("M-<down>"      . "\M-[1;9B")
+    ("M-<right>"     . "\M-[1;9C")
+    ("M-<left>"      . "\M-[1;9D")
     ("C-<return>"    . "\C-j")
+    ("C-<delete>"    . "\M-[3;5~")
     ("M-<backspace>" . "\M-[3;3~")
     ("C-<up>"        . "\M-[1;5A")
     ("C-<down>"      . "\M-[1;5B")
