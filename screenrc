@@ -6,6 +6,6 @@ vbell off
 defscrollback 10000
 
 escape ^za
-bindkey "\ez" meta
+bindkey ^[z meta
 
 hardstatus alwayslastline "%{.bW}%-w%{.rW}%n %t%{-}%+w %=%{..G} %H %{..Y} %m/%d %C%a "
