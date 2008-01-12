@@ -112,10 +112,15 @@ alias rl='rlwrap'
 ## -- New Lookup Paths
 ## ----------
 
-if [ -e $HOME"/gems" ]
+if [ -e $HOME/gems ]
 then
-    export GEM_PATH=$HOME"/gems:"$GEM_PATH
-    export PATH=$HOME"/gems/bin:"$PATH
+    export GEM_PATH=$HOME/gems:$GEM_PATH
+    export PATH=$HOME/gems/bin:$PATH
+fi
+
+if [ -e $HOME/lib/python ]
+then
+    export PYTHONPATH=$HOME/lib/python:$PYTHONPATH
 fi
 
 export LD_LIBRARY_PATH="/usr/local/lib:"$LD_LIBRARY_PATH
