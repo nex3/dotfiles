@@ -123,8 +123,9 @@ then
     export PYTHONPATH=$HOME/lib/python:$PYTHONPATH
 fi
 
-export LD_LIBRARY_PATH="/usr/local/lib:"$LD_LIBRARY_PATH
-export PATH=$HOME"/bin:/var/lib/gems/1.8/bin/:/usr/local/bin:"$PATH
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+export C_INCLUDE_PATH=$HOME/include:$C_INCLUDE_PATH
+export PATH=$HOME/bin:/var/lib/gems/1.8/bin/:/usr/local/bin:$PATH
 export EDITOR='emacs -nw'
 export DARCS_EDITOR=emacsclient
 export SVN_EDITOR='emacs -nw'
