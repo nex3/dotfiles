@@ -51,7 +51,9 @@
     ("C-<up>"        . "\M-[1;5A")
     ("C-<down>"      . "\M-[1;5B")
     ("C-<right>"     . "\M-[1;5C")
-    ("C-<left>"      . "\M-[1;5D"))
+    ("C-<left>"      . "\M-[1;5D")
+    ("C-<home>"      . "\M-[1;5H")
+    ("C-<end>"       . "\M-[1;5F"))
   "An assoc list of pretty key strings
 and their terminal equivalents.")
 
@@ -254,6 +256,9 @@ which should be selected."
 
 (global-set-key (key "<next>")   'pager-page-down)
 (global-set-key (key "<prior>")  'pager-page-up)
+
+(global-set-key (key "C-<home>") 'beginning-of-buffer)
+(global-set-key (key "C-<end>")  'end-of-buffer)
 
 (global-set-key (key "C-v") 'x-clipboard-only-yank)
 (global-set-key (key "C-z") 'clipboard-kill-region)
