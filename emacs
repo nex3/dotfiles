@@ -104,7 +104,6 @@ By default, it's `name'-mode.el."
 
 (autoload-mode "tex" "\\.tex$" "auctex")
 (autoload-mode "javascript" "\\.js$" "javascript")
-(autoload-mode "csharp" "\\.cs$")
 (autoload-mode "d" "\\.d[i]?\\'$")
 (autoload-mode "textile" "\\.textile$")
 (autoload-mode "haml" "\\.haml$")
