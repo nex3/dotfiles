@@ -107,6 +107,7 @@ alias svni='svn --ignore-externals'
 alias temacs="emacs -nw"
 alias pager='less'
 alias rl='rlwrap'
+alias gt='git'
 
 ## ----------
 ## -- New Lookup Paths
