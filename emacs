@@ -113,6 +113,7 @@ By default, it's `name'-mode.el."
 (autoload-mode "ruby" "\\(\\.\\(rb\\|rake\\|rjs\\)\\|Rakefile\\)$")
 (autoload-mode "css" "\\.css$")
 (autoload-mode "haskell" "\\.l?hs$" "haskell-mode/haskell-site-file")
+(autoload-mode "arc" "\\.arc$" "arc")
 
 (defun my-c-style ()
   (c-set-style "gnu")
