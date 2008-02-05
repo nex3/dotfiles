@@ -123,7 +123,7 @@ then
     export PYTHONPATH=$HOME/lib/python:$PYTHONPATH
 fi
 
-export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/local/lib:$HOME/lib:$LD_LIBRARY_PATH
 export LIBRARY_PATH=$HOME/lib:$LIBRARY_PATH
 export C_INCLUDE_PATH=$HOME/include
 export PATH=$HOME/bin:/var/lib/gems/1.8/bin/:/usr/local/bin:$PATH
