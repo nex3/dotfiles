@@ -1,0 +1,1 @@
+/home/nex3/src/ruby-wmii/standard-plugin.rb
