@@ -1,1 +1,0 @@
-/home/nex3/src/ruby-wmii/wmiirc
