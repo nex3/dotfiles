@@ -57,15 +57,21 @@ function descreen {
 
 ## Pretty Prompt Configuration
 
-# Black/white prompt for dumb terminals
-PROMPT_MAIN='\u@\h'
-PROMPT_DIR='\w'
+START_GREEN=''
+START_BLUE=''
+START_RED=''
+END_COLOR=''
 
 # Colorful prompt for smart terminals
 if [ "$TERM" != "dumb" ]; then
-    PROMPT_MAIN="\[\033[01;32m\]\u@\h\[\033[00m\]"
-    PROMPT_DIR="\[\033[01;34m\]\w\[\033[00m\]"
+    START_GREEN="\[\033[01;32m\]"
+    START_BLUE="\[\033[01;34m\]"
+    START_RED="\[\033[01;31m\]"
+    END_COLOR="\[\033[00m\]"
 fi
+# Black/white prompt for dumb terminals
+PROMPT_MAIN="${START_GREEN}\u@\h${END_COLOR}"
+PROMPT_DIR="${START_BLUE}\w${END_COLOR}"
 
 # Escape directories so the forward slashes
 # don't conflict with sed
@@ -82,13 +88,28 @@ function pwd_with_tilde {
 # If pwd is long,
 # sets it on a separate line from the rest of the prompt.
 # Otherwise, restores normal prompt.
-function reset_prompt {
-    if [ `pwd_with_tilde | wc -c` -lt '35' ]; then
-        PS1="$PROMPT_MAIN:$PROMPT_DIR$ "
+#
+# Also print git branch if available
+GITBRANCH=`which git-name-rev 2>/dev/null`
+function prompt_command {
+    # Git branch stuff from escherfan on Reddit
+    if [ -n ${GITBRANCH} ]; then
+        BRANCH=`$GITBRANCH HEAD 2> /dev/null | awk "{ print \\$2 }"`
+        if [ $BRANCH ]; then
+            BRANCH=" ${START_RED}($BRANCH)${END_COLOR}";
+        fi
     else
-        PS1="\n$PROMPT_DIR\n$PROMPT_MAIN$ "
+        BRANCH='';
+    fi
+
+    if [ `pwd_with_tilde | wc -c` -lt '35' ]; then
+        PS1="$PROMPT_MAIN:$PROMPT_DIR$BRANCH$ "
+    else
+        PS1="\n$PROMPT_DIR$BRANCH\n$PROMPT_MAIN$ "
     fi
 }
+
+export PROMPT_COMMAND=prompt_command
 
 ## ----------
 ## -- Personal Aliases and Advice
@@ -96,7 +117,6 @@ function reset_prompt {
 
 function my_cd {
     cd "$@";
-    reset_prompt
     ls
 }
 
