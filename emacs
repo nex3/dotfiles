@@ -68,8 +68,6 @@ and their terminal equivalents.")
 
 (require 'pager)
 
-(autoload 'erc "erc" "ERC is a powerful, modular, and extensible IRC client.
-This function is the main entry point for ERC." t)
 (autoload 'run-ruby "inf-ruby" "Run an inferior Ruby process, input and output via buffer *ruby*." t)
 (autoload 'rdebug "rdebug" "Run the Ruby debugger." t)
 (autoload 'maximize-frame "maxframe" "Maximize the Emacs frame." t)
@@ -123,11 +121,50 @@ By default, it's `name'-mode.el."
   (c-set-offset 'arglist-close 0))
 (add-hook 'cc-mode-hook 'my-c-style)
 
-(eval-after-load "erc"
+(eval-after-load 'rcirc
   '(progn
-     (load "erc-page-me")
-     (setq erc-keywords '("nex3"))
-     (setq my-erc-page-timeout 5)))
+     (require 'rcirc-color)
+     (require 'rcirc-unambiguous-nick-completion)
+     (require 'rcirc-notify)
+ 
+     (setq rcirc-server-alist '(("irc.freenode.net" :channels ("#arc" "#haml")))) 
+     (setq my-rcirc-notify-timeout 90)
+     (setq rcirc-unambiguous-complete t)
+     (setq rcirc-debug-flag t)
+     (setq fill-column 80)
+     (setq rcirc-default-nick "nex3")
+     (setq rcirc-default-user-name "nex3")
+     (setq rcirc-default-user-full-name "Nathan Weizenbaum")
+     (setq rcirc-time-format "[%l:%M] ")
+     (setq rcirc-prompt "%t> ")
+     (set-face-foreground 'rcirc-server "gray40")
+     (set-face-foreground 'rcirc-timestamp "gray60")
+     (rcirc-track-minor-mode 1)
+ 
+     (add-hook 'rcirc-mode-hook (lambda () (flyspell-mode 1)))
+ 
+     (defun-rcirc-command reconnect (arg)
+       "Reconnect the server process."
+       (interactive "i")
+       (unless process
+         (error "There's no process for this target"))
+       (let* ((server (car (process-contact process)))
+              (port (process-contact process :service))
+              (nick (rcirc-nick process))
+              channels query-buffers)
+         (dolist (buf (buffer-list))
+           (with-current-buffer buf
+             (when (eq process (rcirc-buffer-process))
+               (remove-hook 'change-major-mode-hook
+                            'rcirc-change-major-mode-hook)
+               (if (rcirc-channel-p rcirc-target)
+                   (setq channels (cons rcirc-target channels))
+                 (setq query-buffers (cons buf query-buffers))))))
+         (delete-process process)
+         (rcirc-connect server port nick
+                        rcirc-default-user-name
+                        rcirc-default-user-full-name
+                        channels)))))
 
 (eval-after-load "auctex"
   '(progn
@@ -226,11 +263,12 @@ By default, it's `name'-mode.el."
   (interactive)
   (insert (x-get-clipboard)))
 
-(defun nex3-erc ()
-  "Open an ERC client with my credentials"
+(defun nex3-irc ()
+  "Open an IRC client with my credentials"
   (interactive)
   (let ((passwd (read-passwd "Password: ")))
-    (erc :server "irc.freenode.net" :port "6667" :nick "nex3" :password passwd :full-name "Nathan Weizenbaum")))
+    (setq rcirc-authinfo `(("freenode" nickserv "nex3" ,passwd)))
+    (rcirc nil)))
 
 (defun make-directory-from-minibuffer ()
   "Create a directory at the location given by the minibuffer,
@@ -279,7 +317,7 @@ which should be selected."
 (global-set-key (key "C-n") nex3-map)
 
 (global-set-key (key "C-n .") '.emacs)
-(global-set-key (key "C-n e") 'nex3-erc)
+(global-set-key (key "C-n i") 'nex3-irc)
 (global-set-key (key "C-n b") 'blog)
 (global-set-key (key "C-n c") 'comment-region)
 (global-set-key (key "C-n u") 'uncomment-region)

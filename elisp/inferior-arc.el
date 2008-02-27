@@ -92,7 +92,7 @@
     (define-key m "\C-c\C-l" 'arc-load-file)
     m))
 
-(defvar arc-program-name "arc"
+(defvar arc-program-name "arc --no-rl"
   "The name of the program used to run Arc.")
 
 ;; Install the process communication commands in the arc-mode keymap.
@@ -163,11 +163,13 @@ Paragraphs are separated only by blank lines.  Semicolons start comments.
 If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it."
   ;; Customize in inferior-arc-mode-hook
-  (setq comint-prompt-regexp "^[^>\n]*>+ *")
   (arc-mode-variables)
-  (setq mode-line-process '(":%s"))
-  (setq comint-input-filter (function arc-input-filter))
-  (setq comint-get-old-input (function arc-get-old-input)))
+  (set (make-local-variable 'comint-prompt-read-only) t)
+  (set (make-local-variable 'comint-use-prompt-regexp) t)
+  (set (make-local-variable 'comint-prompt-regexp) "^[^>\n]*>+ *")
+  (set (make-local-variable 'comint-input-filter) (function arc-input-filter))
+  (set (make-local-variable 'comint-get-old-input) (function arc-get-old-input))
+  (setq mode-line-process '(":%s")))
 
 (defcustom inferior-arc-filter-regexp "\\`\\s *\\S ?\\S ?\\s *\\'"
   "*Input matching this regexp are not saved on the history list.
@@ -200,8 +202,10 @@ is run).
                          (read-string "Run Arc: " arc-program-name)
                          arc-program-name)))
   (when (not (comint-check-proc "*arc*"))
-    (set-buffer (make-comint "arc" cmd))
-    (inferior-arc-mode))
+    (let ((cmdlist (split-string cmd)))
+      (set-buffer (apply 'make-comint "arc" (car cmdlist)
+                         nil (cdr cmdlist)))
+      (inferior-arc-mode)))
   (setq arc-program-name cmd)
   (setq arc-buffer "*arc*")
   (pop-to-buffer "*arc*"))
