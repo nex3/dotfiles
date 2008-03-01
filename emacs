@@ -322,6 +322,7 @@ which should be selected."
 (global-set-key (key "C-n c") 'comment-region)
 (global-set-key (key "C-n u") 'uncomment-region)
 (global-set-key (key "C-n m") 'make-directory-from-minibuffer)
+(global-set-key (key "C-n f") 'auto-fill-mode)
 
 (define-prefix-command 'nex3-pastie 'nex3-pastie-map)
 (global-set-key (key "C-n C-p") nex3-pastie-map)
