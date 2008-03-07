@@ -257,6 +257,7 @@ By default, it's `name'-mode.el."
 (defun .emacs ()
   "Open up the .emacs configuration file."
   (interactive)
+  (persp-switch "config")
   (find-file "~/.emacs" t))
 
 (defun x-clipboard-only-yank ()
