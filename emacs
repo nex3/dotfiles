@@ -17,6 +17,9 @@
 (if window-system
     (cond ((>= emacs-major-version 23)
            (set-frame-font "Monospace-8"))
+          ((and (eq window-system 'mac)
+                (x-list-fonts "-apple-bitstream vera sans mono-medium-r-normal--0-0-0-0-m-0-mac-roman"))
+           (set-default-font "-apple-bitstream vera sans mono-medium-r-normal--0-0-0-0-m-0-mac-roman"))
           ((x-list-fonts "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")
            (set-frame-font "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1"))))
 
@@ -233,7 +236,6 @@ By default, it's `name'-mode.el."
     (maximize-frame))
 
 ;; Allow left-scrolling
-(put 'scroll-left 'disabled nil)
 
 ;; Start server
 (server-start)
@@ -310,6 +312,7 @@ which should be selected."
 (global-set-key (key "M-<down>")  'windmove-down)
 
 (global-set-key (key "C-<return>") 'comment-indent-new-line)
+
 
 (global-set-key (key "M-/") 'hippie-expand)
 

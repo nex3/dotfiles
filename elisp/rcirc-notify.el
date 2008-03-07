@@ -33,15 +33,23 @@ notification.")
   "Number of seconds that will elapse between notifications from the
 same person.")
 
+(cond ((eq window-system 'mac)
+       (defun page-me (title message)
+         (start-process "page-me" nil "growlnotify"
+                        "-t" title "-m" message)))
+      ((eq window-system 'x)
+       (defun page-me (title message)
+         (start-process "page-me" nil
+                        ;; 8640000 ms = 1 day
+                        "notify-send" "-u" "normal" "-i" "gtk-dialog-info"
+                        "-t" "8640000" title message)))
+      (t (defun page-me (title message))))
+
 (defun my-rcirc-notify (sender)
   (when window-system
     ;; Set default dir to appease the notification gods
     (let ((default-directory "~/"))
-      ;; 8640000 ms = 1 day
-      (start-process "page-me" nil
-                     "notify-send" "-u" "normal" "-i" "gtk-dialog-info"
-                     "-t" "8640000" "rcirc"
-                     (format my-rcirc-notify-message sender)))))
+      (page-me "rcirc" (format my-rcirc-notify-message sender)))))
 
 (defun my-rcirc-notify-allowed (sender &optional delay)
   "Return non-nil if a notification should be made for SENDER.
