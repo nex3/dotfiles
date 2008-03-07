@@ -67,6 +67,7 @@ and their terminal equivalents.")
 ;; ----------
 
 (require 'pager)
+(require 'perspective)
 
 (autoload 'run-ruby "inf-ruby" "Run an inferior Ruby process, input and output via buffer *ruby*." t)
 (autoload 'rdebug "rdebug" "Run the Ruby debugger." t)
