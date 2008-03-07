@@ -232,7 +232,7 @@ See `run-hooks'."
      ;; Declarations.
      (list 
       (concat "(" (regexp-opt 
-                   '("def" "mac" "defop" "defmemo" "defset" "deftem" "set" "=")
+                   '("def" "mac" "defop" "defmemo" "defset" "deftem" "defcall" "redef" "set" "=")
                    t)
               "\\>"
               ;; Any whitespace and declared object.
@@ -259,6 +259,7 @@ See `run-hooks'."
                "defset" "defop" "deftem" "defmemo"
                "when" "unless"
                "do" "while" "until" "only" "each" "if" "=" "for" "repeat"
+               "aif" "aand" "awhen"
                "case" "zap"
                "let" "with" "withs"
                "apply" "in"
@@ -437,11 +438,19 @@ rigidly along with this one."
 (put 'def 'arc-indent-function 2)
 (put 'mac 'arc-indent-function 2)
 (put 'defset 'arc-indent-function 2)
+(put 'defcall 'arc-indent-function 2)
+(put 'redef 'arc-indent-function 2)
 (put 'fn 'arc-indent-function 1)
 (put 'afn 'arc-indent-function 1)
 (put 'rfn 'arc-indent-function 2)
 (put 'let 'arc-indent-function 'arc-let-indent)
 
+;; archive-mode also wants the .arc extension,
+;; but that screws stuff up.
+(let* ((mode (rassoc 'archive-mode auto-mode-alist))
+       (str (car mode)))
+  (string-match "[Aa][Rr][Cc]\\\\|" str)
+  (setcar mode (replace-match "" nil nil str)))
 
 (provide 'arc)
 
