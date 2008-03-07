@@ -21,8 +21,8 @@
 ;; This code is inspired in part by erc-page-me.el and offers
 ;; the same functionality as it, but for rcirc.
 
-(defvar my-rcirc-notify-message "%s is calling your name."
-  "For mat if message to display in libnotify popup.
+(defvar my-rcirc-notify-message "%s is calling your name in %s."
+  "Format of message to display in libnotify popup.
 '%s' will expand to the nick that notified you.")
 
 (defvar my-rcirc-notify-nick-alist nil
@@ -33,23 +33,26 @@ notification.")
   "Number of seconds that will elapse between notifications from the
 same person.")
 
-(cond ((eq window-system 'mac)
-       (defun page-me (title message)
+(defvar my-rcirc-privmsg-target "private message"
+  "String used as target in rcirc-notify-message for private messages.")
+
+(defun page-me (title message)
+  (cond ((eq window-system 'mac)
          (start-process "page-me" nil "growlnotify"
-                        "-t" title "-m" message)))
-      ((eq window-system 'x)
-       (defun page-me (title message)
+                        "-t" title "-m" message))
+        ((eq window-system 'x)
          (start-process "page-me" nil
                         ;; 8640000 ms = 1 day
                         "notify-send" "-u" "normal" "-i" "gtk-dialog-info"
-                        "-t" "8640000" title message)))
-      (t (defun page-me (title message))))
+                        "-t" "8640000" title message))))
 
-(defun my-rcirc-notify (sender)
+(defun my-rcirc-notify (sender &optional target)
+  (unless target (setq target my-rcirc-privmsg-target))
   (when window-system
     ;; Set default dir to appease the notification gods
     (let ((default-directory "~/"))
-      (page-me "rcirc" (format my-rcirc-notify-message sender)))))
+      (page-me "rcirc" (format my-rcirc-notify-message sender target))))
+  (message (concat (format-time-string "%r") " - " (format my-rcirc-notify-message sender target))))
 
 (defun my-rcirc-notify-allowed (sender &optional delay)
   "Return non-nil if a notification should be made for SENDER.
@@ -76,7 +79,7 @@ matches a regexp in `rcirc-keywords'."
              (not (string= (rcirc-nick proc) sender))
              (not (string= (rcirc-server-name proc) sender))
              (my-rcirc-notify-allowed sender))
-    (my-rcirc-notify sender)))
+    (my-rcirc-notify sender target)))
 
 (defun my-rcirc-notify-privmsg (proc sender response target text)
   "Notify the current user when someone sends a private message
