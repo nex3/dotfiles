@@ -104,6 +104,7 @@ Inherits from `textile-mode-map'.")
 (defun blog ()
   "Open up my blog file"
   (interactive)
+  (persp-switch "blog")
   (let ((dir (file-name-directory blog-post-file)))
     (unless (file-exists-p dir) (make-directory dir)))
   (find-file blog-post-file)
