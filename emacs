@@ -85,6 +85,7 @@ and their terminal equivalents.")
 (autoload 'maximize-frame "maxframe" "Maximize the Emacs frame." t)
 (autoload 'blog "blog-mode" "Open up my blog file." t)
 (autoload 'run-arc "inferior-arc" "Run an inferior Arc process, input and output via buffer *arc*." t)
+(autoload 'gitsum "gitsum" "Entry point into gitsum-diff-mode." t)
 
 (autoload 'pastie-region "pastie"
 "Post the current region as a new paste at pastie.caboo.se.
