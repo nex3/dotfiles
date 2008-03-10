@@ -11,17 +11,25 @@
 ;; 'Tupid toolbar
 (tool-bar-mode -1)
 (menu-bar-mode -1)
-(if window-system (toggle-scroll-bar -1))
 
-;; Set the font.
-(if window-system
+(defun init-frame ()
+  "Initialize a frame with my preferences."
+  ;; Set my font
+  (when window-system
     (cond ((>= emacs-major-version 23)
            (set-frame-font "Monospace-8"))
           ((and (eq window-system 'mac)
                 (x-list-fonts "-apple-bitstream vera sans mono-medium-r-normal--0-0-0-0-m-0-mac-roman"))
            (set-default-font "-apple-bitstream vera sans mono-medium-r-normal--0-0-0-0-m-0-mac-roman"))
           ((x-list-fonts "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")
-           (set-frame-font "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1"))))
+           (set-frame-font "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")))
+    (toggle-scroll-bar -1)))
+
+(init-frame)
+(push (lambda (frame)
+        (with-selected-frame frame
+          (init-frame)))
+      after-make-frame-functions)
 
 (add-to-list 'load-path "/usr/share/emacs/site-lisp")
 (add-to-list 'load-path "/usr/share/emacs-snapshot/site-lisp")
@@ -334,3 +342,5 @@ which should be selected."
 (global-set-key (key "C-n C-p p") 'pastie-region)
 (global-set-key (key "C-n C-p b") 'pastie-buffer)
 (global-set-key (key "C-n C-p g") 'pastie-get)
+
+(quick-perspective-keys)
