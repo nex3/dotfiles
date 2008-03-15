@@ -51,28 +51,6 @@
 (setq color-theme-is-cumulative t)
 (my-color-theme-mods)
 
-(defvar real-keyboard-keys
-  '(("M-<up>"        . "\M-[1;3A")
-    ("M-<down>"      . "\M-[1;3B")
-    ("M-<right>"     . "\M-[1;3C")
-    ("M-<left>"      . "\M-[1;3D")
-    ("C-<return>"    . "\C-j")
-    ("C-<delete>"    . "\M-[3;5~")
-    ("M-<backspace>" . "\M-[3;3~")
-    ("C-<up>"        . "\M-[1;5A")
-    ("C-<down>"      . "\M-[1;5B")
-    ("C-<right>"     . "\M-[1;5C")
-    ("C-<left>"      . "\M-[1;5D")
-    ("C-<home>"      . "\M-[1;5H")
-    ("C-<end>"       . "\M-[1;5F"))
-  "An assoc list of pretty key strings
-and their terminal equivalents.")
-
-(defun key (desc)
-  (or (and window-system (read-kbd-macro desc))
-      (or (cdr (assoc desc real-keyboard-keys))
-          (read-kbd-macro desc))))
-
 ;; ----------
 ;; -- Loading Modules
 ;; ----------
@@ -130,24 +108,6 @@ By default, it's `name'-mode.el."
 (defun my-c-style ()
   (c-set-style "gnu")
   (c-set-offset 'substatement-open '0)
-  (c-set-offset 'arglist-intro 2)
-  (c-set-offset 'arglist-close 0))
-(add-hook 'cc-mode-hook 'my-c-style)
-
-(eval-after-load 'rcirc
-  '(progn
-     (require 'rcirc-color)
-     (require 'rcirc-unambiguous-nick-completion)
-     (require 'rcirc-notify)
- 
-     (setq rcirc-server-alist '(("irc.freenode.net" :channels ("#arc" "#haml")))) 
-     (setq my-rcirc-notify-timeout 90)
-     (setq rcirc-unambiguous-complete t)
-     (setq rcirc-debug-flag t)
-     (setq fill-column 80)
-     (setq rcirc-default-nick "nex3")
-     (setq rcirc-default-user-name "nex3")
-     (setq rcirc-default-user-full-name "Nathan Weizenbaum")
      (setq rcirc-time-format "[%l:%M] ")
      (setq rcirc-prompt "%t> ")
      (set-face-foreground 'rcirc-server "gray40")
@@ -177,7 +137,7 @@ By default, it's `name'-mode.el."
          (rcirc-connect server port nick
                         rcirc-default-user-name
                         rcirc-default-user-full-name
-                        channels)))))
+                        channels))))
 
 (eval-after-load "auctex"
   '(progn
@@ -190,6 +150,8 @@ By default, it's `name'-mode.el."
   '(progn
      (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
      (add-hook 'haskell-mode-hook 'turn-on-haskell-indent)))
+
+(add-hook 'text-mode-hook 'flyspell-mode)
 
 ;; ----------
 ;; -- Random Customizations and Configurations
@@ -294,54 +256,65 @@ which should be selected."
 ;; -- Keybindings
 ;; ----------
 
-(global-unset-key (key "C-x p"))
-(global-unset-key (key "C-x C-z"))
+(global-unset-key (kbd "C-x p"))
+(global-unset-key (kbd "C-x C-z"))
 
-(if window-system (global-unset-key (key "C-<backspace>")))
+;; Ergonomic keybindings inspired by http://xahlee.org/emacs/ergonomic_emacs_keybinding.html
 
-(global-set-key (key "C-<delete>")    'kill-word)
-(global-set-key (key "M-<backspace>") 'backward-kill-word)
-(global-set-key (key "C-<left>")      'backward-word)
-(global-set-key (key "C-<right>")     'forward-word)
-(global-set-key (key "C-<up>")        'backward-paragraph)
-(global-set-key (key "C-<down>")      'forward-paragraph)
+(global-set-key (kbd "M-j") 'backward-char)
+(global-set-key (kbd "M-l") 'forward-char)
+(global-set-key (kbd "M-i") 'previous-line)
+(global-set-key (kbd "M-k") 'next-line)
 
-(global-set-key (key "<next>")   'pager-page-down)
-(global-set-key (key "<prior>")  'pager-page-up)
+(global-set-key (kbd "M-J") 'backward-word)
+(global-set-key (kbd "M-L") 'forward-word)
+(global-set-key (kbd "M-I") 'backward-paragraph)
+(global-set-key (kbd "M-K") 'forward-paragraph)
 
-(global-set-key (key "C-<home>") 'beginning-of-buffer)
-(global-set-key (key "C-<end>")  'end-of-buffer)
+(global-set-key (kbd "M-u") 'move-beginning-of-line)
+(global-set-key (kbd "M-o") 'move-end-of-line)
+(global-set-key (kbd "M-U") 'beginning-of-buffer)
+(global-set-key (kbd "M-O") 'end-of-buffer)
 
-(global-set-key (key "C-v") 'x-clipboard-only-yank)
-(global-set-key (key "C-z") 'clipboard-kill-region)
+(global-set-key (kbd "M-p") 'pager-page-up)
+(global-set-key (kbd "M-;") 'pager-page-down)
 
-(global-set-key (key "M-<right>") 'windmove-right)
-(global-set-key (key "M-<left>")  'windmove-left)
-(global-set-key (key "M-<up>")  'windmove-up)
-(global-set-key (key "M-<down>")  'windmove-down)
+(global-set-key (kbd "C-M-L") 'windmove-right)
+(global-set-key (kbd "C-M-J") 'windmove-left)
+(global-set-key (kbd "C-M-I") 'windmove-up)
+(global-set-key (kbd "C-M-K") 'windmove-down)
 
-(global-set-key (key "C-<return>") 'comment-indent-new-line)
+(global-set-key (kbd "M-[") 'backward-delete-char-untabify)
+(global-set-key (kbd "M-]") 'delete-char)
+(global-set-key (kbd "M-{") 'backward-kill-word)
+(global-set-key (kbd "M-}") 'kill-word)
 
+(global-set-key (kbd "M-RET") 'comment-indent-new-line)
 
-(global-set-key (key "M-/") 'hippie-expand)
+(global-set-key (kbd "C-;") 'comment-dwim)
+
+(global-set-key (kbd "C-v") 'x-clipboard-only-yank)
+(global-set-key (kbd "C-z") 'clipboard-kill-region)
+
+(global-set-key (kbd "M-/") 'hippie-expand)
 
 ;; My Keymap
 
 (define-prefix-command 'nex3 'nex3-map)
-(global-set-key (key "C-n") nex3-map)
+(global-set-key (kbd "C-n") nex3-map)
 
-(global-set-key (key "C-n .") '.emacs)
-(global-set-key (key "C-n i") 'nex3-irc)
-(global-set-key (key "C-n b") 'blog)
-(global-set-key (key "C-n c") 'comment-region)
-(global-set-key (key "C-n u") 'uncomment-region)
-(global-set-key (key "C-n m") 'make-directory-from-minibuffer)
-(global-set-key (key "C-n f") 'auto-fill-mode)
+(global-set-key (kbd "C-n .") '.emacs)
+(global-set-key (kbd "C-n i") 'nex3-irc)
+(global-set-key (kbd "C-n b") 'blog)
+(global-set-key (kbd "C-n c") 'comment-region)
+(global-set-key (kbd "C-n u") 'uncomment-region)
+(global-set-key (kbd "C-n m") 'make-directory-from-minibuffer)
+(global-set-key (kbd "C-n f") 'auto-fill-mode)
 
 (define-prefix-command 'nex3-pastie 'nex3-pastie-map)
-(global-set-key (key "C-n C-p") nex3-pastie-map)
-(global-set-key (key "C-n C-p p") 'pastie-region)
-(global-set-key (key "C-n C-p b") 'pastie-buffer)
-(global-set-key (key "C-n C-p g") 'pastie-get)
+(global-set-key (kbd "C-n C-p") nex3-pastie-map)
+(global-set-key (kbd "C-n C-p p") 'pastie-region)
+(global-set-key (kbd "C-n C-p b") 'pastie-buffer)
+(global-set-key (kbd "C-n C-p g") 'pastie-get)
 
 (quick-perspective-keys)
