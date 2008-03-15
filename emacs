@@ -261,12 +261,15 @@ which should be selected."
      (define-prefix-command ',name ',varname)
      (global-set-key (kbd ,key) ,varname))))
 
+(defmacro my-unset (key)
+  `(global-unset-key (kbd ,key)))
+
 ;; ----------
 ;; -- Keybindings
 ;; ----------
 
-(global-unset-key (kbd "C-x p"))
-(global-unset-key (kbd "C-x C-z"))
+(my-unset "C-x C-z")
+(my-unset "C-x p")
 
 ;; Ergonomic keybindings inspired by http://xahlee.org/emacs/ergonomic_emacs_keybinding.html
 
@@ -299,13 +302,31 @@ which should be selected."
 (my-key "M-}" kill-word)
 
 (my-key "M-RET" comment-indent-new-line)
-
-(my-key "C-;" comment-dwim)
-
 (my-key "C-v" x-clipboard-only-yank)
 (my-key "C-z" clipboard-kill-region)
 
 (my-key "M-/" hippie-expand)
+
+;; Cold Turkey
+
+(when window-system
+  (my-unset "<Backspace>")
+  (my-unset "C-<Backspace>")
+  (my-unset "M-<Backspace>")
+  (my-unset "<left>")
+  (my-unset "<right>")
+  (my-unset "<up>")
+  (my-unset "<down>")
+  (my-unset "C-<left>")
+  (my-unset "C-<right>")
+  (my-unset "C-<up>")
+  (my-unset "C-<down>")
+  (my-unset "<next>")
+  (my-unset "<prior>")
+  (my-unset "<home>")
+  (my-unset "<end>")
+
+  (my-key "<delete>" keyboard-quit))
 
 ;; My Keymap
 
