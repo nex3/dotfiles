@@ -252,6 +252,15 @@ which should be selected."
   (make-directory (minibuffer-contents) t)
   (princ (concat "Created directory " (minibuffer-contents))))
 
+(defmacro my-key (key fn)
+  `(global-set-key (kbd ,key) ',fn))
+
+(defmacro my-map (key name)
+  (let ((varname (intern (concat (symbol-name name) "-map"))))
+  `(progn
+     (define-prefix-command ',name ',varname)
+     (global-set-key (kbd ,key) ,varname))))
+
 ;; ----------
 ;; -- Keybindings
 ;; ----------
@@ -261,60 +270,57 @@ which should be selected."
 
 ;; Ergonomic keybindings inspired by http://xahlee.org/emacs/ergonomic_emacs_keybinding.html
 
-(global-set-key (kbd "M-j") 'backward-char)
-(global-set-key (kbd "M-l") 'forward-char)
-(global-set-key (kbd "M-i") 'previous-line)
-(global-set-key (kbd "M-k") 'next-line)
+(my-key "M-j" backward-char)
+(my-key "M-l" forward-char)
+(my-key "M-i" previous-line)
+(my-key "M-k" next-line)
 
-(global-set-key (kbd "M-J") 'backward-word)
-(global-set-key (kbd "M-L") 'forward-word)
-(global-set-key (kbd "M-I") 'backward-paragraph)
-(global-set-key (kbd "M-K") 'forward-paragraph)
+(my-key "M-J" backward-word)
+(my-key "M-L" forward-word)
+(my-key "M-I" backward-paragraph)
+(my-key "M-K" forward-paragraph)
 
-(global-set-key (kbd "M-u") 'move-beginning-of-line)
-(global-set-key (kbd "M-o") 'move-end-of-line)
-(global-set-key (kbd "M-U") 'beginning-of-buffer)
-(global-set-key (kbd "M-O") 'end-of-buffer)
+(my-key "M-u" move-beginning-of-line)
+(my-key "M-o" move-end-of-line)
+(my-key "M-U" beginning-of-buffer)
+(my-key "M-O" end-of-buffer)
 
-(global-set-key (kbd "M-p") 'pager-page-up)
-(global-set-key (kbd "M-;") 'pager-page-down)
+(my-key "M-p" pager-page-up)
+(my-key "M-;" pager-page-down)
 
-(global-set-key (kbd "C-M-L") 'windmove-right)
-(global-set-key (kbd "C-M-J") 'windmove-left)
-(global-set-key (kbd "C-M-I") 'windmove-up)
-(global-set-key (kbd "C-M-K") 'windmove-down)
+(my-key "M-s" windmove-right)
+(my-key "M-f" windmove-left)
+(my-key "M-e" windmove-up)
+(my-key "M-d" windmove-down)
 
-(global-set-key (kbd "M-[") 'backward-delete-char-untabify)
-(global-set-key (kbd "M-]") 'delete-char)
-(global-set-key (kbd "M-{") 'backward-kill-word)
-(global-set-key (kbd "M-}") 'kill-word)
+(my-key "M-[" backward-delete-char-untabify)
+(my-key "M-]" delete-char)
+(my-key "M-{" backward-kill-word)
+(my-key "M-}" kill-word)
 
-(global-set-key (kbd "M-RET") 'comment-indent-new-line)
+(my-key "M-RET" comment-indent-new-line)
 
-(global-set-key (kbd "C-;") 'comment-dwim)
+(my-key "C-;" comment-dwim)
 
-(global-set-key (kbd "C-v") 'x-clipboard-only-yank)
-(global-set-key (kbd "C-z") 'clipboard-kill-region)
+(my-key "C-v" x-clipboard-only-yank)
+(my-key "C-z" clipboard-kill-region)
 
-(global-set-key (kbd "M-/") 'hippie-expand)
+(my-key "M-/" hippie-expand)
 
 ;; My Keymap
 
-(define-prefix-command 'nex3 'nex3-map)
-(global-set-key (kbd "C-n") nex3-map)
+(my-map "C-n" nex3)
+(my-key "C-n ." .emacs)
+(my-key "C-n i" nex3-irc)
+(my-key "C-n b" blog)
+(my-key "C-n c" comment-region)
+(my-key "C-n u" uncomment-region)
+(my-key "C-n m" make-directory-from-minibuffer)
+(my-key "C-n f" auto-fill-mode)
 
-(global-set-key (kbd "C-n .") '.emacs)
-(global-set-key (kbd "C-n i") 'nex3-irc)
-(global-set-key (kbd "C-n b") 'blog)
-(global-set-key (kbd "C-n c") 'comment-region)
-(global-set-key (kbd "C-n u") 'uncomment-region)
-(global-set-key (kbd "C-n m") 'make-directory-from-minibuffer)
-(global-set-key (kbd "C-n f") 'auto-fill-mode)
-
-(define-prefix-command 'nex3-pastie 'nex3-pastie-map)
-(global-set-key (kbd "C-n C-p") nex3-pastie-map)
-(global-set-key (kbd "C-n C-p p") 'pastie-region)
-(global-set-key (kbd "C-n C-p b") 'pastie-buffer)
-(global-set-key (kbd "C-n C-p g") 'pastie-get)
+(my-map "C-n C-p" nex3-pastie)
+(my-key "C-n C-p p" pastie-region)
+(my-key "C-n C-p b" pastie-buffer)
+(my-key "C-n C-p g" pastie-get)
 
 (quick-perspective-keys)
