@@ -155,7 +155,7 @@ By default, it's `name'-mode.el."
          (rcirc-connect server port nick
                         rcirc-default-user-name
                         rcirc-default-user-full-name
-                        channels))))
+                        channels)))))
 
 (eval-after-load "auctex"
   '(progn
