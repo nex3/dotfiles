@@ -41,6 +41,8 @@
   (color-theme-install
    '(my-color-theme-mods
      (())
+     (rcirc-server ((t (:foreground "gray40"))))
+     (rcirc-server-prefix ((t (:foreground "gray40"))))
      (mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
      (textile-link-face ((t (:foreground "#398EE6"))))
      (textile-ul-bullet-face ((t (:foreground "#398EE6")))))))
@@ -321,10 +323,6 @@ which should be selected."
 (my-key "M-SPC" set-mark-command)
 
 (my-key "M-a" execute-extended-command)
-(my-key "M-3" split-window-horizontally)
-(my-key "M-2" split-window-vertically)
-(my-key "M-1" delete-other-windows)
-(my-key "M-0" delete-window)
 
 (my-key "M-/" hippie-expand)
 
