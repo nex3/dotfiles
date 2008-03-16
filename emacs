@@ -41,8 +41,6 @@
   (color-theme-install
    '(my-color-theme-mods
      (())
-     (rcirc-server ((t (:foreground "gray40"))))
-     (rcirc-server-prefix ((t (:foreground "gray40"))))
      (mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
      (textile-link-face ((t (:foreground "#398EE6"))))
      (textile-ul-bullet-face ((t (:foreground "#398EE6")))))))
