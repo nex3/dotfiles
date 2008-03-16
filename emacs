@@ -309,6 +309,23 @@ which should be selected."
 (my-key "C-v" x-clipboard-only-yank)
 (my-key "C-z" clipboard-kill-region)
 
+(my-key "M-w" kill-region)
+(my-key "M-e" kill-ring-save)
+(my-key "M-r" yank)
+(my-key "M-R" yank-pop)
+
+(my-key "M-d" undo)
+(my-key "M-f" kill-line)
+
+(my-key "M-S-SPC" mark-paragraph)
+(my-key "M-SPC" set-mark-command)
+
+(my-key "M-a" execute-extended-command)
+(my-key "M-3" split-window-horizontally)
+(my-key "M-2" split-window-vertically)
+(my-key "M-1" delete-other-windows)
+(my-key "M-0" delete-window)
+
 (my-key "M-/" hippie-expand)
 
 ;; Cold Turkey
