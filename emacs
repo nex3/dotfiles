@@ -110,6 +110,24 @@ By default, it's `name'-mode.el."
 (defun my-c-style ()
   (c-set-style "gnu")
   (c-set-offset 'substatement-open '0)
+  (c-set-offset 'arglist-intro 2)
+  (c-set-offset 'arglist-close 0))
+(add-hook 'cc-mode-hook 'my-c-style)
+
+(eval-after-load 'rcirc
+  '(progn
+     (require 'rcirc-color)
+     (require 'rcirc-unambiguous-nick-completion)
+     (require 'rcirc-notify)
+ 
+     (setq rcirc-server-alist '(("irc.freenode.net" :channels ("#arc" "#haml")))) 
+     (setq my-rcirc-notify-timeout 90)
+     (setq rcirc-unambiguous-complete t)
+     (setq rcirc-debug-flag t)
+     (setq fill-column 80)
+     (setq rcirc-default-nick "nex3")
+     (setq rcirc-default-user-name "nex3")
+     (setq rcirc-default-user-full-name "Nathan Weizenbaum")
      (setq rcirc-time-format "[%l:%M] ")
      (setq rcirc-prompt "%t> ")
      (set-face-foreground 'rcirc-server "gray40")
