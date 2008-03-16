@@ -264,6 +264,9 @@ which should be selected."
 (defmacro my-unset (key)
   `(global-unset-key (kbd ,key)))
 
+(defmacro my-strong-unset (key)
+  `(my-key ,key keyboard-quit))
+
 ;; ----------
 ;; -- Keybindings
 ;; ----------
@@ -291,10 +294,11 @@ which should be selected."
 (my-key "M-p" pager-page-up)
 (my-key "M-;" pager-page-down)
 
-(my-key "M-s" windmove-right)
-(my-key "M-f" windmove-left)
-(my-key "M-e" windmove-up)
-(my-key "M-d" windmove-down)
+(my-key "C-M-L" windmove-right)
+(my-key "C-M-J" windmove-left)
+(my-key "C-M-I" windmove-up)
+(my-key "M-S-TAB" windmove-up)
+(my-key "C-M-K" windmove-down)
 
 (my-key "M-[" backward-delete-char-untabify)
 (my-key "M-]" delete-char)
@@ -310,9 +314,9 @@ which should be selected."
 ;; Cold Turkey
 
 (when window-system
-  (my-unset "<Backspace>")
-  (my-unset "C-<Backspace>")
-  (my-unset "M-<Backspace>")
+  (my-strong-unset "<backspace>")
+  (my-strong-unset "C-<backspace>")
+  (my-strong-unset "M-<backspace>")
   (my-unset "<left>")
   (my-unset "<right>")
   (my-unset "<up>")
@@ -325,8 +329,7 @@ which should be selected."
   (my-unset "<prior>")
   (my-unset "<home>")
   (my-unset "<end>")
-
-  (my-key "<delete>" keyboard-quit))
+  (my-strong-unset "<delete>"))
 
 ;; My Keymap
 
