@@ -9,7 +9,8 @@
 (setq inhibit-startup-message t)
 
 ;; 'Tupid toolbar
-(tool-bar-mode -1)
+(when (functionp 'tool-bar-mode)
+  (tool-bar-mode -1))
 (menu-bar-mode -1)
 
 (defun init-frame ()
