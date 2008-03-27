@@ -101,7 +101,7 @@ By default, it's `name'-mode.el."
 (autoload-mode "sass" "\\.sass$")
 (autoload-mode "rhtml" "\\.\\(rhtml\\|erb\\)$")
 (autoload-mode "yaml" "\\.ya?ml$")
-(autoload-mode "ruby" "\\(\\.\\(rb\\|rake\\|rjs\\)\\|Rakefile\\)$")
+(autoload-mode "ruby" "\\(\\.\\(rb\\|rake\\|rjs\\)\\|Rakefile\\|Capfile\\)$")
 (autoload-mode "css" "\\.css$")
 (autoload-mode "haskell" "\\.l?hs$" "haskell-mode/haskell-site-file")
 (autoload-mode "arc" "\\.arc$" "arc")
