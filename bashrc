@@ -109,7 +109,7 @@ function prompt_command {
     fi
 }
 
-export PROMPT_COMMAND=prompt_command
+export PROMPT_COMMAND="if type prompt_command &> /dev/null; then prompt_command; fi"
 
 ## ----------
 ## -- Personal Aliases and Advice
