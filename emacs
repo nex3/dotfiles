@@ -94,7 +94,7 @@ By default, it's `name'-mode.el."
     (add-to-list 'auto-mode-alist (cons regex name-sym))))
 
 (autoload-mode "tex" "\\.tex$" "auctex")
-(autoload-mode "javascript" "\\.js$" "javascript")
+(autoload-mode "js2" "\\.js$")
 (autoload-mode "d" "\\.d[i]?\\'$")
 (autoload-mode "textile" "\\.textile$")
 (autoload-mode "haml" "\\.haml$")
@@ -225,7 +225,8 @@ By default, it's `name'-mode.el."
         (eq window-system 'w32))
     (maximize-frame))
 
-;; Allow left-scrolling
+(setq js2-mode-must-byte-compile nil)
+(setq js2-use-font-lock-faces t)
 
 ;; Start server
 (server-start)
