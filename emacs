@@ -227,6 +227,8 @@ By default, it's `name'-mode.el."
 
 (setq js2-mode-must-byte-compile nil)
 (setq js2-use-font-lock-faces t)
+(setq js2-mirror-mode nil)
+(setq js2-auto-indent-flag nil)
 
 ;; Start server
 (server-start)
