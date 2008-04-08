@@ -1,0 +1,5 @@
+#name : test("...", function() { ... });
+# --
+test("$1", function() {
+  $0
+});

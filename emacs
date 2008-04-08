@@ -274,6 +274,14 @@ which should be selected."
   (make-directory (minibuffer-contents) t)
   (princ (concat "Created directory " (minibuffer-contents))))
 
+(defun load-yasnippet ()
+  "Load and (re)initialize yasnippet.el."
+  (interactive)
+  (unless (featurep 'yasnippet)
+    (load "yasnippet/yasnippet")
+    (yas/initialize))
+  (yas/load-directory "~/.yasnippets"))
+
 (defmacro my-key (key fn)
   `(global-set-key (kbd ,key) ',fn))
 
@@ -376,6 +384,7 @@ which should be selected."
 (my-key "C-n u" uncomment-region)
 (my-key "C-n m" make-directory-from-minibuffer)
 (my-key "C-n f" auto-fill-mode)
+(my-key "C-n y" load-yasnippet)
 
 (my-map "C-n C-p" nex3-pastie)
 (my-key "C-n C-p p" pastie-region)
