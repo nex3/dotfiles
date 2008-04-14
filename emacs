@@ -34,6 +34,7 @@
 
 (add-to-list 'load-path "/usr/share/emacs/site-lisp")
 (add-to-list 'load-path "/usr/share/emacs-snapshot/site-lisp")
+(add-to-list 'load-path "~/.elisp/js2")
 (add-to-list 'load-path "~/.elisp")
 (require 'color-theme)
 
@@ -94,7 +95,7 @@ By default, it's `name'-mode.el."
     (add-to-list 'auto-mode-alist (cons regex name-sym))))
 
 (autoload-mode "tex" "\\.tex$" "auctex")
-(autoload-mode "js2" "\\.js$")
+(autoload-mode "js2" "\\.js$" "js2-mode")
 (autoload-mode "d" "\\.d[i]?\\'$")
 (autoload-mode "textile" "\\.textile$")
 (autoload-mode "haml" "\\.haml$")
@@ -316,8 +317,8 @@ which should be selected."
 (my-key "M-I" backward-paragraph)
 (my-key "M-K" forward-paragraph)
 
-(my-key "M-u" move-beginning-of-line)
-(my-key "M-o" move-end-of-line)
+(my-key "M-u" beginning-of-line)
+(my-key "M-o" end-of-line)
 (my-key "M-U" beginning-of-buffer)
 (my-key "M-O" end-of-buffer)
 
