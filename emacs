@@ -331,7 +331,7 @@ which should be selected."
 (my-key "M-S-TAB" windmove-up)
 (my-key "C-M-K" windmove-down)
 
-(my-key "M-[" backward-delete-char-untabify)
+(my-key "M-[" delete-backward-char)
 (my-key "M-]" delete-char)
 (my-key "M-{" backward-kill-word)
 (my-key "M-}" kill-word)
