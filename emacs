@@ -282,14 +282,28 @@ which should be selected."
     (yas/initialize))
   (yas/load-directory "~/.yasnippets"))
 
+;; ----------
+;; -- Keybindings
+;; ----------
+
+;; -- Setup
+
+(defvar my-keymap (make-keymap)
+  "A keymap containing my custom keybindings.")
+
+(define-minor-mode my-keys-mode
+  "A minor mode that encapsulates my custom keybindings."
+  :init-value t
+  :keymap my-keymap)
+
 (defmacro my-key (key fn)
-  `(global-set-key (kbd ,key) ',fn))
+  `(define-key my-keymap (kbd ,key) ',fn))
 
 (defmacro my-map (key name)
   (let ((varname (intern (concat (symbol-name name) "-map"))))
   `(progn
      (define-prefix-command ',name ',varname)
-     (global-set-key (kbd ,key) ,varname))))
+     (define-key my-keymap (kbd ,key) ,varname))))
 
 (defmacro my-unset (key)
   `(global-unset-key (kbd ,key)))
@@ -297,9 +311,7 @@ which should be selected."
 (defmacro my-strong-unset (key)
   `(my-key ,key keyboard-quit))
 
-;; ----------
-;; -- Keybindings
-;; ----------
+;; -- Actual Bindings
 
 (my-unset "C-x C-z")
 (my-unset "C-x p")
@@ -324,11 +336,17 @@ which should be selected."
 (my-key "M-p" pager-page-up)
 (my-key "M-;" pager-page-down)
 
-(my-key "C-M-L" windmove-right)
-(my-key "C-M-J" windmove-left)
-(my-key "C-M-I" windmove-up)
+(my-key "C-M-l" forward-sexp)
+(my-key "C-M-j" backward-sexp)
+(my-key "C-M-i" backward-up-list)
+(my-key "M-TAB" backward-up-list)
+(my-key "C-M-k" down-list)
+
+(my-key "C-M-S-l" windmove-right)
+(my-key "C-M-S-j" windmove-left)
+(my-key "C-M-S-i" windmove-up)
 (my-key "M-S-TAB" windmove-up)
-(my-key "C-M-K" windmove-down)
+(my-key "C-M-S-k" windmove-down)
 
 (my-key "M-[" delete-backward-char)
 (my-key "M-]" delete-char)
