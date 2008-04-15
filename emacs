@@ -372,26 +372,6 @@ which should be selected."
 
 (my-key "M-/" hippie-expand)
 
-;; Cold Turkey
-
-(when window-system
-  (my-strong-unset "<backspace>")
-  (my-strong-unset "C-<backspace>")
-  (my-strong-unset "M-<backspace>")
-  (my-unset "<left>")
-  (my-unset "<right>")
-  (my-unset "<up>")
-  (my-unset "<down>")
-  (my-unset "C-<left>")
-  (my-unset "C-<right>")
-  (my-unset "C-<up>")
-  (my-unset "C-<down>")
-  (my-unset "<next>")
-  (my-unset "<prior>")
-  (my-unset "<home>")
-  (my-unset "<end>")
-  (my-strong-unset "<delete>"))
-
 ;; My Keymap
 
 (my-map "C-n" nex3)
