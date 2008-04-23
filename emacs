@@ -35,6 +35,7 @@
 (add-to-list 'load-path "/usr/share/emacs/site-lisp")
 (add-to-list 'load-path "/usr/share/emacs-snapshot/site-lisp")
 (add-to-list 'load-path "~/.elisp/js2")
+(add-to-list 'load-path "~/.elisp/rcirc-notify-el")
 (add-to-list 'load-path "~/.elisp")
 (require 'color-theme)
 
