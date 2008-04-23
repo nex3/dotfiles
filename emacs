@@ -136,28 +136,9 @@ By default, it's `name'-mode.el."
  
      (add-hook 'rcirc-mode-hook (lambda () (flyspell-mode 1)))
  
-     (defun-rcirc-command reconnect (arg)
-       "Reconnect the server process."
-       (interactive "i")
-       (unless process
-         (error "There's no process for this target"))
-       (let* ((server (car (process-contact process)))
-              (port (process-contact process :service))
-              (nick (rcirc-nick process))
-              channels query-buffers)
-         (dolist (buf (buffer-list))
-           (with-current-buffer buf
-             (when (eq process (rcirc-buffer-process))
-               (remove-hook 'change-major-mode-hook
-                            'rcirc-change-major-mode-hook)
-               (if (rcirc-channel-p rcirc-target)
-                   (setq channels (cons rcirc-target channels))
-                 (setq query-buffers (cons buf query-buffers))))))
-         (delete-process process)
-         (rcirc-connect server port nick
-                        rcirc-default-user-name
-                        rcirc-default-user-full-name
-                        channels)))))
+     (defun-rcirc-command raw (arg)
+       "Send a raw string to the IRC server."
+       (rcirc-send-string process arg))))
 
 (eval-after-load "auctex"
   '(progn
@@ -279,6 +260,7 @@ which should be selected."
   (interactive)
   (unless (featurep 'yasnippet)
     (load "yasnippet/yasnippet")
+    (add-to-list 'yas/extra-mode-hooks 'js2-mode)
     (yas/initialize))
   (yas/load-directory "~/.yasnippets"))
 
@@ -341,6 +323,9 @@ which should be selected."
 (my-key "C-M-i" backward-up-list)
 (my-key "M-TAB" backward-up-list)
 (my-key "C-M-k" down-list)
+
+(my-key "C-M-[" backward-kill-sexp)
+(my-key "C-M-]" kill-sexp)
 
 (my-key "C-M-S-l" windmove-right)
 (my-key "C-M-S-j" windmove-left)
