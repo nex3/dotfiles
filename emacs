@@ -37,6 +37,8 @@
 (add-to-list 'load-path "~/.elisp/js2")
 (add-to-list 'load-path "~/.elisp/rcirc-notify-el")
 (add-to-list 'load-path "~/.elisp")
+
+(require 'byte-code-cache)
 (require 'color-theme)
 
 (defun my-color-theme-mods ()
