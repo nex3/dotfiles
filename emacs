@@ -38,6 +38,7 @@
 (add-to-list 'load-path "~/.elisp/rcirc-notify-el")
 (add-to-list 'load-path "~/.elisp")
 
+(setq byte-compile-verbose nil)
 (require 'byte-code-cache)
 (require 'color-theme)
 
@@ -46,6 +47,7 @@
   (color-theme-install
    '(my-color-theme-mods
      (())
+     (rcirc-server ((t (:foreground "gray40"))))
      (mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
      (textile-link-face ((t (:foreground "#398EE6"))))
      (textile-ul-bullet-face ((t (:foreground "#398EE6")))))))
