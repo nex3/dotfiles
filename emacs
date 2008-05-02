@@ -124,8 +124,13 @@ By default, it's `name'-mode.el."
      (require 'rcirc-color)
      (require 'rcirc-unambiguous-nick-completion)
      (require 'rcirc-notify)
- 
-     (setq rcirc-server-alist '(("irc.freenode.net" :channels ("#arc" "#haml")))) 
+
+     (setq rcirc-colors '("darkviolet" "magenta" "deeppink" "red" "yellow" "lawngreen"
+                          "white" "LightSlateGrey" "RoyalBlue" "DeepSkyBlue" "LightSkyBlue"
+                          "DarkOliveGreen" "PaleGreen" "ForestGreen" "LightGoldenrodYellow"
+                          "sienna"))
+     (setq rcirc-server-alist '(("irc.freenode.net" :channels ("#arc" "#haml" "#github"))
+                                ("irc.nex-3.com" :nick "Nathan" :channels ("#rc" "#dnd"))))
      (setq my-rcirc-notify-timeout 90)
      (setq rcirc-unambiguous-complete t)
      (setq rcirc-debug-flag t)
@@ -323,20 +328,29 @@ which should be selected."
 (my-key "M-p" pager-page-up)
 (my-key "M-;" pager-page-down)
 
-(my-key "C-M-l" forward-sexp)
-(my-key "C-M-j" backward-sexp)
-(my-key "C-M-i" backward-up-list)
-(my-key "M-TAB" backward-up-list)
-(my-key "C-M-k" down-list)
+(when window-system
+  (my-key "C-M-l" forward-sexp)
+  (my-key "C-M-j" backward-sexp)
+  (my-key "C-M-i" backward-up-list)
+  (my-key "M-TAB" backward-up-list)
+  (my-key "C-M-k" down-list))
 
 (my-key "C-M-[" backward-kill-sexp)
 (my-key "C-M-]" kill-sexp)
 
-(my-key "C-M-S-l" windmove-right)
-(my-key "C-M-S-j" windmove-left)
-(my-key "C-M-S-i" windmove-up)
-(my-key "M-S-TAB" windmove-up)
-(my-key "C-M-S-k" windmove-down)
+(if window-system
+    (progn
+      (my-key "C-M-S-l" windmove-right)
+      (my-key "C-M-S-j" windmove-left)
+      (my-key "C-M-S-i" windmove-up)
+      (my-key "M-S-TAB" windmove-up)
+      (my-key "C-M-S-k" windmove-down))
+  (my-key "C-M-l" windmove-right)
+  (my-key "C-M-j" windmove-left)
+  (my-key "C-M-i" windmove-up)
+  (my-key "M-TAB" windmove-up)
+  (my-key "C-M-k" windmove-down))
+  
 
 (my-key "M-[" delete-backward-char)
 (my-key "M-]" delete-char)
