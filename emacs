@@ -107,7 +107,7 @@ By default, it's `name'-mode.el."
 (autoload-mode "sass" "\\.sass$")
 (autoload-mode "rhtml" "\\.\\(rhtml\\|erb\\)$")
 (autoload-mode "yaml" "\\.ya?ml$")
-(autoload-mode "ruby" "\\(\\.\\(rb\\|rake\\|rjs\\|gemspec\\)\\|Rakefile\\|Capfile\\)$")
+(autoload-mode "ruby" "\\(\\.\\(rb\\|rake\\|rjs\\|gemspec\\)\\|Rakefile\\|Capfile\\|Thorfile\\)$")
 (autoload-mode "css" "\\.css$")
 (autoload-mode "haskell" "\\.l?hs$" "haskell-mode/haskell-site-file")
 (autoload-mode "arc" "\\.arc$" "arc")
@@ -161,6 +161,12 @@ By default, it's `name'-mode.el."
   '(progn
      (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
      (add-hook 'haskell-mode-hook 'turn-on-haskell-indent)))
+
+(when window-system
+  (eval-after-load "ruby-mode"
+    '(progn
+       (define-key ruby-mode-map (kbd "C-M-l") 'ruby-forward-sexp)
+       (define-key ruby-mode-map (kbd "C-M-j") 'ruby-backward-sexp))))
 
 (add-hook 'text-mode-hook 'flyspell-mode)
 
@@ -288,8 +294,8 @@ which should be selected."
   :init-value t
   :keymap my-keymap)
 
-(defmacro my-key (key fn)
-  `(define-key my-keymap (kbd ,key) ',fn))
+(defmacro my-key (key fn &optional global)
+  `(define-key ,(if global 'global-map 'my-keymap) (kbd ,key) ',fn))
 
 (defmacro my-map (key name)
   (let ((varname (intern (concat (symbol-name name) "-map"))))
@@ -329,11 +335,11 @@ which should be selected."
 (my-key "M-;" pager-page-down)
 
 (when window-system
-  (my-key "C-M-l" forward-sexp)
-  (my-key "C-M-j" backward-sexp)
-  (my-key "C-M-i" backward-up-list)
-  (my-key "M-TAB" backward-up-list)
-  (my-key "C-M-k" down-list))
+  (my-key "C-M-l" forward-sexp t)
+  (my-key "C-M-j" backward-sexp t)
+  (my-key "C-M-i" backward-up-list t)
+  (my-key "M-TAB" backward-up-list t)
+  (my-key "C-M-k" down-list t))
 
 (my-key "C-M-[" backward-kill-sexp)
 (my-key "C-M-]" kill-sexp)

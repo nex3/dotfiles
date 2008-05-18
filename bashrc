@@ -103,9 +103,9 @@ function prompt_command {
     fi
 
     if [ `pwd_with_tilde | wc -c` -lt '35' ]; then
-        PS1="$PROMPT_MAIN:$PROMPT_DIR$BRANCH$ "
+        PS1="$PROMPT_MAIN:$PROMPT_DIR$BRANCH$PROMPT_VAR$ "
     else
-        PS1="\n$PROMPT_DIR$BRANCH\n$PROMPT_MAIN$ "
+        PS1="\n$PROMPT_DIR$BRANCH\n$PROMPT_MAIN$PROMPT_VAR$ "
     fi
 }
 
@@ -132,24 +132,27 @@ alias rl='rlwrap'
 ## -- New Lookup Paths
 ## ----------
 
-if [ -e $HOME/gems ]
+if [ "$PROMPT_VAR" != " rb1.9" ]
 then
-    export GEM_PATH=$HOME/gems:$GEM_PATH
-    export PATH=$HOME/gems/bin:$PATH
-fi
+    if [ -e $HOME/gems ]
+    then
+        export GEM_PATH=$HOME/gems:$GEM_PATH
+        export PATH=$HOME/gems/bin:$PATH
+    fi
 
-if [ -e $HOME/lib/python ]
-then
-    export PYTHONPATH=$HOME/lib/python:$PYTHONPATH
-fi
+    if [ -e $HOME/lib/python ]
+    then
+        export PYTHONPATH=$HOME/lib/python:$PYTHONPATH
+    fi
 
-export LD_LIBRARY_PATH=/usr/local/lib:$HOME/lib:$LD_LIBRARY_PATH
-export LIBRARY_PATH=$HOME/lib:$LIBRARY_PATH
-export C_INCLUDE_PATH=$HOME/include
-export PATH=$HOME/bin:/var/lib/gems/1.8/bin/:/usr/local/bin:$PATH
-export EDITOR='emacs -nw'
-export DARCS_EDITOR=emacsclient
-export SVN_EDITOR='emacs -nw'
+    export LD_LIBRARY_PATH=/usr/local/lib:$HOME/lib:$LD_LIBRARY_PATH
+    export LIBRARY_PATH=$HOME/lib:$LIBRARY_PATH
+    export C_INCLUDE_PATH=$HOME/include
+    export PATH=$HOME/bin:/var/lib/gems/1.8/bin/:/usr/local/bin:$PATH
+    export EDITOR='emacs -nw'
+    export DARCS_EDITOR=emacsclient
+    export SVN_EDITOR='emacs -nw'
+fi
 
 ## ----------
 ## -- Initialization Commands
