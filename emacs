@@ -37,6 +37,7 @@
 (add-to-list 'load-path "~/.elisp/js2")
 (add-to-list 'load-path "~/.elisp/rcirc-notify-el")
 (add-to-list 'load-path "~/.elisp")
+(add-to-list 'load-path "~/share/emacs/site-lisp")
 
 (setq byte-compile-verbose nil)
 (require 'byte-code-cache)
