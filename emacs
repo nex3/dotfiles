@@ -40,6 +40,7 @@
 (add-to-list 'load-path "~/share/emacs/site-lisp")
 
 (setq byte-compile-verbose nil)
+(setq byte-compile-warnings nil)
 (require 'byte-code-cache)
 (require 'color-theme)
 
