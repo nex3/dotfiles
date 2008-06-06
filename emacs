@@ -50,6 +50,7 @@
   (color-theme-install
    '(my-color-theme-mods
      (())
+     (yas/field-highlight-face ((t (:background "gray30"))))
      (rcirc-server ((t (:foreground "gray40"))))
      (mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
      (textile-link-face ((t (:foreground "#398EE6"))))
@@ -165,6 +166,14 @@ By default, it's `name'-mode.el."
      (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
      (add-hook 'haskell-mode-hook 'turn-on-haskell-indent)))
 
+(eval-after-load "js2-mode"
+  '(progn
+     (define-key js2-mode-map "\C-m" 'newline)
+     (setq js2-mode-must-byte-compile nil)
+     (setq js2-mirror-mode nil)
+     (setq js2-auto-indent-flag nil)
+     (setq js2-enter-indents-newline nil)))
+
 (when window-system
   (eval-after-load "ruby-mode"
     '(progn
@@ -226,9 +235,6 @@ By default, it's `name'-mode.el."
         (eq window-system 'w32))
     (maximize-frame))
 
-(setq js2-mode-must-byte-compile nil)
-(setq js2-mirror-mode nil)
-(setq js2-auto-indent-flag nil)
 
 ;; Start server
 (server-start)
