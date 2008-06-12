@@ -111,7 +111,7 @@ By default, it's `name'-mode.el."
 (autoload-mode "sass" "\\.sass$")
 (autoload-mode "rhtml" "\\.\\(rhtml\\|erb\\)$")
 (autoload-mode "yaml" "\\.ya?ml$")
-(autoload-mode "ruby" "\\(\\.\\(rb\\|rake\\|rjs\\|gemspec\\)\\|Rakefile\\|Capfile\\|Thorfile\\)$")
+(autoload-mode "ruby" "\\(\\.\\(rb\\|rake\\|rjs\\|gemspec\\|thor\\)\\|Rakefile\\|Capfile\\|Thorfile\\)$")
 (autoload-mode "css" "\\.css$")
 (autoload-mode "haskell" "\\.l?hs$" "haskell-mode/haskell-site-file")
 (autoload-mode "arc" "\\.arc$" "arc")
@@ -226,8 +226,8 @@ By default, it's `name'-mode.el."
 ;; M-<direction> wraps
 (setq windmove-wrap-around t)
 
-;; Don't yell at me for narrowing the region
-(put 'narrow-to-region 'disabled nil)
+;; Don't yell at me!
+(setq disabled-command-function nil)
 
 ;; Maximize the window on load for Macs, where there's no full maximization,
 ;; and Windows, where Emacs can access the full maximization.
