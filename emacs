@@ -39,6 +39,7 @@
 (add-to-list 'load-path "/usr/share/emacs-snapshot/site-lisp")
 (add-to-list 'load-path "~/.elisp/js2")
 (add-to-list 'load-path "~/.elisp/rcirc-notify-el")
+(add-to-list 'load-path "~/.elisp/distel")
 (add-to-list 'load-path "~/.elisp")
 (add-to-list 'load-path "~/share/emacs/site-lisp")
 
@@ -117,6 +118,7 @@ By default, it's `name'-mode.el."
 (autoload-mode "css" "\\.css$")
 (autoload-mode "haskell" "\\.l?hs$" "haskell-mode/haskell-site-file")
 (autoload-mode "arc" "\\.arc$" "arc")
+(autoload-mode "erlang" "\\.erl$" "erlang/erlang")
 
 (defun my-c-style ()
   (c-set-style "gnu")
@@ -175,6 +177,13 @@ By default, it's `name'-mode.el."
      (setq js2-mirror-mode nil)
      (setq js2-auto-indent-flag nil)
      (setq js2-enter-indents-newline nil)))
+
+(eval-after-load "erlang"
+  '(condition-case nil
+       (progn
+         (require 'distel)
+         (distel-setup))
+     (file-error nil)))
 
 (when window-system
   (eval-after-load "ruby-mode"
