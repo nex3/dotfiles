@@ -357,6 +357,7 @@ which should be selected."
   (my-key "C-M-j" backward-sexp t)
   (my-key "C-M-i" backward-up-list t)
   (my-key "M-TAB" backward-up-list t)
+  (define-key emacs-lisp-mode-map (kbd "M-TAB") 'backward-up-list)
   (my-key "C-M-k" down-list t))
 
 (my-key "C-M-[" backward-kill-sexp)
