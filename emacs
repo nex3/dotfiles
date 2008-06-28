@@ -19,7 +19,9 @@
   (when window-system
     (cond ((and (>= emacs-major-version 23)
                 (not (string-match "\\.cs\\.washington\.edu$" system-name)))
-           (set-frame-font "Monospace-8"))
+           (if (string-equal system-name "Clara")
+               (set-frame-font "Monospace-7")
+             (set-frame-font "Monospace-8")))
           ((and (eq window-system 'mac)
                 (x-list-fonts "-apple-bitstream vera sans mono-medium-r-normal--0-0-0-0-m-0-mac-roman"))
            (set-default-font "-apple-bitstream vera sans mono-medium-r-normal--0-0-0-0-m-0-mac-roman"))
@@ -235,6 +237,13 @@ By default, it's `name'-mode.el."
         (eq window-system 'w32))
     (maximize-frame))
 
+(setq hippie-expand-try-functions-list
+      '(try-expand-all-abbrevs
+        try-expand-dabbrev
+        try-expand-dabbrev-all-buffers
+        try-expand-dabbrev-from-kill
+        try-complete-lisp-symbol-partially
+        try-complete-lisp-symbol))
 
 ;; Start server
 (server-start)
