@@ -182,7 +182,8 @@ By default, it's `name'-mode.el."
   '(condition-case nil
        (progn
          (require 'distel)
-         (distel-setup))
+         (distel-setup)
+         (define-key erlang-extended-mode-map (kbd "C-M-i") 'backward-up-list))
      (file-error nil)))
 
 (when window-system
