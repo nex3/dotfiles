@@ -206,7 +206,7 @@ By default, it's `name'-mode.el."
 
 ;; Ignore extensions for stuff I don't care about
 (setq completion-ignored-extensions
-      '(".a" ".so" ".o" "~" ".bak" ".class" ".hi"))
+      '(".a" ".so" ".o" "~" ".bak" ".class" ".hi" ".beam"))
 
 ;; Don't wrap lines
 (setq default-truncate-lines t)
