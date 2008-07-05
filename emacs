@@ -190,7 +190,8 @@ By default, it's `name'-mode.el."
   (eval-after-load "ruby-mode"
     '(progn
        (define-key ruby-mode-map (kbd "C-M-l") 'ruby-forward-sexp)
-       (define-key ruby-mode-map (kbd "C-M-j") 'ruby-backward-sexp))))
+       (define-key ruby-mode-map (kbd "C-M-j") 'ruby-backward-sexp)
+       (setq ruby-deep-indent-paren-style nil))))
 
 (add-hook 'text-mode-hook 'flyspell-mode)
 
