@@ -48,15 +48,25 @@
 (defconst ruby-block-end-re "\\<end\\>")
 
 (defconst ruby-here-doc-beg-re
-  "<<\\(-\\)?\\(\\([a-zA-Z0-9_]+\\)\\|[\"]\\([^\"]+\\)[\"]\\|[']\\([^']+\\)[']\\)")
+  "\\(<\\)<\\(-\\)?\\(\\([a-zA-Z0-9_]+\\)\\|[\"]\\([^\"]+\\)[\"]\\|[']\\([^']+\\)[']\\)")
+
+(defconst ruby-here-doc-end-re
+  "^\\([ \t]+\\)?\\(.*\\)\\(.\\)$")
 
 (defun ruby-here-doc-end-match ()
   (concat "^"
-	  (if (match-string 1) "[ \t]*" nil)
+	  (if (match-string 2) "[ \t]*" nil)
 	  (regexp-quote
-	   (or (match-string 3)
-	       (match-string 4)
-	       (match-string 5)))))
+	   (or (match-string 4)
+	       (match-string 5)
+	       (match-string 6)))))
+
+(defun ruby-here-doc-beg-match ()
+  (let ((contents (regexp-quote (concat (match-string 2) (match-string 3)))))
+    (concat "<<"
+            (if (match-string 1)
+                (concat "\\(?:-\\|\\([\"']\\)" (match-string 1) contents "\\1\\)")
+              (concat "-?\\([\"']\\|\\)" contents "\\1")))))
 
 (defconst ruby-delimiter
   (concat "[?$/%(){}#\"'`.:]\\|<<\\|\\[\\|\\]\\|\\<\\("
@@ -1007,7 +1017,7 @@ balanced expression is found."
       (setq font-lock-variable-name-face font-lock-type-face))
 
   (setq ruby-font-lock-syntactic-keywords
-	'(
+	`(
 	  ;; #{ }, #$hoge, #@foo are not comments
 	  ("\\(#\\)[{$@]" 1 (1 . nil))
 	  ;; the last $', $", $` in the respective string is not variable
@@ -1023,7 +1033,27 @@ balanced expression is found."
 	   (4 (7 . ?/))
 	   (6 (7 . ?/)))
 	  ("^\\(=\\)begin\\(\\s \\|$\\)" 1 (7 . nil))
-	  ("^\\(=\\)end\\(\\s \\|$\\)" 1 (7 . nil))))
+	  ("^\\(=\\)end\\(\\s \\|$\\)" 1 (7 . nil))
+ 	  (,ruby-here-doc-beg-re 1 (ruby-here-doc-beg-syntax))
+ 	  (,ruby-here-doc-end-re 3 (ruby-here-doc-end-syntax))))
+
+  (defun ruby-in-here-doc-p ()
+    (save-excursion
+      (let ((old-point (point)))
+        (and (re-search-backward ruby-here-doc-beg-re nil t)
+             (not (re-search-forward (ruby-here-doc-end-match) old-point t))))))
+
+  (defun ruby-here-doc-beg-syntax ()
+    (save-excursion
+      (goto-char (match-beginning 0))
+      (unless (ruby-in-here-doc-p) (string-to-syntax "|"))))
+
+  (defun ruby-here-doc-end-syntax ()
+    (save-excursion
+      (goto-char (match-beginning 0))
+      (if (and (re-search-backward (ruby-here-doc-beg-match) nil t)
+               (not (ruby-in-here-doc-p)))
+          (string-to-syntax "|"))))
 
   (if (featurep 'xemacs)
       (put 'ruby-mode 'font-lock-defaults
@@ -1063,34 +1093,6 @@ balanced expression is found."
     (let* ((tbl (copy-syntax-table ruby-mode-syntax-table)))
       (modify-syntax-entry ?_ "w" tbl)
       tbl))
-
-  (defun ruby-font-lock-here-docs (limit)
-    (if (re-search-forward ruby-here-doc-beg-re limit t)
-	(let (beg)
-	  (beginning-of-line)
-          (forward-line)
-	  (setq beg (point))
-	  (if (re-search-forward (ruby-here-doc-end-match) nil t)
-	      (progn
-		(set-match-data (list beg (point)))
-		t)))))
-
-  (defun ruby-font-lock-maybe-here-docs (limit)
-    (let (beg)
-      (save-excursion
-	(if (re-search-backward ruby-here-doc-beg-re nil t)
-	    (progn
-	      (beginning-of-line)
-              (forward-line)
-	      (setq beg (point)))))
-      (if (and beg
-	       (let ((end-match (ruby-here-doc-end-match)))
-                 (and (not (re-search-backward end-match beg t))
-		      (re-search-forward end-match nil t))))
-	  (progn
-	    (set-match-data (list beg (point)))
-	    t)
-          nil)))
 
   (defvar ruby-font-lock-keywords
     (list
@@ -1154,13 +1156,6 @@ balanced expression is found."
        0 font-lock-comment-face t)
      '(ruby-font-lock-maybe-docs
        0 font-lock-comment-face t)
-     ;; "here" document
-     '(ruby-font-lock-here-docs
-       0 font-lock-string-face t)
-     '(ruby-font-lock-maybe-here-docs
-       0 font-lock-string-face t)
-     `(,ruby-here-doc-beg-re
-       0 font-lock-string-face t)
      ;; general delimited string
      '("\\(^\\|[[ \t\n<+(,=]\\)\\(%[xrqQwW]?\\([^<[{(a-zA-Z0-9 \n]\\)[^\n\\\\]*\\(\\\\.[^\n\\\\]*\\)*\\(\\3\\)\\)"
        (2 font-lock-string-face))
