@@ -14,36 +14,29 @@
    (substring ruby-mode-revision (match-beginning 0) (match-end 0))))
 
 (defconst ruby-block-beg-re
-  "class\\|module\\|def\\|if\\|unless\\|case\\|while\\|until\\|for\\|begin\\|do"
-  )
+  (regexp-opt '("class" "module" "def" "if" "unless" "case" "while" "until" "for" "begin" "do")))
 
 (defconst ruby-non-block-do-re
-  "\\(while\\|until\\|for\\|rescue\\)\\>[^_]"
-  )
+  (concat (regexp-opt '("while" "until" "for" "rescue") t) "\\>[^_]"))
 
 (defconst ruby-indent-beg-re
-  "\\(\\s *\\(class\\|module\\|def\\)\\)\\|if\\|unless\\|case\\|while\\|until\\|for\\|begin"
-    )
+  (concat "\\(\\s *" (regexp-opt '("class" "module" "def") t) "\\)"
+          (regexp-opt '("if" "unless" "case" "while" "until" "for" "begin"))))
 
 (defconst ruby-modifier-beg-re
-  "if\\|unless\\|while\\|until"
-  )
+  (regexp-opt '("if" "unless" "while" "until")))
 
 (defconst ruby-modifier-re
-  (concat ruby-modifier-beg-re "\\|rescue")
-  )
+  (concat ruby-modifier-beg-re "\\|rescue"))
 
 (defconst ruby-block-mid-re
-  "then\\|else\\|elsif\\|when\\|rescue\\|ensure"
-  )
+  (regexp-opt '("then" "else" "elsif" "when" "rescue" "ensure")))
 
 (defconst ruby-block-op-re
-  "and\\|or\\|not"
-  )
+  (regexp-opt '("and" "or" "not")))
 
 (defconst ruby-block-hanging-re
-  (concat ruby-modifier-beg-re "\\|" ruby-block-op-re)
-  )
+  (concat ruby-modifier-beg-re "\\|" ruby-block-op-re))
 
 (defconst ruby-block-end-re "\\<end\\>")
 
