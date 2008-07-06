@@ -1101,10 +1101,10 @@ balanced expression is found."
        1 font-lock-function-name-face)
      ;; keywords
      (cons (concat
-	    "\\(^\\|[^_:.@$]\\|\\.\\.\\)\\b\\(defined\\?\\|\\("
-	    (mapconcat
-	     'identity
-	     '("alias"
+	    "\\(^\\|[^_:.@$]\\|\\.\\.\\)\\_<"
+	    (regexp-opt
+	     '("defined?"
+	       "alias"
 	       "and"
 	       "begin"
 	       "break"
@@ -1139,9 +1139,8 @@ balanced expression is found."
 	       "when"
 	       "while"
 	       "yield"
-	       )
-	     "\\|")
-	    "\\)\\>\\)")
+	       ) t)
+	    "\\_>")
 	   2)
      ;; variables
      '("\\(^\\|[^_:.@$]\\|\\.\\.\\)\\b\\(nil\\|self\\|true\\|false\\)\\>"
