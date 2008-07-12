@@ -58,7 +58,7 @@
   (let ((contents (regexp-quote (concat (match-string 2) (match-string 3)))))
     (concat "<<"
             (if (match-string 1)
-                (concat "\\(?:-\\|\\([\"']\\)" (match-string 1) contents "\\1\\)")
+                (concat "\\(?:-\\(?1:[\"']\\)\\|\\(?1:[\"']\\)" (match-string 1) "\\)" contents "\\1")
               (concat "-?\\([\"']\\|\\)" contents "\\1")))))
 
 (defconst ruby-delimiter
