@@ -229,6 +229,8 @@ Also ignores spaces after parenthesis when 'space."
   (setq indent-tabs-mode ruby-indent-tabs-mode)
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
+  (make-local-variable 'parse-sexp-lookup-properties)
+  (setq parse-sexp-lookup-properties t)
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "$\\|" page-delimiter))
   (make-local-variable 'paragraph-separate)
@@ -1027,26 +1029,26 @@ balanced expression is found."
            (6 (7 . ?/)))
           ("^\\(=\\)begin\\(\\s \\|$\\)" 1 (7 . nil))
           ("^\\(=\\)end\\(\\s \\|$\\)" 1 (7 . nil))
-          (,ruby-here-doc-beg-re 1 (ruby-here-doc-beg-syntax))
+          (,(concat ruby-here-doc-beg-re ".*\\(?100:\n\\)")
+           100 (ruby-here-doc-beg-syntax))
           (,ruby-here-doc-end-re 3 (ruby-here-doc-end-syntax))))
-
-  (defun ruby-in-here-doc-p ()
-    (save-excursion
-      (let ((old-point (point)))
-        (and (re-search-backward ruby-here-doc-beg-re nil t)
-             (not (re-search-forward (ruby-here-doc-end-match) old-point t))))))
 
   (defun ruby-here-doc-beg-syntax ()
     (save-excursion
       (goto-char (match-beginning 0))
-      (unless (ruby-in-here-doc-p) (string-to-syntax "|"))))
+      (if (null (syntax-ppss-context (syntax-ppss))) (string-to-syntax "|"))))
 
   (defun ruby-here-doc-end-syntax ()
     (save-excursion
       (goto-char (match-beginning 0))
-      (if (and (re-search-backward (ruby-here-doc-beg-match) nil t)
-               (not (ruby-in-here-doc-p)))
-          (string-to-syntax "|"))))
+      (let ((beg-exists (re-search-backward (ruby-here-doc-beg-match) nil t))
+            (beg-end (match-end 0))
+            (eol (save-excursion (end-of-line) (point))))
+        (if (and beg-exists ; If there is a heredoc that matches this line...
+                 (null (syntax-ppss-context (syntax-ppss))) ; And that's not inside another heredoc/comment...
+                 (progn (goto-char beg-end) ; And it's the last heredoc on its line...
+                        (not (re-search-forward ruby-here-doc-beg-re eol t))))
+            (string-to-syntax "|")))))
 
   (if (featurep 'xemacs)
       (put 'ruby-mode 'font-lock-defaults
@@ -1087,7 +1089,7 @@ balanced expression is found."
       (modify-syntax-entry ?_ "w" tbl)
       tbl))
 
-  (defvar ruby-font-lock-keywords
+  (defconst ruby-font-lock-keywords
     (list
      ;; functions
      '("^\\s *def\\s +\\([^( \t\n]+\\)"
@@ -1135,6 +1137,8 @@ balanced expression is found."
                ) t)
             "\\_>")
            2)
+     ;; here-doc beginnings
+     (list ruby-here-doc-beg-re 0 'font-lock-string-face)
      ;; variables
      '("\\(^\\|[^_:.@$]\\|\\.\\.\\)\\b\\(nil\\|self\\|true\\|false\\)\\>"
        2 font-lock-variable-name-face)
