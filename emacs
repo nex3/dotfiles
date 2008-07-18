@@ -179,12 +179,25 @@ By default, it's `name'-mode.el."
      (setq js2-enter-indents-newline nil)))
 
 (eval-after-load "erlang"
-  '(condition-case nil
-       (progn
-         (require 'distel)
-         (distel-setup)
-         (define-key erlang-extended-mode-map (kbd "C-M-i") 'backward-up-list))
-     (file-error nil)))
+  '(progn
+     (add-hook 'erlang-mode-hook
+               (lambda () (setq inferior-erlang-machine-options '("-sname" "emacs"))))
+     (condition-case nil
+         (progn
+           (require 'distel)
+           (distel-setup)
+           (define-key erlang-extended-mode-map (kbd "C-M-i") 'backward-up-list)
+           (defconst distel-shell-keys
+             '(("\C-\M-i" erl-complete)
+               ("\M-?"    erl-complete)	
+               ("\M-."    erl-find-source-under-point)
+               ("\M-,"    erl-find-source-unwind) 
+               ("\M-*"    erl-find-source-unwind)))
+           (add-hook 'erlang-shell-mode-hook
+                     (lambda ()
+                       (dolist (spec distel-shell-keys)
+                         (define-key erlang-shell-mode-map (car spec) (cadr spec))))))
+       (file-error nil))))
 
 (when window-system
   (eval-after-load "ruby-mode"
@@ -255,6 +268,8 @@ By default, it's `name'-mode.el."
         try-expand-dabbrev-from-kill
         try-complete-lisp-symbol-partially
         try-complete-lisp-symbol))
+
+(transient-mark-mode nil)
 
 ;; Start server
 (server-start)
