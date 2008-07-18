@@ -119,6 +119,7 @@ By default, it's `name'-mode.el."
 (autoload-mode "haskell" "\\.l?hs$" "haskell-mode/haskell-site-file")
 (autoload-mode "arc" "\\.arc$" "arc")
 (autoload-mode "erlang" "\\.[he]rl$" "erlang/erlang")
+(autoload-mode "treetop" "\\.treetop$")
 
 (defun my-c-style ()
   (c-set-style "gnu")
