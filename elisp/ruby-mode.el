@@ -1080,7 +1080,9 @@ buffer position `limit' or the end of the buffer."
   (defun ruby-here-doc-beg-syntax ()
     (save-excursion
       (goto-char (match-beginning 0))
-      (unless (ruby-in-here-doc-p) (string-to-syntax "|"))))
+      (unless (or (syntax-ppss-context (syntax-ppss))
+                  (ruby-in-here-doc-p))
+        (string-to-syntax "|"))))
 
   (defun ruby-here-doc-end-syntax ()
     (save-excursion
