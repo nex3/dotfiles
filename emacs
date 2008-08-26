@@ -37,7 +37,6 @@
 
 (add-to-list 'load-path "/usr/share/emacs/site-lisp")
 (add-to-list 'load-path "/usr/share/emacs-snapshot/site-lisp")
-(add-to-list 'load-path "~/.elisp/js2")
 (add-to-list 'load-path "~/.elisp/rcirc-notify-el")
 (add-to-list 'load-path "~/.elisp/distel")
 (add-to-list 'load-path "~/.elisp")
@@ -107,7 +106,7 @@ By default, it's `name'-mode.el."
     (add-to-list 'auto-mode-alist (cons regex name-sym))))
 
 (autoload-mode "tex" "\\.tex$" "auctex")
-(autoload-mode "js2" "\\.js$" "js2-mode")
+(autoload-mode "javascript" "\\.js$" "javascript")
 (autoload-mode "d" "\\.d[i]?\\'$")
 (autoload-mode "textile" "\\.textile$")
 (autoload-mode "haml" "\\.haml$")
@@ -170,14 +169,6 @@ By default, it's `name'-mode.el."
   '(progn
      (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
      (add-hook 'haskell-mode-hook 'turn-on-haskell-indent)))
-
-(eval-after-load "js2-mode"
-  '(progn
-     (define-key js2-mode-map "\C-m" 'newline)
-     (setq js2-mode-must-byte-compile nil)
-     (setq js2-mirror-mode nil)
-     (setq js2-auto-indent-flag nil)
-     (setq js2-enter-indents-newline nil)))
 
 (eval-after-load "erlang"
   '(progn
