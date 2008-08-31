@@ -1,45 +1,46 @@
 ;;;
 ;;;  ruby-mode.el -
 ;;;
-;;;  $Author: matz $
-;;;  $Date: 2008-05-02 02:17:56 -0400 (Fri, 02 May 2008) $
+;;;  $Author$
 ;;;  created at: Fri Feb  4 14:49:13 JST 1994
 ;;;
 
-(defconst ruby-mode-revision "$Revision: 16267 $")
+(defconst ruby-mode-revision "$Revision$"
+  "Ruby mode revision string.")
 
 (defconst ruby-mode-version
   (progn
    (string-match "[0-9.]+" ruby-mode-revision)
-   (substring ruby-mode-revision (match-beginning 0) (match-end 0))))
+   (substring ruby-mode-revision (match-beginning 0) (match-end 0)))
+  "Ruby mode version number.")
 
 (defconst ruby-block-beg-re
   "class\\|module\\|def\\|if\\|unless\\|case\\|while\\|until\\|for\\|begin\\|do"
-  )
+  "Regexp to match the beginning of blocks in ruby-mode.")
 
 (defconst ruby-non-block-do-re
   "\\(while\\|until\\|for\\|rescue\\)\\>[^_]"
-  )
+  "Regexp to match")
 
 (defconst ruby-indent-beg-re
   "\\(\\s *\\(class\\|module\\|def\\)\\)\\|if\\|unless\\|case\\|while\\|until\\|for\\|begin"
-    )
+  "Regexp to match where the indentation gets deeper.")
 
 (defconst ruby-modifier-beg-re
   "if\\|unless\\|while\\|until"
-  )
+  "Regexp to match modifiers same as the beginning of blocks.")
 
 (defconst ruby-modifier-re
   (concat ruby-modifier-beg-re "\\|rescue")
-  )
+  "Regexp to match modifiers.")
 
 (defconst ruby-block-mid-re
   "then\\|else\\|elsif\\|when\\|rescue\\|ensure"
-  )
+  "Regexp to match where the indentation gets shallower in middle of block statements.")
 
 (defconst ruby-block-op-re
   "and\\|or\\|not"
-  )
+  "Regexp to match ")
 
 (defconst ruby-block-hanging-re
   (concat ruby-modifier-beg-re "\\|" ruby-block-op-re)
@@ -67,8 +68,8 @@
             (let ((match (match-string 1)))
               (if (and match (> (length match) 0))
                   (concat "\\(?:-\\([\"']?\\)\\|\\([\"']\\)" (match-string 1) "\\)"
-                          contents "\\(\\1\\|\\2\\)")
-                (concat "-?\\([\"']\\|\\)" contents "\\1"))))))
+                          contents "\\b\\(\\1\\|\\2\\)")
+                (concat "-?\\([\"']\\|\\)" contents "\\b\\1"))))))
 
 (defconst ruby-delimiter
   (concat "[?$/%(){}#\"'`.:]\\|<<\\|\\[\\|\\]\\|\\<\\("
@@ -80,7 +81,7 @@
 (defconst ruby-negative
   (concat "^[ \t]*\\(\\(" ruby-block-mid-re "\\)\\>\\|"
 	    ruby-block-end-re "\\|}\\|\\]\\)")
-  )
+  "Regexp to match where the indentation gets shallower.")
 
 (defconst ruby-operator-chars "-,.+*/%&|^~=<>:")
 (defconst ruby-operator-re (concat "[" ruby-operator-chars "]"))
@@ -173,12 +174,20 @@ Also ignores spaces after parenthesis when 'space."
   "Default deep indent style."
   :options '(t nil space) :group 'ruby)
 
+(defcustom ruby-encoding-map '((shift_jis . cp932) (shift-jis . cp932))
+  "Alist to map encoding name from emacs to ruby."
+  :group 'ruby)
+
+(defcustom ruby-use-encoding-map t
+  "*Use `ruby-encoding-map' to set encoding magic comment if this is non-nil."
+  :type 'boolean :group 'ruby)
+
 (eval-when-compile (require 'cl))
 (defun ruby-imenu-create-index-in-block (prefix beg end)
   (let ((index-alist '())
         name next pos decl sing)
     (goto-char beg)
-    (while (re-search-forward "^\\s *\\(\\(class\\>\\(\\s *<<\\)?\\|module\\>\\)\\s *\\([^\(<\n ]+\\)\\|\\(def\\|alias\\)\\>\\s *\\([^\(\n ]+\\)\\)" end t)
+    (while (re-search-forward "^\\s *\\(\\(class\\s +\\|\\(class\\s *<<\\s *\\)\\|module\\s +\\)\\([^\(<\n ]+\\)\\|\\(def\\|alias\\)\\s +\\([^\(\n ]+\\)\\)" end t)
       (setq sing (match-beginning 3))
       (setq decl (match-string 5))
       (setq next (match-end 0))
@@ -248,6 +257,41 @@ Also ignores spaces after parenthesis when 'space."
   (make-local-variable 'paragraph-ignore-fill-prefix)
   (setq paragraph-ignore-fill-prefix t))
 
+(defun ruby-mode-set-encoding ()
+  (save-excursion
+    (widen)
+    (goto-char (point-min))
+    (when (re-search-forward "[^\0-\177]" nil t)
+      (goto-char (point-min))
+      (let ((coding-system
+	     (or coding-system-for-write
+		 buffer-file-coding-system)))
+	(if coding-system
+	    (setq coding-system
+		  (or (coding-system-get coding-system 'mime-charset)
+		      (coding-system-change-eol-conversion coding-system nil))))
+	(setq coding-system
+	      (if coding-system
+		  (symbol-name
+		   (or (and ruby-use-encoding-map
+			    (cdr (assq coding-system ruby-encoding-map)))
+		       coding-system))
+		"ascii-8bit"))
+	(if (looking-at "^#![^\n]*ruby") (beginning-of-line 2))
+	(cond ((looking-at "\\s *#.*-\*-\\s *\\(en\\)?coding\\s *:\\s *\\([-a-z0-9_]*\\)\\s *\\(;\\|-\*-\\)")
+	       (unless (string= (match-string 2) coding-system)
+		 (goto-char (match-beginning 2))
+		 (delete-region (point) (match-end 2))
+		 (and (looking-at "-\*-")
+		      (let ((n (skip-chars-backward " ")))
+			(cond ((= n 0) (insert "  ") (backward-char))
+			      ((= n -1) (insert " "))
+			      ((forward-char)))))
+		 (insert coding-system)))
+	      ((looking-at "\\s *#.*coding\\s *[:=]"))
+	      (t (insert "# -*- coding: " coding-system " -*-\n"))
+	      )))))
+
 ;;;###autoload
 (defun ruby-mode ()
   "Major mode for editing ruby scripts.
@@ -270,12 +314,22 @@ The variable ruby-indent-level controls the amount of indentation.
   (make-local-variable 'add-log-current-defun-function)
   (setq add-log-current-defun-function 'ruby-add-log-current-method)
 
+  (add-hook
+   (cond ((boundp 'before-save-hook)
+	  (make-local-variable 'before-save-hook)
+	  'before-save-hook)
+	 ((boundp 'write-contents-functions) 'write-contents-functions)
+	 ((boundp 'write-contents-hooks) 'write-contents-hooks))
+   'ruby-mode-set-encoding)
+
   (set (make-local-variable 'font-lock-defaults) '((ruby-font-lock-keywords) nil nil))
   (set (make-local-variable 'font-lock-keywords) ruby-font-lock-keywords)
   (set (make-local-variable 'font-lock-syntax-table) ruby-font-lock-syntax-table)
   (set (make-local-variable 'font-lock-syntactic-keywords) ruby-font-lock-syntactic-keywords)
 
-  (run-mode-hooks 'ruby-mode-hook))
+  (if (fboundp 'run-mode-hooks)
+      (run-mode-hooks 'ruby-mode-hook)
+    (run-hooks 'ruby-mode-hook)))
 
 (defun ruby-current-indentation ()
   (save-excursion
@@ -699,7 +753,7 @@ The variable ruby-indent-level controls the amount of indentation.
 	      (setq end nil))
 	    (goto-char (or end pos))
 	    (skip-chars-backward " \t")
-	    (setq begin (if (nth 0 state) pos (cdr (nth 1 state))))
+	    (setq begin (if (and end (nth 0 state)) pos (cdr (nth 1 state))))
 	    (setq state (ruby-parse-region parse-start (point))))
 	  (or (bobp) (forward-char -1))
 	  (and
@@ -747,15 +801,19 @@ The variable ruby-indent-level controls the amount of indentation.
 		    (not (looking-at (concat "\\<\\(" ruby-block-hanging-re "\\)\\>")))
 		    (eq (ruby-deep-indent-paren-p t) 'space)
 		    (not (bobp)))
-		   (save-excursion
-		     (widen)
-		     (goto-char (or begin parse-start))
-		     (skip-syntax-forward " ")
-		     (current-column)))
+		   (widen)
+		   (goto-char (or begin parse-start))
+		   (skip-syntax-forward " ")
+		   (current-column))
 		  ((car (nth 1 state)) indent)
 		  (t
 		   (+ indent ruby-indent-level))))))))
-      indent)))
+      (goto-char indent-point)
+      (beginning-of-line)
+      (skip-syntax-forward " ")
+      (if (looking-at "\\.[^.]")
+	  (+ indent ruby-indent-level)
+	indent))))
 
 (defun ruby-electric-brace (arg)
   (interactive "P")
@@ -983,17 +1041,19 @@ balanced expression is found."
   "Return current method string."
   (condition-case nil
       (save-excursion
-	(let ((mlist nil) (indent 0))
+	(let (mname mlist (indent 0))
 	  ;; get current method (or class/module)
 	  (if (re-search-backward
 	       (concat "^[ \t]*\\(def\\|class\\|module\\)[ \t]+"
-		       "\\(" 
-		       ;; \\. for class method
-			"\\(" ruby-symbol-re "\\|\\." "\\)" 
+		       "\\("
+		       ;; \\. and :: for class method
+			"\\([A-Za-z_]" ruby-symbol-re "*\\|\\.\\|::" "\\)" 
 			"+\\)")
 	       nil t)
 	      (progn
-		(setq mlist (list (match-string 2)))
+		(setq mname (match-string 2))
+		(unless (string-equal "def" (match-string 1))
+		  (setq mlist (list mname) mname nil))
 		(goto-char (match-beginning 1))
 		(setq indent (current-column))
 		(beginning-of-line)))
@@ -1002,7 +1062,7 @@ balanced expression is found."
 		      (re-search-backward
 		       (concat
 			"^[ \t]*\\(class\\|module\\)[ \t]+"
-			"\\([A-Z]" ruby-symbol-re "+\\)")
+			"\\([A-Z]" ruby-symbol-re "*\\)")
 		       nil t))
 	    (goto-char (match-beginning 1))
 	    (if (< (current-column) indent)
@@ -1010,10 +1070,33 @@ balanced expression is found."
 		  (setq mlist (cons (match-string 2) mlist))
 		  (setq indent (current-column))
 		  (beginning-of-line))))
+	  (when mname
+	    (let ((mn (split-string mname "\\.\\|::")))
+	      (if (cdr mn)
+		  (progn
+		    (cond
+		     ((string-equal "" (car mn))
+		      (setq mn (cdr mn) mlist nil))
+		     ((string-equal "self" (car mn))
+		      (setq mn (cdr mn)))
+		     ((let ((ml (nreverse mlist)))
+			(while ml
+			  (if (string-equal (car ml) (car mn))
+			      (setq mlist (nreverse (cdr ml)) ml nil))
+			  (or (setq ml (cdr ml)) (nreverse mlist))))))
+		    (if mlist
+			(setcdr (last mlist) mn)
+		      (setq mlist mn))
+		    (setq mn (last mn 2))
+		    (setq mname (concat "." (cadr mn)))
+		    (setcdr mn nil))
+		(setq mname (concat "#" mname)))))
 	  ;; generate string
 	  (if (consp mlist)
-	      (mapconcat (function identity) mlist "::")
-	    nil)))))
+	      (setq mlist (mapconcat (function identity) mlist "::")))
+	  (if mname
+	      (if mlist (concat mlist mname) mname)
+	    mlist)))))
 
 (cond
  ((featurep 'font-lock)
@@ -1043,16 +1126,27 @@ balanced expression is found."
            (ruby-here-doc-beg-syntax))
 	  (,ruby-here-doc-end-re 3 (ruby-here-doc-end-syntax))))
 
+  (defun ruby-in-non-here-doc-string-p ()
+    (let ((syntax (syntax-ppss)))
+      (or (nth 4 syntax)
+          ;; In a string *without* a generic delimiter
+          ;; If it's generic, it's a heredoc and we don't care
+          ;; See `parse-partial-sexp'
+          (numberp (nth 3 syntax)))))
+
   (defun ruby-in-here-doc-p ()
     (save-excursion
       (let ((old-point (point)))
         (beginning-of-line)
-        (and (re-search-backward ruby-here-doc-beg-re nil t)
-             (not (ruby-here-doc-find-end old-point))))))
+        (catch 'found-beg
+          (while (re-search-backward ruby-here-doc-beg-re nil t)
+            (if (not (or (syntax-ppss-context (syntax-ppss))
+                         (ruby-here-doc-find-end old-point)))
+                (throw 'found-beg t)))))))
 
   (defun ruby-here-doc-find-end (&optional limit)
     "Expects the point to be on a line with one or more heredoc
-opener. Returns the buffer position at which all heredocs on the
+openers. Returns the buffer position at which all heredocs on the
 line are terminated, or nil if they aren't terminated before the
 buffer position `limit' or the end of the buffer."
     (save-excursion
@@ -1080,22 +1174,22 @@ buffer position `limit' or the end of the buffer."
   (defun ruby-here-doc-beg-syntax ()
     (save-excursion
       (goto-char (match-beginning 0))
-      (unless (or (syntax-ppss-context (syntax-ppss))
+      (unless (or (ruby-in-non-here-doc-string-p)
                   (ruby-in-here-doc-p))
         (string-to-syntax "|"))))
 
   (defun ruby-here-doc-end-syntax ()
-    (save-excursion
-      (goto-char (match-end 0))
-      (let ((old-point (point))
-            (beg-exists (re-search-backward (ruby-here-doc-beg-match) nil t))
-            (eol (save-excursion (end-of-line) (point))))
-        (if (and beg-exists ; If there is a heredoc that matches this line...
-                 (null (syntax-ppss-context (syntax-ppss))) ; And that's not inside a heredoc/string/comment...
-                 (progn (goto-char (match-end 0)) ; And it's the last heredoc on its line...
-                        (not (re-search-forward ruby-here-doc-beg-re eol t)))
-                 (eq old-point (ruby-here-doc-find-end old-point))) ; And it ends at this point...
-            (string-to-syntax "|")))))
+    (let ((pss (syntax-ppss)))
+      (when (eq (syntax-ppss-context pss) 'string)
+        (save-excursion
+          (goto-char (nth 8 pss))
+          (let ((eol (point)))
+            (beginning-of-line)
+            (if (and (re-search-forward (ruby-here-doc-beg-match) eol t) ; If there is a heredoc that matches this line...
+                     (null (syntax-ppss-context (syntax-ppss))) ; And that's not inside a heredoc/string/comment...
+                     (progn (goto-char (match-end 0)) ; And it's the last heredoc on its line...
+                            (not (re-search-forward ruby-here-doc-beg-re eol t))))
+                (string-to-syntax "|")))))))
 
   (if (featurep 'xemacs)
       (put 'ruby-mode 'font-lock-defaults

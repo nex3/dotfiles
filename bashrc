@@ -139,9 +139,10 @@ alias cd='my_cd'
 alias ssh='ssh -X'
 alias ssh-home='ssh -p 2042 nex3@nex3.mine.nu'
 alias svni='svn --ignore-externals'
-alias temacs="emacs -nw"
+alias temacs='emacs -nw'
 alias pager='less'
 alias rl='rlwrap'
+alias get='wget -O-'
 
 ## ----------
 ## -- New Lookup Paths

@@ -25,3 +25,9 @@ class Object
     (obj.methods - (obj.class.superclass || Object).instance_methods).sort
   end
 end
+
+# Called after the irb session is initialized and Rails has
+# been loaded (props: Mike Clark).
+IRB.conf[:IRB_RC] = lambda do
+  ActiveRecord::Base.logger = Logger.new(STDOUT) if defined?(ActiveRecord::Base)
+end
