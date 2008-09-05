@@ -262,7 +262,7 @@ By default, it's `name'-mode.el."
         try-complete-lisp-symbol-partially
         try-complete-lisp-symbol))
 
-(transient-mark-mode nil)
+(transient-mark-mode -1)
 
 ;; Start server
 (server-start)
