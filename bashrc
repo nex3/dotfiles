@@ -36,7 +36,7 @@ fi
 # Thanks to Bill Clementson for parts of this snippet
 # http://bc.tech.coop/
 function start_or_join_screen {
-    if [ "$PS1" != "" -a "${STARTED_SCREEN:-x}" = x -a "${SSH_TTY:-x}" ]
+    if [ "$TERM" != dumb -a "$PS1" != "" -a "${STARTED_SCREEN:-x}" = x -a "${SSH_TTY:-x}" ]
     then
         STARTED_SCREEN=1 ; export STARTED_SCREEN
         sleep 1
