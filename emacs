@@ -53,6 +53,7 @@
    '(my-color-theme-mods
      (())
      (yas/field-highlight-face ((t (:background "gray30"))))
+     (erb-face ((t (:background "gray15"))))
      (rcirc-server ((t (:foreground "gray40"))))
      (mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
      (textile-link-face ((t (:foreground "#398EE6"))))
@@ -349,6 +350,7 @@ which should be selected."
 
 (my-unset "C-x C-z")
 (my-unset "C-x p")
+(my-unset "C-]")
 
 ;; Ergonomic keybindings inspired by http://xahlee.org/emacs/ergonomic_emacs_keybinding.html
 
