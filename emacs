@@ -287,7 +287,8 @@ By default, it's `name'-mode.el."
   "Open up the .emacs configuration file."
   (interactive)
   (persp-switch "config")
-  (find-file "~/.emacs" t))
+  (let ((link (file-symlink-p "~/.emacs")))
+    (find-file (or link "~/.emacs") t)))
 
 (defun x-clipboard-only-yank ()
   "Insert the clipboard contents (but never killed text) at the mark"
