@@ -332,8 +332,20 @@ which should be selected."
   :init-value t
   :keymap my-keymap)
 
-(defmacro my-key (key fn &optional global)
-  `(define-key ,(if global 'global-map 'my-keymap) (kbd ,key) ',fn))
+(defmacro my-key (key fn &rest options)
+  `(progn
+    (define-key ,(if (memq :global options) 'global-map 'my-keymap) (kbd ,key) ',fn)
+    ,(when (or (memq :kill options) (memq :delete options))
+       (let ((name (intern (concat "my-delete-" (symbol-name fn))))
+             (is-kill (memq :kill options)))
+         `(progn
+            (defun ,name (arg)
+              ,(concat (if is-kill "Kill" "Delete")
+                       " the region moved by `" (symbol-name fn) "':\n\n"
+                       (documentation fn))
+              (interactive "p")
+              (,(if is-kill 'kill-region 'delete-region) (point) (progn (,fn arg) (point))))
+            (define-key my-delete-map (kbd ,key) ',name))))))
 
 (defmacro my-map (key name)
   (let ((varname (intern (concat (symbol-name name) "-map"))))
@@ -355,52 +367,32 @@ which should be selected."
 
 ;; Ergonomic keybindings inspired by http://xahlee.org/emacs/ergonomic_emacs_keybinding.html
 
-(my-key "M-j" backward-char)
-(my-key "M-l" forward-char)
-(my-key "M-i" previous-line)
-(my-key "M-k" next-line)
+(my-map "M-d" my-delete)
 
-(my-key "M-J" backward-word)
-(my-key "M-L" forward-word)
-(my-key "M-I" backward-paragraph)
-(my-key "M-K" forward-paragraph)
+(my-key "M-j" backward-char :delete)
+(my-key "M-;" forward-char :delete)
+(my-key "M-k" next-line :kill)
+(my-key "M-l" previous-line :kill)
 
-(my-key "M-u" beginning-of-line)
-(my-key "M-o" end-of-line)
-(my-key "M-U" beginning-of-buffer)
-(my-key "M-O" end-of-buffer)
+(my-key "M-J" backward-word :kill)
+(my-key "M-:" forward-word :kill)
+(my-key "M-K" forward-paragraph :kill)
+(my-key "M-L" backward-paragraph :kill)
 
-(my-key "M-p" pager-page-up)
-(my-key "M-;" pager-page-down)
+(my-key "C-M-S-j" beginning-of-line :kill)
+(my-key "C-M-:" end-of-line :kill)
+(my-key "C-M-S-k" end-of-buffer)
+(my-key "C-M-S-l" beginning-of-buffer)
 
-(when window-system
-  (my-key "C-M-l" forward-sexp t)
-  (my-key "C-M-j" backward-sexp t)
-  (my-key "C-M-i" backward-up-list t)
-  (my-key "M-TAB" backward-up-list)
-  (my-key "C-M-k" down-list t))
+(my-key "C-M-;" forward-sexp :global :kill)
+(my-key "C-M-j" backward-sexp :global :kill)
+(my-key "C-M-k" down-list :global)
+(my-key "C-M-l" backward-up-list :global)
 
-(my-key "C-M-[" backward-kill-sexp)
-(my-key "C-M-]" kill-sexp)
-
-(if window-system
-    (progn
-      (my-key "C-M-S-l" windmove-right)
-      (my-key "C-M-S-j" windmove-left)
-      (my-key "C-M-S-i" windmove-up)
-      (my-key "M-S-TAB" windmove-up)
-      (my-key "C-M-S-k" windmove-down))
-  (my-key "C-M-l" windmove-right)
-  (my-key "C-M-j" windmove-left)
-  (my-key "C-M-i" windmove-up)
-  (my-key "M-TAB" windmove-up)
-  (my-key "C-M-k" windmove-down))
-  
-
-(my-key "M-[" delete-backward-char)
-(my-key "M-]" delete-char)
-(my-key "M-{" backward-kill-word)
-(my-key "M-}" kill-word)
+(my-key "M-u" windmove-left)
+(my-key "M-p" windmove-right)
+(my-key "M-i" windmove-down)
+(my-key "M-o" windmove-up)
 
 (my-key "M-RET" comment-indent-new-line)
 (my-key "C-v" x-clipboard-only-yank)
@@ -410,9 +402,6 @@ which should be selected."
 (my-key "M-e" kill-ring-save)
 (my-key "M-r" yank)
 (my-key "M-R" yank-pop)
-
-(my-key "M-d" undo)
-(my-key "M-f" kill-line)
 
 (my-key "M-S-SPC" mark-paragraph)
 (my-key "M-SPC" set-mark-command)
