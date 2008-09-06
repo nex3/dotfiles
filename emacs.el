@@ -388,10 +388,13 @@ which should be selected."
 (my-key "C-M-k" down-list :global)
 (my-key "C-M-l" backward-up-list :global)
 
-(my-key "M-u" windmove-left)
-(my-key "M-p" windmove-right)
-(my-key "M-i" windmove-down)
-(my-key "M-o" windmove-up)
+(my-key "M-U" windmove-left)
+(my-key "M-P" windmove-right)
+(my-key "M-I" windmove-down)
+(my-key "M-O" windmove-up)
+
+(my-key "M-o" pager-page-up)
+(my-key "M-i" pager-page-down)
 
 (my-key "M-RET" comment-indent-new-line)
 (my-key "C-v" x-clipboard-only-yank)
