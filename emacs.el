@@ -331,20 +331,30 @@ which should be selected."
   :init-value t
   :keymap my-keymap)
 
+(defun my-movement-wrapper (name wrapper wrapped)
+  `(defun ,(my-fn name wrapped) (arg)
+     ,(concat (capitalize name) " the region moved by `" (symbol-name wrapped) "':\n\n"
+              (documentation wrapped))
+     (interactive "p")
+     (,wrapper (point) (progn (,wrapped arg) (point)))))
+
+(defun my-fn (prefix name)
+  (intern (format "my-%s-%s" prefix name)))
+
 (defmacro my-key (key fn &rest options)
   `(progn
     (define-key ,(if (memq :global options) 'global-map 'my-keymap) (kbd ,key) ',fn)
-    ,(when (or (memq :kill options) (memq :delete options))
-       (let ((name (intern (concat "my-delete-" (symbol-name fn))))
-             (is-kill (memq :kill options)))
-         `(progn
-            (defun ,name (arg)
-              ,(concat (if is-kill "Kill" "Delete")
-                       " the region moved by `" (symbol-name fn) "':\n\n"
-                       (documentation fn))
-              (interactive "p")
-              (,(if is-kill 'kill-region 'delete-region) (point) (progn (,fn arg) (point))))
-            (define-key my-delete-map (kbd ,key) ',name))))))
+    ,(cond
+      ((memq :kill options)
+       `(progn
+          ,(my-movement-wrapper "kill" 'kill-region fn)
+          ,(my-movement-wrapper "save" 'kill-ring-save fn)
+          (define-key my-delete-map (kbd ,key) ',(my-fn "kill" fn))
+          (define-key my-save-map (kbd ,key) ',(my-fn "save" fn))))
+      ((memq :delete options)
+       `(progn
+          ,(my-movement-wrapper "delete" 'delete-region fn)
+          (define-key my-delete-map (kbd ,key) ',(my-fn "delete" fn)))))))
 
 (defmacro my-map (key name)
   (let ((varname (intern (concat (symbol-name name) "-map"))))
@@ -367,6 +377,7 @@ which should be selected."
 ;; Ergonomic keybindings inspired by http://xahlee.org/emacs/ergonomic_emacs_keybinding.html
 
 (my-map "M-d" my-delete)
+(my-map "M-s" my-save)
 
 (my-key "M-j" backward-char :delete)
 (my-key "M-;" forward-char :delete)
