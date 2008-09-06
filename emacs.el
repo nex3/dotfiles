@@ -1,4 +1,3 @@
-;; -*- mode: emacs-lisp -*-
 ;; Nathan Weizenbaum's .emacs file
 
 ;; ----------

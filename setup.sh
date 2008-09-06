@@ -4,11 +4,11 @@ conf=`pwd`
 cd ~
 
 rm -rf .{emacs,elisp,bashrc,inputrc,irbrc,screenrc,gitconfig,yasnippets}
-ln -s {$conf/,.}emacs
+ln -s $conf/emacs.el .emacs
+ln -s $conf/bashrc.sh .bashrc
+ln -s $conf/irbrc.rb .irbrc
 ln -s {$conf/,.}elisp
-ln -s {$conf/,.}bashrc
 ln -s {$conf/,.}inputrc
-ln -s {$conf/,.}irbrc
 ln -s {$conf/,.}screenrc
 ln -s {$conf/,.}gitconfig
 
