@@ -405,8 +405,8 @@ which should be selected."
 (my-key "M-S-SPC" mark-paragraph)
 (my-key "M-SPC" set-mark-command)
 
+(my-key "M-'" repeat)
 (my-key "M-a" execute-extended-command)
-
 (my-key "M-/" hippie-expand)
 
 ;; My Keymap
