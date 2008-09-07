@@ -4,10 +4,8 @@
 ;; -- Do This First
 ;; ----------
 
-;; No welcome screen
 (setq inhibit-startup-message t)
 
-;; 'Tupid toolbar
 (when (functionp 'tool-bar-mode)
   (tool-bar-mode -1))
 (menu-bar-mode -1)
@@ -204,50 +202,25 @@ By default, it's `name'-mode.el."
 ;; -- Random Customizations and Configurations
 ;; ----------
 
-;; Stupid annoying backups.
 (setq make-backup-files nil)
-
-;; No line highlighting for console mode
-(if (not window-system) (global-hl-line-mode))
-
-;; Ignore extensions for stuff I don't care about
 (setq completion-ignored-extensions
       '(".a" ".so" ".o" "~" ".bak" ".class" ".hi" ".beam"))
-
-;; Don't wrap lines
 (setq default-truncate-lines t)
-
-; Yes-or-no questions accept y or n
-(fset 'yes-or-no-p 'y-or-n-p)
-
-;; I hate hard tabs!
 (setq-default indent-tabs-mode nil)
-
-;; Column numbering
 (setq column-number-mode t)
-
-;; I like my backspace key working
 (setq normal-erase-is-backspace-mode 0)
-
-;; Annoying quit message
 (setq save-abbrevs nil)
-
-;; Syntax highlighting rocks.
-(global-font-lock-mode 1)
-
-;; Don't ask about version-controlled symlinks.
 (setq vc-follow-symlinks t)
-
-;; Confirm killing emacs
 (setq confirm-kill-emacs 'y-or-n-p)
-
-;; M-<direction> wraps
 (setq windmove-wrap-around t)
-
-;; Don't yell at me!
 (setq disabled-command-function nil)
-
 (setq repeat-message-function 'ignore)
+(fset 'yes-or-no-p 'y-or-n-p)
+(global-font-lock-mode 1)
+(transient-mark-mode -1)
+(when (not window-system)
+  (server-start)
+  (global-hl-line-mode -1))
 
 ;; Maximize the window on load for Macs, where there's no full maximization,
 ;; and Windows, where Emacs can access the full maximization.
@@ -262,11 +235,6 @@ By default, it's `name'-mode.el."
         try-expand-dabbrev-from-kill
         try-complete-lisp-symbol-partially
         try-complete-lisp-symbol))
-
-(transient-mark-mode -1)
-
-;; Start server
-(server-start)
 
 ;; ----------
 ;; -- Useful Functions
