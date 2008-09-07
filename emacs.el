@@ -247,6 +247,8 @@ By default, it's `name'-mode.el."
 ;; Don't yell at me!
 (setq disabled-command-function nil)
 
+(setq repeat-message-function 'ignore)
+
 ;; Maximize the window on load for Macs, where there's no full maximization,
 ;; and Windows, where Emacs can access the full maximization.
 (if (or (eq window-system 'mac)
