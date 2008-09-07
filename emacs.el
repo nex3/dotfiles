@@ -389,15 +389,15 @@ which should be selected."
 (my-key "M-K" forward-paragraph :kill)
 (my-key "M-L" backward-paragraph :kill)
 
-(my-key "C-M-S-j" beginning-of-line :kill)
-(my-key "C-M-:" end-of-line :kill)
-(my-key "C-M-S-k" end-of-buffer)
-(my-key "C-M-S-l" beginning-of-buffer)
+(my-key "C-M-j" beginning-of-line :kill)
+(my-key "C-M-;" end-of-line :kill)
+(my-key "C-M-k" end-of-buffer)
+(my-key "C-M-l" beginning-of-buffer)
 
-(my-key "C-M-;" forward-sexp :global :kill)
-(my-key "C-M-j" backward-sexp :global :kill)
-(my-key "C-M-k" down-list :global)
-(my-key "C-M-l" backward-up-list :global)
+(my-key "C-M-:" forward-sexp :global :kill)
+(my-key "C-M-S-j" backward-sexp :global :kill)
+(my-key "C-M-S-k" down-list :global)
+(my-key "C-M-S-l" backward-up-list :global)
 
 (my-key "M-U" windmove-left)
 (my-key "M-P" windmove-right)
