@@ -240,6 +240,12 @@ By default, it's `name'-mode.el."
 ;; -- Useful Functions
 ;; ----------
 
+(defun kill-whole-line-up (&optional n)
+  "Kill current line, moving the cursor to the previous line.
+See also `kill-whole-line'."
+  (interactive "P")
+  (kill-whole-line (- (or n 1))))
+
 ;; Created by Akkana.
 (defun kill-all-buffers ()
   "Kill all buffers without prompting."
@@ -308,23 +314,8 @@ which should be selected."
      (interactive "p")
      (,wrapper (point) (progn (,wrapped arg) (point)))))
 
-(defun my-fn (prefix name)
-  (intern (format "my-%s-%s" prefix name)))
-
-(defmacro my-key (key fn &rest options)
-  `(progn
-    (define-key ,(if (memq :global options) 'global-map 'my-keymap) (kbd ,key) ',fn)
-    ,(cond
-      ((memq :kill options)
-       `(progn
-          ,(my-movement-wrapper "kill" 'kill-region fn)
-          ,(my-movement-wrapper "save" 'kill-ring-save fn)
-          (define-key my-delete-map (kbd ,key) ',(my-fn "kill" fn))
-          (define-key my-save-map (kbd ,key) ',(my-fn "save" fn))))
-      ((memq :delete options)
-       `(progn
-          ,(my-movement-wrapper "delete" 'delete-region fn)
-          (define-key my-delete-map (kbd ,key) ',(my-fn "delete" fn)))))))
+(defmacro my-key (key fn &optional global)
+  `(define-key ,(if global 'global-map 'my-keymap) (kbd ,key) ',fn))
 
 (defmacro my-map (key name)
   (let ((varname (intern (concat (symbol-name name) "-map"))))
@@ -349,25 +340,38 @@ which should be selected."
 (my-map "M-d" my-delete)
 (my-map "M-s" my-save)
 
-(my-key "M-j" backward-char :delete)
-(my-key "M-;" forward-char :delete)
-(my-key "M-k" next-line :kill)
-(my-key "M-l" previous-line :kill)
+(my-key "M-j" backward-char)
+(my-key "M-;" forward-char)
+(my-key "M-k" next-line)
+(my-key "M-l" previous-line)
 
-(my-key "M-J" backward-word :kill)
-(my-key "M-:" forward-word :kill)
-(my-key "M-K" forward-paragraph :kill)
-(my-key "M-L" backward-paragraph :kill)
+(my-key "M-J" backward-word)
+(my-key "M-:" forward-word)
+(my-key "M-K" forward-paragraph)
+(my-key "M-L" backward-paragraph)
 
-(my-key "C-M-j" beginning-of-line :kill)
-(my-key "C-M-;" end-of-line :kill)
+(my-key "C-M-j" beginning-of-line)
+(my-key "C-M-;" end-of-line)
 (my-key "C-M-k" end-of-buffer)
 (my-key "C-M-l" beginning-of-buffer)
 
-(my-key "C-M-:" forward-sexp :global :kill)
-(my-key "C-M-S-j" backward-sexp :global :kill)
+(my-key "C-M-:" forward-sexp :global)
+(my-key "C-M-S-j" backward-sexp :global)
 (my-key "C-M-S-k" down-list :global)
 (my-key "C-M-S-l" backward-up-list :global)
+
+(my-key "M-n" delete-backward-char)
+(my-key "M-." delete-forward-char)
+(my-key "M-m" kill-whole-line)
+(my-key "M-," kill-whole-line-up)
+
+(my-key "M-N" backward-kill-word)
+(my-key "M->" kill-word)
+(my-key "M-M" kill-paragraph)
+(my-key "M-<" backward-kill-paragraph)
+
+(my-key "C-M-S-n" backward-kill-sexp)
+(my-key "C-M->" kill-sexp)
 
 (my-key "M-U" windmove-left)
 (my-key "M-P" windmove-right)
