@@ -350,18 +350,18 @@ which should be selected."
 (my-key "M-K" forward-paragraph)
 (my-key "M-L" backward-paragraph)
 
-(my-key "C-M-j" beginning-of-line)
-(my-key "C-M-;" end-of-line)
-(my-key "C-M-k" end-of-buffer)
-(my-key "C-M-l" beginning-of-buffer)
+(my-key "M-u" beginning-of-line)
+(my-key "M-p" end-of-line)
+(my-key "M-P" end-of-buffer)
+(my-key "M-U" beginning-of-buffer)
 
-(my-key "C-M-:" forward-sexp :global)
-(my-key "C-M-S-j" backward-sexp :global)
-(my-key "C-M-S-k" down-list :global)
-(my-key "C-M-S-l" backward-up-list :global)
+(my-key "C-M-;" forward-sexp :global)
+(my-key "C-M-j" backward-sexp :global)
+(my-key "C-M-k" down-list :global)
+(my-key "C-M-l" backward-up-list :global)
 
 (my-key "M-n" delete-backward-char)
-(my-key "M-." delete-forward-char)
+(my-key "M-." delete-char)
 (my-key "M-m" kill-whole-line)
 (my-key "M-," kill-whole-line-up)
 
@@ -370,13 +370,13 @@ which should be selected."
 (my-key "M-M" kill-paragraph)
 (my-key "M-<" backward-kill-paragraph)
 
-(my-key "C-M-S-n" backward-kill-sexp)
-(my-key "C-M->" kill-sexp)
+(my-key "C-M-n" backward-kill-sexp)
+(my-key "C-M-." kill-sexp)
 
-(my-key "M-U" windmove-left)
-(my-key "M-P" windmove-right)
-(my-key "M-I" windmove-down)
-(my-key "M-O" windmove-up)
+(my-key "C-M-S-j" windmove-left)
+(my-key "C-M-:" windmove-right)
+(my-key "C-M-S-k" windmove-down)
+(my-key "C-M-S-l" windmove-up)
 
 (my-key "M-o" pager-page-up)
 (my-key "M-i" pager-page-down)
