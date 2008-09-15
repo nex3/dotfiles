@@ -69,7 +69,6 @@
 
 (autoload 'run-ruby "inf-ruby" "Run an inferior Ruby process, input and output via buffer *ruby*." t)
 (autoload 'rdebug "rdebug" "Run the Ruby debugger." t)
-(autoload 'maximize-frame "maxframe" "Maximize the Emacs frame." t)
 (autoload 'blog "blog-mode" "Open up my blog file." t)
 (autoload 'run-arc "inferior-arc" "Run an inferior Arc process, input and output via buffer *arc*." t)
 (autoload 'gitsum "gitsum" "Entry point into gitsum-diff-mode." t)
@@ -219,12 +218,6 @@ By default, it's `name'-mode.el."
 (when (not window-system)
   (server-start)
   (global-hl-line-mode -1))
-
-;; Maximize the window on load for Macs, where there's no full maximization,
-;; and Windows, where Emacs can access the full maximization.
-(if (or (eq window-system 'mac)
-        (eq window-system 'w32))
-    (maximize-frame))
 
 (setq hippie-expand-try-functions-list
       '(try-expand-all-abbrevs
