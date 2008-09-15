@@ -10,27 +10,25 @@
   (tool-bar-mode -1))
 (menu-bar-mode -1)
 
-(defun init-frame ()
-  "Initialize a frame with my preferences."
-  ;; Set my font
-  (when window-system
-    (cond ((and (>= emacs-major-version 23)
-                (not (string-match "\\.cs\\.washington\.edu$" system-name)))
-           (if (string-equal system-name "Clara")
-               (set-frame-font "Monospace-7")
-             (set-frame-font "Monospace-8")))
-          ((and (eq window-system 'mac)
-                (x-list-fonts "-apple-bitstream vera sans mono-medium-r-normal--0-0-0-0-m-0-mac-roman"))
-           (set-default-font "-apple-bitstream vera sans mono-medium-r-normal--0-0-0-0-m-0-mac-roman"))
-          ((x-list-fonts "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")
-           (set-frame-font "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")))
-    (toggle-scroll-bar -1)))
+(defun init-frame (&optional frame)
+  "Initialize FRAME with my preferences."
+  (with-selected-frame (or frame (selected-frame))
+    ;; Set my font
+    (when window-system
+      (cond ((and (>= emacs-major-version 23)
+                  (not (string-match "\\.cs\\.washington\.edu$" system-name)))
+             (if (string-equal system-name "Clara")
+                 (set-frame-font "Monospace-7")
+               (set-frame-font "Monospace-8")))
+            ((and (eq window-system 'mac)
+                  (x-list-fonts "-apple-bitstream vera sans mono-medium-r-normal--0-0-0-0-m-0-mac-roman"))
+             (set-default-font "-apple-bitstream vera sans mono-medium-r-normal--0-0-0-0-m-0-mac-roman"))
+            ((x-list-fonts "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")
+             (set-frame-font "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")))
+      (toggle-scroll-bar -1))))
 
 (init-frame)
-(push (lambda (frame)
-        (with-selected-frame frame
-          (init-frame)))
-      after-make-frame-functions)
+(add-hook 'after-make-frame-functions 'init-frame)
 
 (add-to-list 'load-path "/usr/share/emacs/site-lisp")
 (add-to-list 'load-path "/usr/share/emacs-snapshot/site-lisp")
