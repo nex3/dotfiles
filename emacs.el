@@ -12,7 +12,8 @@
 
 (defun init-frame (&optional frame)
   "Initialize FRAME with my preferences."
-  (with-selected-frame (or frame (selected-frame))
+  (setq frame (or frame (selected-frame)))
+  (with-selected-frame frame
     ;; Set my font
     (when window-system
       (cond ((and (>= emacs-major-version 23)
@@ -47,6 +48,8 @@
   (color-theme-install
    '(my-color-theme-mods
      (())
+     ;; Don't highlight lines in the terminal
+     (hl-line (((min-colors 8)) (:inherit nil :background nil)))
      (yas/field-highlight-face ((t (:background "gray30"))))
      (erb-face ((t (:background "gray15"))))
      (rcirc-server ((t (:foreground "gray40"))))
@@ -57,8 +60,8 @@
 (color-theme-initialize)
 (load "alexandres-theme")
 (my-color-theme-dark)
-(setq color-theme-is-cumulative t)
-(my-color-theme-mods)
+(let ((color-theme-is-cumulative t)) (my-color-theme-mods))
+(setq frame-title-format '("Emacs: %b [" persp-curr-name "]"))
 
 ;; ----------
 ;; -- Loading Modules
@@ -215,9 +218,7 @@ By default, it's `name'-mode.el."
 (fset 'yes-or-no-p 'y-or-n-p)
 (global-font-lock-mode 1)
 (transient-mark-mode -1)
-(when (not window-system)
-  (server-start)
-  (global-hl-line-mode -1))
+(server-start)
 
 (setq hippie-expand-try-functions-list
       '(try-expand-all-abbrevs
