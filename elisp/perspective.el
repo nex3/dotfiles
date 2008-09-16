@@ -64,6 +64,24 @@ perspective."))
          collect name)
    'string<))
 
+(defun persp-union (&rest lists)
+  "Returns the union of each sublist of LISTS."
+  (loop for l on lists
+        append (if (null (cdr l)) (car l)
+                 (let ((list1 (car l)) (list2 (cadr l)))
+                   (loop for el in list1
+                         unless (member el list2) collect el)))))
+
+(defun persp-all-names (&optional not-frame)
+  "Return a list of the perspective names for all frames
+except NOT-FRAME (if passed)."
+  (apply 'persp-union
+         (mapcar
+          (lambda (frame)
+            (unless (equal frame not-frame)
+              (with-selected-frame frame (persp-names))))
+          (frame-list))))
+
 (defun persp-prompt (&optional default require-match)
   "Prompt for the name of a perspective.
 
@@ -78,6 +96,7 @@ REQUIRE-MATCH can take the same values as in `completing-read'."
 
 (defmacro with-perspective (name &rest body)
   "Evaluate BODY with the perspective given by NAME as the current perspective."
+  (declare (indent 1))
   `(let ((persp-curr-name ,name)
          (persp-curr-buffers (cadr (gethash ,name perspectives-hash))))
      ,@body))
@@ -163,10 +182,26 @@ perspectives. Has no effect when `persp-show-modestring' is nil."
                   'local-map persp-mode-line-map
                   'mouse-face 'mode-line-highlight))))
 
-(defun persp-get-quick (char)
-  "Returns the name of the first perspective, alphabetically, that begins with CHAR."
-  (loop for persp in (persp-names)
-        if (eq (string-to-char persp) char) return persp))
+(defun persp-get-quick (char &optional prev)
+  "Returns the name of the first perspective, alphabetically,
+that begins with CHAR.
+
+PREV can be the name of a perspective. If it's passed,
+this will try to return the perspective alphabetically after PREV.
+This is used for cycling between perspectives."
+  (persp-get-quick-helper char prev (persp-names)))
+
+(defun persp-get-quick-helper (char prev names)
+  "A helper method for `persp-get-quick'."
+  (if (null names) nil
+    (let ((name (car names)))
+      (cond
+       ((and (null prev) (eq (string-to-char name) char)) name)
+       ((equal name prev)
+        (if (and (not (null (cdr names))) (eq (string-to-char (cadr names)) char))
+            (cadr names)
+          (persp-get-quick char)))
+       (t (persp-get-quick-helper char prev (cdr names)))))))
 
 (defun persp-switch (name)
   "Switch to the perspective given by NAME. If it doesn't exist,
@@ -191,9 +226,14 @@ and the perspective's window configuration is restored."
 (defun persp-switch-quick (char)
   "Switches to the first perspective, alphabetically, that begins with CHAR.
 
+Sets `this-command' (and thus `last-command') to (persp-switch-quick . CHAR).
+
 See `persp-switch', `persp-get-quick'."
   (interactive "c")
-  (let ((persp (persp-get-quick char)))
+  (let ((persp (if (and (consp last-command) (eq (car last-command) this-command))
+                   (persp-get-quick char (cdr last-command))
+                 (persp-get-quick char))))
+    (setq this-command (cons this-command persp))
     (if persp (persp-switch persp)
       (error (concat "No perspective name begins with " (string char))))))
 
@@ -225,7 +265,21 @@ create a new main perspective and return \"main\"."
 
 See also `persp-switch' and `persp-remove-buffer'."
   (interactive "bAdd buffer to perspective: \n")
-  (push (get-buffer buffer) persp-curr-buffers))
+  (push (get-buffer buffer) persp-curr-buffers)
+  (persp-save))
+
+(defun* persp-buffer-in-other-p (buffer)
+  "Returns nil if BUFFER is only in the current perspective.
+Otherwise, returns (FRAME . NAME), the frame and name of another
+perspective that has the buffer."
+  (loop for frame in (frame-list)
+        do (loop for persp being the hash-values of (with-selected-frame frame perspectives-hash)
+                   using (hash-keys name)
+                 if (and (not (and (equal frame (selected-frame))
+                                   (equal name persp-curr-name)))
+                         (memq buffer (cadr persp)))
+                   do (return-from persp-buffer-in-other-p (cons frame name))))
+  nil)
 
 (defun persp-remove-buffer (buffer)
   "Disassociate BUFFER with the current perspective.
@@ -234,17 +288,15 @@ See also `persp-switch' and `persp-add-buffer'."
   (interactive "bRemove buffer from perspective: \n")
   (setq buffer (get-buffer buffer))
   ; Only kill the buffer if no other perspectives are using it
-  (cond ((loop for persp being the hash-values of perspectives-hash using (hash-keys name)
-               unless (equal name persp-curr-name)
-               if (memq buffer (cadr persp)) return nil
-               finally return t)
+  (cond ((not (persp-buffer-in-other-p buffer))
          (kill-buffer buffer))
         ;; Make the buffer go away if we can see it.
         ;; TODO: Is it possible to tell if it's visible at all,
         ;;       rather than just the current buffer?
         ((eq buffer (current-buffer)) (bury-buffer))
         (t (bury-buffer buffer)))
-  (setq persp-curr-buffers (remq buffer persp-curr-buffers)))
+  (setq persp-curr-buffers (remq buffer persp-curr-buffers))
+  (persp-save))
 
 (defun persp-kill (name)
   "Kill the perspective given by NAME.
@@ -269,6 +321,40 @@ perspective and no others are killed."
     (setq persp-curr-name name)
     (persp-save)
     (persp-update-modestring)))
+
+(defun* persp-all-get (name &optional not-frame)
+  "Returns the list of buffers for a perspective named NAME from any
+frame other than NOT-FRAME.
+
+This doesn't return the window configuration because those can't be
+copied across frames."
+  (dolist (frame (frame-list))
+    (unless (equal frame not-frame)
+      (with-selected-frame frame
+        (persp-save)
+        (let ((persp (gethash name perspectives-hash)))
+          (if persp (return-from persp-all-get (cadr persp))))))))
+
+(defun* persp-import (name &optional dont-switch)
+  "Import a perspective named NAME from another frame.  If DONT-SWITCH
+is non-nil or with prefix arg, don't switch to the new perspective."
+  ;; TODO: Have some way of selecting which frame the perspective is imported from.
+  (interactive "i\nP")
+  (unless name
+    (setq name (completing-read "Import perspective: " (persp-all-names (selected-frame)) nil t)))
+  (if (and (gethash name perspectives-hash)
+           (not (yes-or-no-p (concat "Perspective `" name "' already exits. Continue? "))))
+      (return-from persp-import))
+  (let ((buffers (persp-all-get name (selected-frame))))
+    (if (null buffers)
+        (error "Perspective `%s' doesn't exist in another frame." name))
+    (save-excursion
+      (save-window-excursion
+        (switch-to-buffer (car buffers))
+        (delete-other-windows)
+        (puthash name (list (current-window-configuration) buffers) perspectives-hash)))
+    (persp-update-modestring)
+    (unless dont-switch (persp-switch name))))
 
 (defadvice switch-to-buffer (after persp-add-buffer-adv)
   "Add BUFFER to the current perspective.
@@ -355,6 +441,7 @@ perspective beginning with the given letter."
 (global-set-key (read-kbd-macro "C-x x k") 'persp-remove-buffer)
 (global-set-key (read-kbd-macro "C-x x c") 'persp-kill)
 (global-set-key (read-kbd-macro "C-x x r") 'persp-rename)
+(global-set-key (read-kbd-macro "C-x x i") 'persp-import)
 
 (unless persp-initialized
   (persp-init))
