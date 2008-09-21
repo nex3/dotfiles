@@ -13,3 +13,8 @@ ln -s {$conf/,.}screenrc
 ln -s {$conf/,.}gitconfig
 
 ln -s $conf/elisp/yasnippet/snippets .yasnippets
+
+mkdir -p .config
+cd .config
+rm -rf .awesome
+ln -s {$conf/,}awesome

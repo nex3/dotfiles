@@ -52,7 +52,8 @@
      (hl-line (((min-colors 8)) (:inherit nil :background nil)))
      (yas/field-highlight-face ((t (:background "gray30"))))
      (erb-face ((t (:background "gray15"))))
-     (rcirc-server ((t (:foreground "gray40"))))
+     (rcirc-server (((min-colors 8) (:foreground nil))
+                    (t (:foreground "gray40"))))
      (mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
      (textile-link-face ((t (:foreground "#398EE6"))))
      (textile-ul-bullet-face ((t (:foreground "#398EE6")))))))
@@ -117,6 +118,7 @@ By default, it's `name'-mode.el."
 (autoload-mode "arc" "\\.arc$" "arc")
 (autoload-mode "erlang" "\\.[he]rl$" "erlang/erlang")
 (autoload-mode "treetop" "\\.treetop$")
+(autoload-mode "lua" "\\.lua$")
 
 (defun my-c-style ()
   (c-set-style "gnu")
