@@ -120,12 +120,31 @@ By default, it's `name'-mode.el."
 (autoload-mode "treetop" "\\.treetop$")
 (autoload-mode "lua" "\\.lua$")
 
-(defun my-c-style ()
-  (c-set-style "gnu")
-  (c-set-offset 'substatement-open '0)
-  (c-set-offset 'arglist-intro 2)
-  (c-set-offset 'arglist-close 0))
-(add-hook 'cc-mode-hook 'my-c-style)
+(eval-after-load 'cc-mode
+  (progn
+    (c-add-style
+     "user" (list
+	     "gnu"
+	     '(c-offsets-alist
+	       (substatement-open 0)
+	       (arglist-intro 2)
+	       (arglist-close 0))))
+    (c-add-style
+     "awesome" (list
+		"gnu"
+		'(c-basic-offset . 4)
+		'(c-offsets-alist
+		  (statement-case-intro 2)
+		  (case-label 2)
+		  (substatement-open 0)
+		  (arglist-intro 2)
+		  (arglist-close 0))))
+    (add-hook
+     'c-mode-hook
+     (lambda ()
+       (when (string-match "^/home/nex3/code/awesome/" (buffer-file-name))
+	 (let ((c-buffer-is-cc-mode t))
+           (c-set-style "awesome")))))))
 
 (eval-after-load 'rcirc
   '(progn
@@ -138,7 +157,8 @@ By default, it's `name'-mode.el."
                           "DarkOliveGreen" "PaleGreen" "ForestGreen" "LightGoldenrodYellow"
                           "sienna"))
      (setq rcirc-server-alist '(("irc.freenode.net" :channels ("#haml" "#rubyfringe" "#freehackersunion"))
-                                ("irc.nex-3.com" :nick "Nathan" :channels ("#rc" "#dnd"))))
+                                ("irc.nex-3.com" :nick "Nathan" :channels ("#rc" "#dnd"))
+                                ("irc.oftc.net" :nick "nex3" :channels ("#awesome"))))
      (setq my-rcirc-notify-timeout 90)
      (setq rcirc-unambiguous-complete t)
      (setq rcirc-debug-flag t)
