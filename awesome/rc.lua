@@ -93,19 +93,23 @@ end
 -- {{{ Statusbar
 -- Create a taglist widget
 mytaglist = widget({ type = "taglist", name = "mytaglist" })
-mytaglist:mouse_add(mouse({}, 1, function (object, tag) awful.tag.viewonly(tag) end))
-mytaglist:mouse_add(mouse({ modkey }, 1, function (object, tag) awful.client.movetotag(tag) end))
-mytaglist:mouse_add(mouse({}, 3, function (object, tag) tag.selected = not tag.selected end))
-mytaglist:mouse_add(mouse({ modkey }, 3, function (object, tag) awful.client.toggletag(tag) end))
-mytaglist:mouse_add(mouse({ }, 4, awful.tag.viewnext))
-mytaglist:mouse_add(mouse({ }, 5, awful.tag.viewprev))
+mytaglist:buttons({
+    button({ }, 1, function (object, tag) awful.tag.viewonly(tag) end),
+    button({ modkey }, 1, function (object, tag) awful.client.movetotag(tag) end),
+    button({ }, 3, function (object, tag) tag.selected = not tag.selected end),
+    button({ modkey }, 3, function (object, tag) awful.client.toggletag(tag) end),
+    button({ }, 4, awful.tag.viewnext),
+    button({ }, 5, awful.tag.viewprev)
+})
 mytaglist.label = awful.widget.taglist.label.all
 
 -- Create a tasklist widget
 mytasklist = widget({ type = "tasklist", name = "mytasklist" })
-mytasklist:mouse_add(mouse({ }, 1, function (object, c) client.focus = c; c:raise() end))
-mytasklist:mouse_add(mouse({ }, 4, function () awful.client.focusbyidx(1) end))
-mytasklist:mouse_add(mouse({ }, 5, function () awful.client.focusbyidx(-1) end))
+mytasklist:buttons({
+    button({ }, 1, function (object, c) client.focus = c; c:raise() end),
+    button({ }, 4, function () awful.client.focusbyidx(1) end),
+    button({ }, 5, function () awful.client.focusbyidx(-1) end)
+})
 mytasklist.label = awful.widget.tasklist.label.currenttags
 
 -- Create a textbox widget
@@ -114,9 +118,10 @@ mytextbox = widget({ type = "textbox", name = "mytextbox", align = "right" })
 mytextbox.text = "<b><small> awesome " .. AWESOME_VERSION .. " </small></b>"
 mypromptbox = widget({ type = "textbox", name = "mypromptbox", align = "left" })
 
--- Create an iconbox widget
-myiconbox = widget({ type = "textbox", name = "myiconbox", align = "left" })
-myiconbox.text = "<bg image=\"/usr/local/share/awesome/icons/awesome16.png\" resize=\"true\"/>"
+-- Create a launcher widget
+mylauncher = awful.widget.launcher({ name = "mylauncher",
+                                     image = "/usr/local/share/awesome/icons/awesome16.png",
+                                     command = terminal .. " -e man awesome"})
 
 -- Create a systray
 mysystray = widget({ type = "systray", name = "mysystray", align = "right" })
@@ -125,19 +130,21 @@ mysystray = widget({ type = "systray", name = "mysystray", align = "right" })
 -- We need one layoutbox per screen.
 mylayoutbox = {}
 for s = 1, screen.count() do
-    mylayoutbox[s] = widget({ type = "textbox", name = "mylayoutbox", align = "right" })
-    mylayoutbox[s]:mouse_add(mouse({ }, 1, function () awful.layout.inc(layouts, 1) end))
-    mylayoutbox[s]:mouse_add(mouse({ }, 3, function () awful.layout.inc(layouts, -1) end))
-    mylayoutbox[s]:mouse_add(mouse({ }, 4, function () awful.layout.inc(layouts, 1) end))
-    mylayoutbox[s]:mouse_add(mouse({ }, 5, function () awful.layout.inc(layouts, -1) end))
-    mylayoutbox[s].text = "<bg image=\"/usr/local/share/awesome/icons/layouts/tilew.png\" resize=\"true\"/>"
+    mylayoutbox[s] = widget({ type = "imagebox", name = "mylayoutbox", align = "right" })
+    mylayoutbox[s]:buttons({
+        button({ }, 1, function () awful.layout.inc(layouts, 1) end),
+        button({ }, 3, function () awful.layout.inc(layouts, -1) end),
+        button({ }, 4, function () awful.layout.inc(layouts, 1) end),
+        button({ }, 5, function () awful.layout.inc(layouts, -1) end)
+    })
+    mylayoutbox[s].image = image("/usr/local/share/awesome/icons/layouts/tilew.png")
 end
 
 -- Create a statusbar for each screen and add it
 mystatusbar = {}
 for s = 1, screen.count() do
-    mystatusbar[s] = statusbar({ position = "top", name = "mystatusbar" .. s,
-                                 fg = beautiful.fg_normal, bg = beautiful.bg_normal })
+    mystatusbar[s] = wibox({ position = "top", name = "mystatusbar" .. s,
+                             fg = beautiful.fg_normal, bg = beautiful.bg_normal })
     -- Add widgets to the statusbar - order matters
     mystatusbar[s]:widgets({
         mytaglist,
@@ -153,9 +160,11 @@ end
 -- }}}
 
 -- {{{ Mouse bindings
-awesome.mouse_add(mouse({ }, 3, function () awful.spawn(terminal) end))
-awesome.mouse_add(mouse({ }, 4, awful.tag.viewnext))
-awesome.mouse_add(mouse({ }, 5, awful.tag.viewprev))
+awesome.buttons({
+    button({ }, 3, function () awful.spawn(terminal) end),
+    button({ }, 4, awful.tag.viewnext),
+    button({ }, 5, awful.tag.viewprev)
+})
 -- }}}
 
 -- {{{ Key bindings
@@ -184,19 +193,17 @@ for i = 1, keynumber do
                    end):add()
     keybinding({ modkey, "Shift" }, i,
                    function ()
-                       local sel = client.focus
-                       if sel then
-                           if tags[sel.screen][i] then
-                               awful.client.movetotag(tags[sel.screen][i])
+                       if client.focus then
+                           if tags[client.focus.screen][i] then
+                               awful.client.movetotag(tags[client.focus.screen][i])
                            end
                        end
                    end):add()
     keybinding({ modkey, "Control", "Shift" }, i,
                    function ()
-                       local sel = client.focus
-                       if sel then
-                           if tags[sel.screen][i] then
-                               awful.client.toggletag(tags[sel.screen][i])
+                       if client.focus then
+                           if tags[client.focus.screen][i] then
+                               awful.client.toggletag(tags[client.focus.screen][i])
                            end
                        end
                    end):add()
@@ -324,49 +331,50 @@ end
 
 -- {{{ Hooks
 -- Hook function to execute when focusing a client.
-function hook_focus(c)
+awful.hooks.focus.register(function (c)
     if not awful.client.ismarked(c) then
         c.border_color = beautiful.border_focus
     end
-end
+end)
 
 -- Hook function to execute when unfocusing a client.
-function hook_unfocus(c)
+awful.hooks.unfocus.register(function (c)
     if not awful.client.ismarked(c) then
         c.border_color = beautiful.border_normal
     end
-end
+end)
 
 -- Hook function to execute when marking a client
-function hook_marked(c)
+awful.hooks.marked.register(function (c)
     c.border_color = beautiful.border_marked
-end
+end)
 
 -- Hook function to execute when unmarking a client
-function hook_unmarked(c)
+awful.hooks.unmarked.register(function (c)
     c.border_color = beautiful.border_focus
-end
+end)
 
 -- Hook function to execute when the mouse is over a client.
-function hook_mouseover(c)
+awful.hooks.mouse_over.register(function (c)
     -- Sloppy focus, but disabled for magnifier layout
-    if awful.layout.get(c.screen) ~= "magnifier" then
+    if awful.layout.get(c.screen) ~= "magnifier"
+        and awful.client.focus.filter(c) then
         client.focus = c
     end
-end
+end)
 
 -- Hook function to execute when a new client appears.
-function hook_manage(c)
-    -- Set floating placement to be smart!
-    c.floating_placement = "smart"
+awful.hooks.manage.register(function (c)
     if use_titlebar then
         -- Add a titlebar
         awful.titlebar.add(c, { modkey = modkey })
     end
     -- Add mouse bindings
-    c:mouse_add(mouse({ }, 1, function (c) client.focus = c; c:raise() end))
-    c:mouse_add(mouse({ modkey }, 1, function (c) c:mouse_move() end))
-    c:mouse_add(mouse({ modkey }, 3, function (c) c:mouse_resize() end))
+    c:buttons({
+        button({ }, 1, function (c) client.focus = c; c:raise() end),
+        button({ modkey }, 1, function (c) c:mouse_move() end),
+        button({ modkey }, 3, function (c) c:mouse_resize() end)
+    })
     -- New client may not receive focus
     -- if they're not focusable, so set border anyway.
     c.border_width = beautiful.border_width
@@ -398,22 +406,22 @@ function hook_manage(c)
     -- i.e. put it at the end of others instead of setting it master.
     -- awful.client.setslave(c)
 
-    -- Honor size hints
-    c.honorsizehints = true
-end
+    -- Honor size hints: if you want to drop the gaps between windows, set this to false.
+    -- c.honorsizehints = false
+end)
 
 -- Hook function to execute when arranging the screen
 -- (tag switch, new client, etc)
-function hook_arrange(screen)
+awful.hooks.arrange.register(function (screen)
     local layout = awful.layout.get(screen)
     if layout then
-        mylayoutbox[screen].text =
-            "<bg image=\"/usr/local/share/awesome/icons/layouts/" .. awful.layout.get(screen) .. "w.png\" resize=\"true\"/>"
-        else
-            mylayoutbox[screen].text = "No layout."
+        mylayoutbox[screen].image = image("/usr/local/share/awesome/icons/layouts/" .. layout .. "w.png")
+    else
+        mylayoutbox[screen].image = nil
     end
 
-    -- If no window has focus, give focus to the latest in history
+    -- Give focus to the latest client in history if no window has focus
+    -- or if the current window is a desktop or a dock one.
     if not client.focus then
         local c = awful.client.focus.history.get(screen, 0)
         if c then client.focus = c end
@@ -421,9 +429,8 @@ function hook_arrange(screen)
 
     -- Uncomment if you want mouse warping
     --[[
-    local sel = client.focus
-    if sel then
-        local c_c = sel:coords()
+    if client.focus then
+        local c_c = client.focus:coords()
         local m_c = mouse.coords()
 
         if m_c.x < c_c.x or m_c.x >= c_c.x + c_c.width or
@@ -434,20 +441,10 @@ function hook_arrange(screen)
         end
     end
     ]]
-end
+end)
 
 -- Hook called every second
-function hook_timer()
+awful.hooks.timer.register(1, function ()
     mytextbox.text = os.date(" <span weight='bold' color='#fff'>%l:%M</span> %a %b %d ")
-end
-
--- Set up some hooks
-awful.hooks.focus.register(hook_focus)
-awful.hooks.unfocus.register(hook_unfocus)
-awful.hooks.marked.register(hook_marked)
-awful.hooks.unmarked.register(hook_unmarked)
-awful.hooks.manage.register(hook_manage)
-awful.hooks.mouseover.register(hook_mouseover)
-awful.hooks.arrange.register(hook_arrange)
-awful.hooks.timer.register(1, hook_timer)
+end)
 -- }}}
