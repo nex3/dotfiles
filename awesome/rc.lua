@@ -17,7 +17,7 @@ terminal = "x-terminal-emulator"
 -- If you do not like this or do not have such a key,
 -- I suggest you to remap Mod4 to another key using xmodmap or other tools.
 -- However, you can use another modifier like Mod1, but it may interact with others.
-modkey = "Mod3"
+modkey = "Mod4"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 layouts =
@@ -207,7 +207,7 @@ keybinding({ modkey }, "Right", awful.tag.viewnext):add()
 keybinding({ modkey }, "Escape", awful.tag.history.restore):add()
 
 -- Standard program
-keybinding({ modkey }, "Return", function () awful.spawn(terminal) end):add()
+keybinding({ modkey }, "t", function () awful.spawn(terminal) end):add()
 
 keybinding({ modkey, "Control" }, "r", awesome.restart):add()
 keybinding({ modkey, "Shift" }, "q", awesome.quit):add()
@@ -239,7 +239,7 @@ keybinding({ modkey }, "space", function () awful.layout.inc(layouts, 1) end):ad
 keybinding({ modkey, "Shift" }, "space", function () awful.layout.inc(layouts, -1) end):add()
 
 -- Prompt
-keybinding({ modkey }, "F1", function ()
+keybinding({ modkey }, "Return", function ()
                                  awful.prompt.run({ prompt = "Run: " }, mypromptbox, awful.spawn, awful.completion.bash,
 os.getenv("HOME") .. "/.cache/awesome/history") end):add()
 keybinding({ modkey }, "F4", function ()
@@ -293,7 +293,7 @@ keybinding({ modkey }, "y", function ()
 end):add()
 
 -- Client awful tagging: this is useful to tag some clients and then do stuff like move to tag on them
-keybinding({ modkey }, "t", awful.client.togglemarked):add()
+keybinding({ modkey, "Control" }, "t", awful.client.togglemarked):add()
 keybinding({ modkey, 'Shift' }, "t", function ()
     local tabbedview = tabulous.tabindex_get()
     local clients = awful.client.getmarked()
