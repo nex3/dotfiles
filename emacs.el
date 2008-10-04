@@ -120,105 +120,116 @@ By default, it's `name'-mode.el."
 (autoload-mode "treetop" "\\.treetop$")
 (autoload-mode "lua" "\\.lua$")
 
-(eval-after-load 'cc-mode
-  (progn
-    (c-add-style
-     "user" (list
-	     "gnu"
-	     '(c-offsets-alist
-	       (substatement-open 0)
-	       (arglist-intro 2)
-	       (arglist-close 0))))
-    (c-add-style
-     "awesome" (list
-		"gnu"
-		'(c-basic-offset . 4)
-		'(c-offsets-alist
-		  (statement-case-intro 2)
-		  (case-label 2)
-		  (substatement-open 0)
-		  (arglist-intro 2)
-		  (arglist-close 0))))
-    (add-hook
-     'c-mode-hook
-     (lambda ()
-       (when (string-match "^/home/nex3/code/awesome/" (buffer-file-name))
-	 (let ((c-buffer-is-cc-mode t))
-           (c-set-style "awesome")))))))
+(defmacro my-after-load (name &rest body)
+  "Like `eval-after-load', but a macro."
+  (declare (indent 1))
+  `(eval-after-load ',name '(progn ,@body)))
 
-(eval-after-load 'rcirc
-  '(progn
-     (require 'rcirc-color)
-     (require 'rcirc-unambiguous-nick-completion)
-     (require 'rcirc-notify)
+(my-after-load comint
+  (define-key comint-mode-map (kbd "M-O") 'comint-previous-input)
+  (define-key comint-mode-map (kbd "M-I") 'comint-next-input))
 
-     (setq rcirc-colors '("darkviolet" "magenta" "deeppink" "red" "yellow" "lawngreen"
-                          "white" "LightSlateGrey" "RoyalBlue" "DeepSkyBlue" "LightSkyBlue"
-                          "DarkOliveGreen" "PaleGreen" "ForestGreen" "LightGoldenrodYellow"
-                          "sienna"))
-     (setq rcirc-server-alist '(("irc.freenode.net" :channels ("#haml" "#rubyfringe" "#freehackersunion"))
-                                ("irc.nex-3.com" :nick "Nathan" :channels ("#rc" "#dnd"))
-                                ("irc.oftc.net" :nick "nex3" :channels ("#awesome"))))
-     (setq my-rcirc-notify-timeout 90)
-     (setq rcirc-unambiguous-complete t)
-     (setq rcirc-debug-flag t)
-     (setq fill-column 80)
-     (setq rcirc-default-nick "nex3")
-     (setq rcirc-default-user-name "nex3")
-     (setq rcirc-default-user-full-name "Nathan Weizenbaum")
-     (setq rcirc-time-format "[%l:%M] ")
-     (setq rcirc-prompt "%t> ")
-     (set-face-foreground 'rcirc-server "gray40")
-     (set-face-foreground 'rcirc-timestamp "gray60")
-     (rcirc-track-minor-mode 1)
+(my-after-load cc-mode
+  (c-add-style
+   "user" (list
+           "gnu"
+           '(c-offsets-alist
+             (substatement-open 0)
+             (arglist-intro 2)
+             (arglist-close 0))))
+  (c-add-style
+   "awesome" (list
+              "gnu"
+              '(c-basic-offset . 4)
+              '(c-offsets-alist
+                (statement-case-intro 2)
+                (case-label 2)
+                (substatement-open 0)
+                (arglist-intro 2)
+                (arglist-close 0))))
+  (add-hook
+   'c-mode-hook
+   (lambda ()
+     (when (string-match "^/home/nex3/code/awesome/" (buffer-file-name))
+       (let ((c-buffer-is-cc-mode t))
+         (c-set-style "awesome"))))))
+
+(my-after-load rcirc
+  (require 'rcirc-color)
+  (require 'rcirc-unambiguous-nick-completion)
+  (require 'rcirc-notify)
+
+  (setq rcirc-colors '("darkviolet" "magenta" "deeppink" "red" "yellow" "lawngreen"
+                       "white" "LightSlateGrey" "RoyalBlue" "DeepSkyBlue" "LightSkyBlue"
+                       "DarkOliveGreen" "PaleGreen" "ForestGreen" "LightGoldenrodYellow"
+                       "sienna"))
+  (setq rcirc-server-alist '(("irc.freenode.net" :channels ("#haml" "#rubyfringe" "#freehackersunion"))
+                             ("irc.nex-3.com" :nick "Nathan" :channels ("#rc" "#dnd"))
+                             ("irc.oftc.net" :nick "nex3" :channels ("#awesome"))))
+  (setq my-rcirc-notify-timeout 90)
+  (setq rcirc-unambiguous-complete t)
+  (setq rcirc-debug-flag t)
+  (setq fill-column 80)
+  (setq rcirc-default-nick "nex3")
+  (setq rcirc-default-user-name "nex3")
+  (setq rcirc-default-user-full-name "Nathan Weizenbaum")
+  (setq rcirc-time-format "[%l:%M] ")
+  (setq rcirc-prompt "%t> ")
+  (set-face-foreground 'rcirc-server "gray40")
+  (set-face-foreground 'rcirc-timestamp "gray60")
+  (rcirc-track-minor-mode 1)
  
-     (add-hook 'rcirc-mode-hook (lambda () (flyspell-mode 1)))
+  (add-hook 'rcirc-mode-hook (lambda ()
+                               (flyspell-mode 1)
+                               (rcirc-omit-mode)))
+  (define-key rcirc-mode-map (kbd "M-O") 'rcirc-insert-prev-input)
+  (define-key rcirc-mode-map (kbd "M-I") 'rcirc-insert-next-input)
  
-     (defun-rcirc-command raw (arg)
-       "Send a raw string to the IRC server."
-       (rcirc-send-string process arg))))
+  (defun-rcirc-command raw (arg)
+    "Send a raw string to the IRC server."
+    (rcirc-send-string process arg)))
 
-(eval-after-load "auctex"
-  '(progn
-     (with-temp-buffer (LaTeX-mode))
-     (TeX-global-PDF-mode)
-     (setcdr (assoc "^pdf$" TeX-output-view-style)
-             '("." "evince %o"))))
+(my-after-load auctex
+  (with-temp-buffer (LaTeX-mode))
+  (TeX-global-PDF-mode)
+  (setcdr (assoc "^pdf$" TeX-output-view-style)
+          '("." "evince %o")))
 
-(eval-after-load "haskell-mode"
-  '(progn
-     (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
-     (add-hook 'haskell-mode-hook 'turn-on-haskell-indent)))
+(my-after-load haskell-mode
+  (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
+  (add-hook 'haskell-mode-hook 'turn-on-haskell-indent))
 
-(eval-after-load "erlang"
-  '(progn
-     (add-hook 'erlang-mode-hook
-               (lambda () (setq inferior-erlang-machine-options '("-sname" "emacs"))))
-     (condition-case nil
-         (progn
-           (require 'distel)
-           (distel-setup)
-           (define-key erlang-extended-mode-map (kbd "C-M-i") 'backward-up-list)
-           (defconst distel-shell-keys
-             '(("\C-\M-i" erl-complete)
-               ("\M-?"    erl-complete)	
-               ("\M-."    erl-find-source-under-point)
-               ("\M-,"    erl-find-source-unwind) 
-               ("\M-*"    erl-find-source-unwind)))
-           (add-hook 'erlang-shell-mode-hook
-                     (lambda ()
-                       (dolist (spec distel-shell-keys)
-                         (define-key erlang-shell-mode-map (car spec) (cadr spec))))))
-       (file-error nil))))
+(my-after-load erlang
+  (add-hook 'erlang-mode-hook
+            (lambda () (setq inferior-erlang-machine-options '("-sname" "emacs"))))
+  (condition-case nil
+      (progn
+        (require 'distel)
+        (distel-setup)
+        (define-key erlang-extended-mode-map (kbd "C-M-i") 'backward-up-list)
+        (defconst distel-shell-keys
+          '(("\C-\M-i" erl-complete)
+            ("\M-?"    erl-complete)	
+            ("\M-."    erl-find-source-under-point)
+            ("\M-,"    erl-find-source-unwind) 
+            ("\M-*"    erl-find-source-unwind)))
+        (add-hook 'erlang-shell-mode-hook
+                  (lambda ()
+                    (dolist (spec distel-shell-keys)
+                      (define-key erlang-shell-mode-map (car spec) (cadr spec))))))
+    (file-error nil)))
 
 (when window-system
-  (eval-after-load "ruby-mode"
-    '(progn
-       (define-key ruby-mode-map (kbd "C-M-l") 'ruby-forward-sexp)
-       (define-key ruby-mode-map (kbd "C-M-j") 'ruby-backward-sexp)
-       (setq ruby-deep-indent-paren-style nil))))
+  (my-after-load "ruby-mode"
+    (define-key ruby-mode-map (kbd "C-M-l") 'ruby-forward-sexp)
+    (define-key ruby-mode-map (kbd "C-M-j") 'ruby-backward-sexp)
+    (setq ruby-deep-indent-paren-style nil)))
 
 (add-hook 'text-mode-hook 'flyspell-mode)
+
+(define-key isearch-mode-map (kbd "M-n") 'isearch-delete-char)
+(define-key isearch-mode-map (kbd "M-O") 'isearch-ring-advance)
+(define-key isearch-mode-map (kbd "M-I") 'isearch-ring-retreat)
 
 ;; ----------
 ;; -- Random Customizations and Configurations
