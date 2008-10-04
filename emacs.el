@@ -287,6 +287,7 @@ See also `kill-whole-line'."
 (defun nex3-irc ()
   "Open an IRC client with my credentials"
   (interactive)
+  (persp-rename "irc")
   (let ((passwd (read-passwd "Password: ")))
     (setq rcirc-authinfo `(("freenode" nickserv "nex3" ,passwd)))
     (rcirc nil)))
