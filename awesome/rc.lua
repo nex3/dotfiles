@@ -18,6 +18,7 @@ terminal = "x-terminal-emulator"
 -- I suggest you to remap Mod4 to another key using xmodmap or other tools.
 -- However, you can use another modifier like Mod1, but it may interact with others.
 modkey = "Mod3"
+modkey2 = "Mod4"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 layouts =
@@ -56,6 +57,16 @@ apptags =
     -- ["mocp"] = { screen = 2, tag = 4 },
 }
 
+-- Names of tags
+tagnames =
+{
+    "check",
+    "prog",
+    "hw",
+    "im",
+    "music",
+}
+
 -- Define if we want to use titlebar on all applications.
 use_titlebar = false
 -- }}}
@@ -81,12 +92,20 @@ for s = 1, screen.count() do
     tags[s] = {}
     -- Create 9 tags per screen.
     for tagnumber = 1, 9 do
-        tags[s][tagnumber] = tag({ name = tagnumber, layout = layouts[1] })
+        tags[s][tagnumber] = tag({ name = tagnames[tagnumber] or tagnumber, layout = layouts[1] })
         -- Add tags to screen one by one
         tags[s][tagnumber].screen = s
     end
     -- I'm sure you want to see at least one tag.
     tags[s][1].selected = true
+end
+
+namedtags = {}
+for s = 1, screen.count() do
+    namedtags[s] = {}
+    for i, n in ipairs(tagnames) do
+        namedtags[s][n] = tags[s][i]
+    end
 end
 -- }}}
 
@@ -176,37 +195,45 @@ for s = 1, screen.count() do
    keynumber = math.min(9, math.max(#tags[s], keynumber));
 end
 
+function tagkey(mod, char, tagfn)
+    keybinding({ mod }, char,
+                   function ()
+                       local screen = mouse.screen
+                       if tagfn(screen) then
+                           awful.tag.viewonly(tagfn(screen))
+                       end
+                   end):add()
+    keybinding({ mod, "Control" }, char,
+                   function ()
+                       local screen = mouse.screen
+                       if tagfn(screen) then
+                           tagfn(screen).selected = not tagfn(screen).selected
+                       end
+                   end):add()
+    keybinding({ mod, "Shift" }, char,
+                   function ()
+                       if client.focus then
+                           if tagfn(client.focus.screen) then
+                               awful.client.movetotag(tagfn(client.focus.screen))
+                           end
+                       end
+                   end):add()
+    keybinding({ mod, "Control", "Shift" }, char,
+                   function ()
+                       if client.focus then
+                           if tagfn(client.focus.screen) then
+                               awful.client.toggletag(tagfn(client.focus.screen))
+                           end
+                       end
+                   end):add()
+end
+
 for i = 1, keynumber do
-    keybinding({ modkey }, i,
-                   function ()
-                       local screen = mouse.screen
-                       if tags[screen][i] then
-                           awful.tag.viewonly(tags[screen][i])
-                       end
-                   end):add()
-    keybinding({ modkey, "Control" }, i,
-                   function ()
-                       local screen = mouse.screen
-                       if tags[screen][i] then
-                           tags[screen][i].selected = not tags[screen][i].selected
-                       end
-                   end):add()
-    keybinding({ modkey, "Shift" }, i,
-                   function ()
-                       if client.focus then
-                           if tags[client.focus.screen][i] then
-                               awful.client.movetotag(tags[client.focus.screen][i])
-                           end
-                       end
-                   end):add()
-    keybinding({ modkey, "Control", "Shift" }, i,
-                   function ()
-                       if client.focus then
-                           if tags[client.focus.screen][i] then
-                               awful.client.toggletag(tags[client.focus.screen][i])
-                           end
-                       end
-                   end):add()
+    tagkey(modkey, i, function(screen) return tags[screen][i] end)
+end
+
+for i, n in ipairs(tagnames) do
+    tagkey(modkey2, n:sub(1, 1), function(screen) return namedtags[screen][n] end)
 end
 
 keybinding({ modkey }, "Left", awful.tag.viewprev):add()
