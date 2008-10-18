@@ -252,7 +252,9 @@ By default, it's `name'-mode.el."
 (fset 'yes-or-no-p 'y-or-n-p)
 (global-font-lock-mode 1)
 (transient-mark-mode -1)
-(server-start)
+
+(unless (file-exists-p (format "/tmp/emacs%d/server" (user-uid)))
+  (server-start))
 
 (setq hippie-expand-try-functions-list
       '(try-expand-all-abbrevs
