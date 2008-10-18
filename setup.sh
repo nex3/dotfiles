@@ -14,7 +14,15 @@ ln -s {$conf/,.}gitconfig
 
 ln -s $conf/elisp/yasnippet/snippets .yasnippets
 
-mkdir -p .config
-cd .config
-rm -rf .awesome
+mkdir -p ~/.config
+cd ~/.config
+rm -rf awesome
 ln -s {$conf/,}awesome
+
+mkdir -p ~/bin
+cd ~/bin
+for f in $conf/bin/*; do
+    newfile="`echo "$f" | sed 's/.*\/\(.*\)\..*$/\1/'`"
+    rm -f "$newfile"
+    ln -s "$f" "$newfile"
+done

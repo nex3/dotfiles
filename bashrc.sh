@@ -133,11 +133,14 @@ function my_cd {
     ls
 }
 
+function temacs {
+    emacsclient -t "$@" || emacs -nw "$@"
+}
+
 alias cd='my_cd'
 alias ssh='ssh -X'
 alias home='ssh -p 2042 nex3@home.nex-3.com'
 alias svni='svn --ignore-externals'
-alias temacs='emacsclient -t || emacs -nw'
 alias pager='less'
 alias rl='rlwrap'
 alias get='wget -O-'
@@ -163,9 +166,9 @@ then
     export LIBRARY_PATH=$HOME/lib:$LIBRARY_PATH
     export C_INCLUDE_PATH=$HOME/include
     export PATH=$HOME/bin:/var/lib/gems/1.8/bin/:/usr/local/bin:$PATH
-    export EDITOR='emacs -nw'
-    export DARCS_EDITOR=emacsclient
-    export SVN_EDITOR='emacs -nw'
+    export EDITOR=temacs
+    export DARCS_EDITOR=temacs
+    export SVN_EDITOR=temacs
     export SSH_AUTH_SOCK=0 # Stupid Ubuntu bug...
 fi
 
