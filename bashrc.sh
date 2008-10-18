@@ -166,9 +166,9 @@ then
     export LIBRARY_PATH=$HOME/lib:$LIBRARY_PATH
     export C_INCLUDE_PATH=$HOME/include
     export PATH=$HOME/bin:/var/lib/gems/1.8/bin/:/usr/local/bin:$PATH
-    export EDITOR=temacs
-    export DARCS_EDITOR=temacs
-    export SVN_EDITOR=temacs
+    export EDITOR=em
+    export DARCS_EDITOR=em
+    export SVN_EDITOR=em
     export SSH_AUTH_SOCK=0 # Stupid Ubuntu bug...
 fi
 
