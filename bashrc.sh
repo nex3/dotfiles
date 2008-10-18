@@ -135,7 +135,7 @@ function my_cd {
 
 alias cd='my_cd'
 alias ssh='ssh -X'
-alias ssh-home='ssh -p 2042 nex3@nex3.mine.nu'
+alias home='ssh -p 2042 nex3@home.nex-3.com'
 alias svni='svn --ignore-externals'
 alias temacs='emacsclient -t || emacs -nw'
 alias pager='less'
@@ -166,6 +166,7 @@ then
     export EDITOR='emacs -nw'
     export DARCS_EDITOR=emacsclient
     export SVN_EDITOR='emacs -nw'
+    export SSH_AUTH_SOCK=0 # Stupid Ubuntu bug...
 fi
 
 ## ----------
