@@ -147,10 +147,10 @@ By default, it's `name'-mode.el."
                 (substatement-open 0)
                 (arglist-intro 2)
                 (arglist-close 0))))
+  (add-hook 'c-mode-common-hook (lambda () (c-toggle-electric-state -1)))
   (add-hook
    'c-mode-hook
    (lambda ()
-     (c-toggle-electric-state -1)
      (when (string-match "^/home/nex3/code/awesome/" (buffer-file-name))
        (let ((c-buffer-is-cc-mode t))
          (c-set-style "awesome"))))))
@@ -190,7 +190,7 @@ By default, it's `name'-mode.el."
     "Send a raw string to the IRC server."
     (rcirc-send-string process arg)))
 
-(my-after-load tex-mode
+(my-after-load tex
   (with-temp-buffer (LaTeX-mode))
   (TeX-global-PDF-mode)
   (setcdr (assoc "^pdf$" TeX-output-view-style)
