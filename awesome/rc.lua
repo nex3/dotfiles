@@ -109,7 +109,7 @@ for s = 1, screen.count() do
 end
 -- }}}
 
--- {{{ Statusbar
+-- {{{ Wibox
 -- Create a taglist widget
 mytaglist = widget({ type = "taglist", name = "mytaglist" })
 mytaglist:buttons({
@@ -126,15 +126,15 @@ mytaglist.label = awful.widget.taglist.label.all
 mytasklist = widget({ type = "tasklist", name = "mytasklist" })
 mytasklist:buttons({
     button({ }, 1, function (object, c) client.focus = c; c:raise() end),
-    button({ }, 4, function () awful.client.focusbyidx(1) end),
-    button({ }, 5, function () awful.client.focusbyidx(-1) end)
+    button({ }, 4, function () awful.client.focus.byidx(1) end),
+    button({ }, 5, function () awful.client.focus.byidx(-1) end)
 })
 mytasklist.label = awful.widget.tasklist.label.currenttags
 
 -- Create a textbox widget
 mytextbox = widget({ type = "textbox", name = "mytextbox", align = "right" })
 -- Set the default text in textbox
-mytextbox.text = "<b><small> awesome " .. AWESOME_VERSION .. " </small></b>"
+mytextbox.text = "<b><small> " .. AWESOME_RELEASE .. " </small></b>"
 mypromptbox = widget({ type = "textbox", name = "mypromptbox", align = "left" })
 
 -- Create a launcher widget
@@ -159,28 +159,28 @@ for s = 1, screen.count() do
     mylayoutbox[s].image = image("/usr/local/share/awesome/icons/layouts/tilew.png")
 end
 
--- Create a statusbar for each screen and add it
-mystatusbar = {}
+-- Create a wibox for each screen and add it
+mywibox = {}
 for s = 1, screen.count() do
-    mystatusbar[s] = wibox({ position = "top", name = "mystatusbar" .. s,
+    mywibox[s] = wibox({ position = "top", name = "mywibox" .. s,
                              fg = beautiful.fg_normal, bg = beautiful.bg_normal })
-    -- Add widgets to the statusbar - order matters
-    mystatusbar[s]:widgets({
+    -- Add widgets to the wibox - order matters
+    mywibox[s]:widgets({
         mytaglist,
         mytasklist,
-        myiconbox,
+        mylauncher,
         mypromptbox,
         mytextbox,
         mylayoutbox[s],
         s == 1 and mysystray or nil
     })
-    mystatusbar[s].screen = s
+    mywibox[s].screen = s
 end
 -- }}}
 
 -- {{{ Mouse bindings
 awesome.buttons({
-    button({ }, 3, function () awful.spawn(terminal) end),
+    button({ }, 3, function () awful.util.spawn(terminal) end),
     button({ }, 4, awful.tag.viewnext),
     button({ }, 5, awful.tag.viewprev)
 })
@@ -241,16 +241,17 @@ keybinding({ modkey }, "Right", awful.tag.viewnext):add()
 keybinding({ modkey }, "Escape", awful.tag.history.restore):add()
 
 -- Standard program
-keybinding({ modkey }, "t", function () awful.spawn(terminal) end):add()
+keybinding({ modkey }, "t", function () awful.util.spawn(terminal) end):add()
 
 keybinding({ modkey, "Control" }, "r", awesome.restart):add()
 keybinding({ modkey, "Shift" }, "q", awesome.quit):add()
 
 -- Client manipulation
 keybinding({ modkey }, "m", awful.client.maximize):add()
+keybinding({ modkey }, "f", function () client.focus.fullscreen = not client.focus.fullscreen end):add()
 keybinding({ modkey, "Shift" }, "c", function () client.focus:kill() end):add()
-keybinding({ modkey }, "k", function () awful.client.focusbyidx(1); client.focus:raise() end):add()
-keybinding({ modkey }, "l", function () awful.client.focusbyidx(-1);  client.focus:raise() end):add()
+keybinding({ modkey }, "k", function () awful.client.focus.byidx(1); client.focus:raise() end):add()
+keybinding({ modkey }, "l", function () awful.client.focus.byidx(-1);  client.focus:raise() end):add()
 keybinding({ modkey, "Shift" }, "k", function () awful.client.swap(1) end):add()
 keybinding({ modkey, "Shift" }, "l", function () awful.client.swap(-1) end):add()
 keybinding({ modkey, "Control" }, "k", function () awful.screen.focus(1) end):add()
@@ -274,10 +275,10 @@ keybinding({ modkey, "Shift" }, "space", function () awful.layout.inc(layouts, -
 
 -- Prompt
 keybinding({ modkey }, "Return", function ()
-                                 awful.prompt.run({ prompt = "Run: " }, mypromptbox, awful.spawn, awful.completion.bash,
+                                 awful.prompt.run({ prompt = "Run: " }, mypromptbox, awful.util.spawn, awful.completion.bash,
 os.getenv("HOME") .. "/.cache/awesome/history") end):add()
 keybinding({ modkey }, "F4", function ()
-                                 awful.prompt.run({ prompt = "Run Lua code: " }, mypromptbox, awful.eval, awful.prompt.bash,
+                                 awful.prompt.run({ prompt = "Run Lua code: " }, mypromptbox, awful.util.eval, awful.prompt.bash,
 os.getenv("HOME") .. "/.cache/awesome/history_eval") end):add()
 keybinding({ modkey, "Ctrl" }, "i", function ()
                                         if mypromptbox.text then
@@ -382,7 +383,7 @@ awful.hooks.unmarked.register(function (c)
 end)
 
 -- Hook function to execute when the mouse is over a client.
-awful.hooks.mouse_over.register(function (c)
+awful.hooks.mouse_enter.register(function (c)
     -- Sloppy focus, but disabled for magnifier layout
     if awful.layout.get(c.screen) ~= "magnifier"
         and awful.client.focus.filter(c) then
