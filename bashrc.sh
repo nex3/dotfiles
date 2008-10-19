@@ -169,7 +169,6 @@ then
     export EDITOR=em
     export DARCS_EDITOR=em
     export SVN_EDITOR=em
-    export SSH_AUTH_SOCK=0 # Stupid Ubuntu bug...
 fi
 
 ## ----------
