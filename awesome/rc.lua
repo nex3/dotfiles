@@ -241,7 +241,7 @@ keybinding({ modkey }, "Right", awful.tag.viewnext):add()
 keybinding({ modkey }, "Escape", awful.tag.history.restore):add()
 
 -- Standard program
-keybinding({ modkey }, "t", function () awful.util.spawn(terminal) end):add()
+keybinding({ modkey, "Shift" }, "Return", function () awful.util.spawn(terminal) end):add()
 
 keybinding({ modkey, "Control" }, "r", awesome.restart):add()
 keybinding({ modkey, "Shift" }, "q", awesome.quit):add()
