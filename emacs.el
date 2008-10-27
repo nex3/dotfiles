@@ -78,15 +78,6 @@
 (autoload 'run-arc "inferior-arc" "Run an inferior Arc process, input and output via buffer *arc*." t)
 (autoload 'gitsum "gitsum" "Entry point into gitsum-diff-mode." t)
 
-(autoload 'pastie-region "pastie"
-"Post the current region as a new paste at pastie.caboo.se.
-Copies the URL into the kill ring." t)
-(autoload 'pastie-buffer "pastie"
-"Post the current buffer as a new paste at pastie.caboo.se.
-Copies the URL into the kill ring." t)
-(autoload 'pastie-get "pastie"
-"Fetch the contents of the paste from pastie.caboo.se into a new buffer." t)
-
 (defun autoload-mode (name regex &optional file)
   "Automatically loads a language mode
 when opening a file of the appropriate type.
@@ -220,6 +211,9 @@ By default, it's `name'-mode.el."
                     (dolist (spec distel-shell-keys)
                       (define-key erlang-shell-mode-map (car spec) (cadr spec))))))
     (file-error nil)))
+
+(my-after-load gist
+  (setq gist-view-gist t))
 
 (when window-system
   (my-after-load "ruby-mode"
@@ -465,9 +459,9 @@ which should be selected."
 (my-key "C-n f" auto-fill-mode)
 (my-key "C-n y" load-yasnippet)
 
-(my-map "C-n C-p" nex3-pastie)
-(my-key "C-n C-p p" pastie-region)
-(my-key "C-n C-p b" pastie-buffer)
-(my-key "C-n C-p g" pastie-get)
+(my-map "C-n C-p" nex3-paste)
+(my-key "C-n C-p p" gist-region)
+(my-key "C-n C-p b" gist-buffer)
+(my-key "C-n C-p g" gist-fetch)
 
 (quick-perspective-keys)
