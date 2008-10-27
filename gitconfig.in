@@ -1,6 +1,6 @@
 [user]
-	name = Nathan Weizenbaum
-	email = nex342@gmail.com
+        name = Nathan Weizenbaum
+        email = nex342@gmail.com
 [alias]
         st = status
         co = checkout
