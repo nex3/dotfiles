@@ -40,8 +40,8 @@ function start_or_join_screen {
         sleep 1
         if screen -RR
         then
-            test -e /tmp/nex3_screen_abnormal_exit || exit 0
-            rm /tmp/nex3_screen_abnormal_exit
+            test -e /tmp/$USER_screen_abnormal_exit || exit 0
+            rm /tmp/$USER_screen_abnormal_exit
         else
             echo "Screen failed! continuing with normal bash startup"
         fi
@@ -49,7 +49,7 @@ function start_or_join_screen {
 }
 
 function descreen {
-    touch /tmp/nex3_screen_abnormal_exit
+    touch /tmp/$USER_screen_abnormal_exit
     screen -X quit
 }
 
