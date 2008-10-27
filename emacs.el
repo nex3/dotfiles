@@ -70,6 +70,7 @@
 
 (require 'pager)
 (require 'perspective)
+(eval-when-compile (require 'cl))
 
 (autoload 'run-ruby "inf-ruby" "Run an inferior Ruby process, input and output via buffer *ruby*." t)
 (autoload 'rdebug "rdebug" "Run the Ruby debugger." t)
@@ -301,7 +302,9 @@ See also `kill-whole-line'."
 (defun nex3-irc ()
   "Open an IRC client with my credentials"
   (interactive)
-  (persp-rename "irc")
+  (condition-case nil
+      (persp-rename "irc")
+    (error nil))
   (let ((passwd (read-passwd "Password: ")))
     (setq rcirc-authinfo `(("freenode" nickserv "nex3" ,passwd)))
     (rcirc nil)))
@@ -357,6 +360,30 @@ which should be selected."
 
 (defmacro my-strong-unset (key)
   `(my-key ,key keyboard-quit))
+
+;; -- Terminal hacks
+
+(setf (cddr key-translation-map)
+      (eval-when-compile
+        (let ((chars (string-to-list "qwertyuiop]\\asdfghjklzxcvbnm")))
+          (flet ((add-prefix (prefix char)
+                             (read-kbd-macro (concat prefix "-" (char-to-string char))))
+                 (make-bindings (binding-prefix)
+                                (mapcar
+                                 (lambda (char)
+                                   (cons (string-to-char (add-prefix "C" char))
+                                         (add-prefix binding-prefix char)))
+                                 chars)))
+            `((? keymap
+                   (?& keymap
+                       (?M keymap
+                           (?\; . ,(kbd "C-M-;"))
+                           (?. . ,(kbd "C-M-.")))
+                       (?S keymap
+                           (? keymap ,@(make-bindings "C-M-S")
+                                (?: . ,(kbd "C-M-:")))
+                           ,@(make-bindings "C-S")
+                           (? . ,(kbd "C-_"))))))))))
 
 ;; -- Actual Bindings
 
