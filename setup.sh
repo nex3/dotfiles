@@ -1,5 +1,8 @@
 #!/bin/bash
 
+rm -rf private
+scp -r nex3@nex-3.com:config-private private && bash private/setup.sh || bash private-fallback.sh
+
 conf=`pwd`
 cd ~
 
