@@ -163,7 +163,14 @@ By default, it's `name'-mode.el."
    (lambda ()
      (when (string-match "^/home/nex3/code/awesome/" (buffer-file-name))
        (let ((c-buffer-is-cc-mode t))
-         (c-set-style "awesome"))))))
+         (c-set-style "awesome")))))
+
+  (add-hook
+   'java-mode-hook
+   (lambda ()
+     (when (string-match "^/home/nex3/hw/cse/473/slotcar/" (buffer-file-name))
+       (setq indent-tabs-mode t)
+       (setq tab-width 4)))))
 
 (my-after-load rcirc
   (require 'rcirc-color)
