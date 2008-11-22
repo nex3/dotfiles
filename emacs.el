@@ -182,8 +182,7 @@ By default, it's `name'-mode.el."
                        "DarkOliveGreen" "PaleGreen" "ForestGreen" "LightGoldenrodYellow"
                        "sienna"))
   (setq rcirc-server-alist '(("irc.freenode.net" :channels ("#haml" "#rubyfringe" "#freehackersunion"))
-                             ("irc.nex-3.com" :nick "Nathan" :channels ("#rc" "#dnd"))
-                             ("irc.oftc.net" :nick "nex3" :channels ("#awesome"))))
+                             ("irc.nex-3.com" :nick "Nathan" :channels ("#rc" "#dnd"))))
   (setq my-rcirc-notify-timeout 90)
   (setq rcirc-unambiguous-complete t)
   (setq rcirc-debug-flag t)
