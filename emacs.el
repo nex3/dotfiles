@@ -61,25 +61,23 @@ See also `with-temp-buffer'."
 (require 'byte-code-cache)
 (require 'color-theme)
 
-(defun my-color-theme-mods ()
-  (interactive)
-  (color-theme-install
-   '(my-color-theme-mods
-     (())
-     ;; Don't highlight lines in the terminal
-     (hl-line (((min-colors 8)) (:inherit nil :background nil)))
-     (yas/field-highlight-face ((t (:background "gray30"))))
-     (erb-face ((t (:background "gray15"))))
-     (rcirc-server (((min-colors 8) (:foreground nil))
-                    (t (:foreground "gray40"))))
-     (mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
-     (textile-link-face ((t (:foreground "#398EE6"))))
-     (textile-ul-bullet-face ((t (:foreground "#398EE6")))))))
-
 (color-theme-initialize)
 (load "alexandres-theme")
 (my-color-theme-dark)
-(let ((color-theme-is-cumulative t)) (my-color-theme-mods))
+
+(custom-set-faces
+ '(default ((((min-colors 256)) (:foreground "pink"))
+            (t (:foreground "white"))))
+ ;; Don't highlight lines in the terminal
+ '(hl-line ((((min-colors 8)) (:inherit nil :background nil))))
+ '(yas/field-highlight-face ((t (:background "gray30"))))
+ '(erb-face ((t (:background "gray15"))))
+ '(rcirc-server ((((min-colors 8)) (:foreground nil))
+                 (t (:foreground "gray40"))))
+ '(mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
+ '(textile-link-face ((t (:foreground "#398EE6"))))
+ '(textile-ul-bullet-face ((t (:foreground "#398EE6")))))
+
 (setq frame-title-format '("Emacs: %b [" persp-curr-name "]"))
 
 ;; ----------
