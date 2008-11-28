@@ -9,7 +9,7 @@
 ;;;
 ;;; (add-to-list 'load-path "/path/to/haml-mode.el")
 ;;; (require 'haml-mode nil 't)
-;;; (add-to-list 'auto-mode-alist '("\\.sass$" . sass-mode))
+;;; (add-to-list 'auto-mode-alist '("\\.haml$" . haml-mode))
 ;;;
 
 ;;; Code:
@@ -55,8 +55,7 @@ if the next line could be nested within this line.")
   `("^ *\\([%\\.#][^ \t]*\\)\\(\\[.*\\]\\)?\\({.*}\\)?\\(\\[.*\\]\\)?[ \t]*$"
     "^ *[-=].*do[ \t]*\\(|.*|[ \t]*\\)?$"
     ,(concat "^ *-[ \t]*\\("
-             (regexp-opt '("if" "unless" "while" "until" "else"
-                           "begin" "elsif" "rescue" "ensure" "when"))
+             (regexp-opt '("else" "elsif" "rescue" "ensure" "when"))
              "\\)")
     "^ */\\(\\[.*\\]\\)?[ \t]*$"
     "^ *-#"
@@ -113,6 +112,7 @@ text nested beneath them.")
     (define-key map "\C-C\C-k" 'haml-kill-line-and-indent)
     map))
 
+;;;###autoload
 (define-derived-mode haml-mode fundamental-mode "Haml"
   "Major mode for editing Haml files.
 
@@ -121,6 +121,7 @@ text nested beneath them.")
   (set (make-local-variable 'indent-line-function) 'haml-indent-line)
   (set (make-local-variable 'indent-region-function) 'haml-indent-region)
   (set (make-local-variable 'forward-sexp-function) 'haml-forward-sexp)
+  (setq indent-tabs-mode nil)
   (setq font-lock-defaults '((haml-font-lock-keywords) nil t)))
 
 ;; Navigation

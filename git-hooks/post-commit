@@ -9,5 +9,6 @@ emacs --batch --eval '
 (progn
   (setq make-backup-files nil)
   (setq generated-autoload-file "~/.elisp/my-loaddefs.el")
-  (update-directory-autoloads "~/.elisp"))
+  (update-directory-autoloads "~/.elisp")
+  (update-directory-autoloads "~/.elisp/haskell-mode"))
 '
