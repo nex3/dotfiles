@@ -10,6 +10,10 @@ else
     bash private-fallback.sh
 fi
 
+rm -rf .git/hooks
+ln -s ../git-hooks .git/hooks
+./git-hooks/post-commit
+
 conf=`pwd`
 cd ~
 

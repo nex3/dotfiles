@@ -1,0 +1,13 @@
+#!/bin/sh
+#
+# An example hook script that is called after a successful
+# commit is made.
+#
+# To enable this hook, make this file executable.
+
+emacs --batch --eval '
+(progn
+  (setq make-backup-files nil)
+  (setq generated-autoload-file "~/.elisp/my-loaddefs.el")
+  (update-directory-autoloads "~/.elisp"))
+'
