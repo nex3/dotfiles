@@ -84,6 +84,7 @@ See also `with-temp-buffer'."
 ;; -- Loading Modules
 ;; ----------
 
+(require 'my-loaddefs)
 (require 'pager)
 (require 'perspective)
 (eval-when-compile (require 'cl))
