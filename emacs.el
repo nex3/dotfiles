@@ -10,23 +10,13 @@
   (tool-bar-mode -1))
 (menu-bar-mode -1)
 
-(unless (fboundp 'with-selected-frame)
-  (defmacro with-selected-frame (frame &rest body)
-    "Execute the forms in BODY with FRAME as the selected frame.
-The value returned is the value of the last form in BODY.
-See also `with-temp-buffer'."
-    (declare (indent 1) (debug t))
-    (let ((old-frame (make-symbol "old-frame"))
-          (old-buffer (make-symbol "old-buffer")))
-      `(let ((,old-frame (selected-frame))
-             (,old-buffer (current-buffer)))
-         (unwind-protect
-             (progn (select-frame ,frame)
-                    ,@body)
-           (if (frame-live-p ,old-frame)
-               (select-frame ,old-frame))
-           (if (buffer-live-p ,old-buffer)
-               (set-buffer ,old-buffer)))))))
+(add-to-list 'load-path "/usr/share/emacs/site-lisp")
+(add-to-list 'load-path "/usr/share/emacs-snapshot/site-lisp")
+(add-to-list 'load-path "~/.elisp/rcirc-notify-el")
+(add-to-list 'load-path "~/.elisp")
+(add-to-list 'load-path "~/share/emacs/site-lisp")
+
+(when (< emacs-major-version 23) (require 'old-emacs))
 
 (defun init-frame (&optional frame)
   "Initialize FRAME with my preferences."
@@ -48,13 +38,6 @@ See also `with-temp-buffer'."
 
 (init-frame)
 (add-hook 'after-make-frame-functions 'init-frame)
-
-(add-to-list 'load-path "/usr/share/emacs/site-lisp")
-(add-to-list 'load-path "/usr/share/emacs-snapshot/site-lisp")
-(add-to-list 'load-path "~/.elisp/rcirc-notify-el")
-(add-to-list 'load-path "~/.elisp/distel")
-(add-to-list 'load-path "~/.elisp")
-(add-to-list 'load-path "~/share/emacs/site-lisp")
 
 (setq byte-compile-verbose nil)
 (setq byte-compile-warnings nil)
