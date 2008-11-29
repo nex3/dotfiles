@@ -10,7 +10,7 @@
   (tool-bar-mode -1))
 (menu-bar-mode -1)
 
-(if (version< emacs-version "23")
+(unless (fboundp 'with-selected-frame)
   (defmacro with-selected-frame (frame &rest body)
     "Execute the forms in BODY with FRAME as the selected frame.
 The value returned is the value of the last form in BODY.
