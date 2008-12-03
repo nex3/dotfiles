@@ -240,6 +240,13 @@ By default, it's `name'-mode.el."
 (my-after-load gist
   (setq gist-view-gist t))
 
+(my-after-load ruby-mode
+  (add-hook 'ruby-mode-hook 'pretty-lambdas))
+
+(my-after-load javascript-mode
+  (setq javascript-auto-indent-flag nil)
+  (add-hook 'javascript-mode-hook (lambda () (pretty-lambdas "\\(function\\>\\)("))))
+
 (when window-system
   (my-after-load "ruby-mode"
     (define-key ruby-mode-map (kbd "C-M-l") 'ruby-forward-sexp)
@@ -248,6 +255,7 @@ By default, it's `name'-mode.el."
 
 (add-hook 'text-mode-hook 'flyspell-mode)
 (add-hook 'lisp-mode-hook 'pretty-lambdas)
+(add-hook 'emacs-lisp-mode-hook 'pretty-lambdas)
 
 (define-key isearch-mode-map (kbd "M-n") 'isearch-delete-char)
 (define-key isearch-mode-map (kbd "M-O") 'isearch-ring-advance)
@@ -345,10 +353,10 @@ which should be selected."
     (yas/initialize))
   (yas/load-directory "~/.yasnippets"))
 
-(defun pretty-lambdas ()
-  "Make lambdas render as λ."
+(defun* pretty-lambdas (&optional (regexp "(?\\(lambda\\>\\)"))
+  "Make NAME render as λ."
   (font-lock-add-keywords
-   nil `(("(?\\(lambda\\>\\)"
+   nil `((,regexp
           (0 (progn (compose-region (match-beginning 1) (match-end 1)
                                     ,(make-char 'greek-iso8859-7 107))
                     nil))))))
