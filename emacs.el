@@ -70,6 +70,7 @@
 (require 'my-loaddefs)
 (require 'pager)
 (require 'perspective)
+(require 'tex-site)
 (eval-when-compile (require 'cl))
 
 (defun load-mode (name regexp)
