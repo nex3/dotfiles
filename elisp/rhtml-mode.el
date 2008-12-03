@@ -57,6 +57,7 @@
   (pop-to-buffer nil)
   (insert (concat "<%= render :partial => '" partial-name "' %>\n")))
 
+;;;###autoload
 (define-derived-mode rhtml-mode
   html-mode "RHTML"
   "Embedded Ruby Mode (RHTML)"

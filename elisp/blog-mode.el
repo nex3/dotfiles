@@ -101,8 +101,9 @@ Inherits from `textile-mode-map'.")
             (insert result))
           (shell-command (concat blog-browser " " tmp)))))))
 
+;;;###autoload
 (defun blog ()
-  "Open up my blog file"
+  "Open up my blog file."
   (interactive)
   (persp-switch "blog")
   (let ((dir (file-name-directory blog-post-file)))

@@ -48,6 +48,7 @@
     (save-excursion (indent-line-to indent))
     (if set-point (back-to-indentation))))
 
+;;;###autoload
 (defun treetop-mode ()
   "Major mode for editing treetop files"
   (interactive)

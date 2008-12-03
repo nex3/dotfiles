@@ -3,29 +3,33 @@
 ;; Copyright (C) 1994-2008 Yukihiro Matsumoto, Nobuyoshi Nakada
 
 ;; Authors: Yukihiro Matsumoto, Nobuyoshi Nakada
+;; URL: http://www.emacswiki.org/cgi-bin/wiki/RubyMode
 ;; Created: Fri Feb  4 14:49:13 JST 1994
-;; Keywords: languages
+;; Keywords: languages ruby
+;; Version: 1.0
 
 ;; This file is not yet part of GNU Emacs.
 
 ;;; Commentary:
 
 ;; Provides font-locking, indentation support, and navigation for Ruby code.
-
-;;; Todo:
-
-;; set auto-mode-alist and interpreter-mode-alist with autoload?
-;; various docstrings labelled below with TODOs
+;;
+;; If you're installing manually, you should add this to your .emacs
+;; file after putting it on your load path:
+;;
+;;    (autoload 'ruby-mode "ruby-mode" "Major mode for ruby files" t)
+;;    (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
+;;    (add-to-list 'interpreter-mode-alist '("ruby" . ruby-mode))
+;;
+;; Still needs more docstrings; search below for TODO.
+;;
 
 ;;; Code:
 
-(defconst ruby-mode-revision "$Revision$"
-  "Ruby mode revision string.")
-
-(defconst ruby-mode-version
-  (and (string-match "[0-9.]+" ruby-mode-revision)
-       (substring ruby-mode-revision (match-beginning 0) (match-end 0)))
-  "Ruby mode version number.")
+(defconst ruby-keyword-end-re
+  (if (string-match "\\_>" "ruby")
+      "\\_>"
+    "\\>"))
 
 (defconst ruby-block-beg-keywords
   '("class" "module" "def" "if" "unless" "case" "while" "until" "for" "begin" "do")
@@ -36,7 +40,7 @@
   "Regexp to match the beginning of blocks.")
 
 (defconst ruby-non-block-do-re
-  (concat (regexp-opt '("while" "until" "for" "rescue") t) "\\_>")
+  (concat (regexp-opt '("while" "until" "for" "rescue") t) ruby-keyword-end-re)
   "Regexp to match keywords that nest without blocks.")
 
 (defconst ruby-indent-beg-re
@@ -137,18 +141,18 @@ This should only be called after matching against `ruby-here-doc-end-re'."
   (let ((map (make-sparse-keymap)))
     (define-key map "{" 'ruby-electric-brace)
     (define-key map "}" 'ruby-electric-brace)
-    (define-key map "\M-\C-a" 'ruby-beginning-of-defun)
-    (define-key map "\M-\C-e" 'ruby-end-of-defun)
-    (define-key map "\M-\C-b" 'ruby-backward-sexp)
-    (define-key map "\M-\C-f" 'ruby-forward-sexp)
-    (define-key map "\M-\C-p" 'ruby-beginning-of-block)
-    (define-key map "\M-\C-n" 'ruby-end-of-block)
-    (define-key map "\M-\C-h" 'ruby-mark-defun)
-    (define-key map "\M-\C-q" 'ruby-indent-exp)
-    (define-key map "\t" 'ruby-indent-line)
-    (define-key map "\C-c\C-e" 'ruby-insert-end)
-    (define-key map "\C-j" 'reindent-then-newline-and-indent)
-    (define-key map "\C-m" 'newline)
+    (define-key map (kbd "M-C-a") 'ruby-beginning-of-defun)
+    (define-key map (kbd "M-C-e") 'ruby-end-of-defun)
+    (define-key map (kbd "M-C-b") 'ruby-backward-sexp)
+    (define-key map (kbd "M-C-f") 'ruby-forward-sexp)
+    (define-key map (kbd "M-C-p") 'ruby-beginning-of-block)
+    (define-key map (kbd "M-C-n") 'ruby-end-of-block)
+    (define-key map (kbd "M-C-h") 'ruby-mark-defun)
+    (define-key map (kbd "M-C-q") 'ruby-indent-exp)
+    (define-key map (kbd "TAB")   'ruby-indent-line)
+    (define-key map (kbd "C-M-h") 'backward-kill-word)
+    (define-key map (kbd "C-j")   'reindent-then-newline-and-indent)
+    (define-key map (kbd "C-m")   'newline)
     map)
   "Keymap used in ruby-mode.")
 
@@ -213,9 +217,19 @@ Also ignores spaces after parenthesis when 'space."
   "Alist to map encoding name from Emacs to Ruby."
   :group 'ruby)
 
+(defcustom ruby-insert-encoding-magic-comment t
+  "*Insert a magic emacs 'coding' comment upon save if this is non-nil."
+  :type 'boolean :group 'ruby)
+
 (defcustom ruby-use-encoding-map t
   "Use `ruby-encoding-map' to set encoding magic comment if this is non-nil."
   :type 'boolean :group 'ruby)
+
+;; Safe file variables
+(put 'ruby-indent-tabs-mode 'safe-local-variable 'booleanp)
+(put 'ruby-indent-level 'safe-local-variable 'integerp)
+(put 'ruby-comment-column 'safe-local-variable 'integerp)
+(put 'ruby-deep-arglist 'safe-local-variable 'booleanp)
 
 (eval-when-compile (require 'cl))
 (defun ruby-imenu-create-index-in-block (prefix beg end)
@@ -317,7 +331,8 @@ Also ignores spaces after parenthesis when 'space."
                               ((forward-char)))))
                  (insert coding-system)))
               ((looking-at "\\s *#.*coding\\s *[:=]"))
-              (t (insert "# -*- coding: " coding-system " -*-\n"))
+              (t (when ruby-insert-encoding-magic-comment
+                   (insert "# -*- coding: " coding-system " -*-\n")))
               )))))
 
 ;;;###autoload
@@ -593,7 +608,7 @@ and `\\' when preceded by `?'."
        ((looking-at (concat "\\<\\(" ruby-block-beg-re "\\)\\>"))
         (and
          (save-match-data
-           (or (not (looking-at "do\\_>"))
+           (or (not (looking-at (concat "do" ruby-keyword-end-re)))
                (save-excursion
                  (back-to-indentation)
                  (not (looking-at ruby-non-block-do-re)))))
@@ -1040,13 +1055,6 @@ With ARG, do it many times. Negative ARG means move forward."
         ((error)))
       i)))
 
-(defun ruby-insert-end ()
-  "Insert \"end\" at point and reindent current line."
-  (interactive)
-  (insert "end")
-  (ruby-indent-line t)
-  (end-of-line))
-
 (defun ruby-mark-defun ()
   "Put mark at end of this Ruby function, point at beginning."
   (interactive)
@@ -1169,23 +1177,6 @@ See `add-log-current-defun-function'."
      (6 (7 . ?/)))
     ("^=en\\(d\\)\\_>" 1 "!")
     ("^\\(=\\)begin\\_>" 1 (ruby-comment-beg-syntax))
-    ;; Currently, the following case is highlighted incorrectly:
-    ;;
-    ;;   <<FOO
-    ;;   FOO
-    ;;   <<BAR
-    ;;   <<BAZ
-    ;;   BAZ
-    ;;   BAR
-    ;;
-    ;; This is because all here-doc beginnings are highlighted before any endings,
-    ;; so although <<BAR is properly marked as a beginning, when we get to <<BAZ
-    ;; it thinks <<BAR is part of a string so it's marked as well.
-    ;;
-    ;; This may be fixable by modifying ruby-in-here-doc-p to use
-    ;; ruby-in-non-here-doc-string-p rather than syntax-ppss-context,
-    ;; but I don't want to try that until we've got unit tests set up
-    ;; to make sure I don't break anything else.
     (,(concat ruby-here-doc-beg-re ".*\\(\n\\)")
      ,(+ 1 (regexp-opt-depth ruby-here-doc-beg-re))
      (ruby-here-doc-beg-syntax))
@@ -1201,19 +1192,33 @@ isn't in a string or another comment."
   (when (not (nth 3 (syntax-ppss)))
     (string-to-syntax "!")))
 
-(defun ruby-in-non-here-doc-string-p ()
-  "Returns whether or not the point is in a comment or
-a string that's not a heredoc.
+(unless (functionp 'syntax-ppss)
+  (defun syntax-ppss (&optional pos)
+    (parse-partial-sexp (point-min) (or pos (point)))))
 
-This function assumes that all strings with generic delimiters
-are heredocs. In ruby-mode, regexps also use generic delimiters,
-so text in them will count as text in heredocs for the purpose
-of this function. See `parse-partial-sexp'."
-  ;; TODO: We may be able to make this more accurate
-  ;; by looking at the character at (nth 3 syntax)
-  (let ((syntax (syntax-ppss)))
-    (or (nth 4 syntax)
-        (numberp (nth 3 syntax)))))
+(defun ruby-in-ppss-context-p (context &optional ppss)
+  (let ((ppss (or ppss (syntax-ppss (point)))))
+    (if (cond
+         ((eq context 'anything)
+          (or (nth 3 ppss)
+              (nth 4 ppss)))
+         ((eq context 'string)
+          (nth 3 ppss))
+         ((eq context 'heredoc)
+          (and (nth 3 ppss)
+               ;; If it's generic string, it's a heredoc and we don't care
+               ;; See `parse-partial-sexp'
+               (not (numberp (nth 3 ppss)))))
+         ((eq context 'non-heredoc)
+          (and (ruby-in-ppss-context-p 'anything)
+               (not (ruby-in-ppss-context-p 'heredoc))))
+         ((eq context 'comment)
+          (nth 4 ppss))
+         (t
+          (error (concat
+                  "Internal error on `ruby-in-ppss-context-p': "
+                  "context name `" (symbol-name context) "' is unknown"))))
+        t)))
 
 (defun ruby-in-here-doc-p ()
   "Returns whether or not the point is in a heredoc."
@@ -1222,7 +1227,7 @@ of this function. See `parse-partial-sexp'."
       (beginning-of-line)
       (catch 'found-beg
         (while (re-search-backward ruby-here-doc-beg-re nil t)
-          (if (not (or (syntax-ppss-context (syntax-ppss))
+          (if (not (or (ruby-in-ppss-context-p 'anything)
                        (ruby-here-doc-find-end old-point)))
               (throw 'found-beg t)))))))
 
@@ -1263,7 +1268,7 @@ containing the heredoc beginning so that cases where multiple
 heredocs are started on one line are handled correctly."
   (save-excursion
     (goto-char (match-beginning 0))
-    (unless (or (ruby-in-non-here-doc-string-p)
+    (unless (or (ruby-in-ppss-context-p 'non-heredoc)
                 (ruby-in-here-doc-p))
       (string-to-syntax "|"))))
 
@@ -1275,13 +1280,13 @@ See the definition of `ruby-font-lock-syntactic-keywords'."
     ;; so we can just give up.
     ;; This means we aren't doing a full-document search
     ;; every time we enter a character.
-    (when (eq (syntax-ppss-context pss) 'string)
+    (when (ruby-in-ppss-context-p 'heredoc pss)
       (save-excursion
-        (goto-char (nth 8 pss))
+        (goto-char (nth 8 pss))  ; Go to the beginning of heredoc.
         (let ((eol (point)))
           (beginning-of-line)
           (if (and (re-search-forward (ruby-here-doc-beg-match) eol t) ; If there is a heredoc that matches this line...
-                   (null (syntax-ppss-context (syntax-ppss))) ; And that's not inside a heredoc/string/comment...
+                   (not (ruby-in-ppss-context-p 'anything)) ; And that's not inside a heredoc/string/comment...
                    (progn (goto-char (match-end 0)) ; And it's the last heredoc on its line...
                           (not (re-search-forward ruby-here-doc-beg-re eol t))))
               (string-to-syntax "|")))))))
@@ -1351,7 +1356,8 @@ See `font-lock-syntax-table'.")
              "while"
              "yield")
            t)
-          "\\_>\\)")
+          "\\)"
+          ruby-keyword-end-re)
          2)
    ;; here-doc beginnings
    (list ruby-here-doc-beg-re 0 'font-lock-string-face)
@@ -1381,6 +1387,17 @@ See `font-lock-syntax-table'.")
    )
   "Additional expressions to highlight in ruby mode.")
 
+;; Invoke ruby-mode when appropriate
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
+
+;;;###autoload
+(add-to-list 'interpreter-mode-alist '("ruby" . ruby-mode))
+(add-to-list 'interpreter-mode-alist '("rbx" . ruby-mode))
+(add-to-list 'interpreter-mode-alist '("jruby" . ruby-mode))
+(add-to-list 'interpreter-mode-alist '("ruby1.9" . ruby-mode))
+(add-to-list 'interpreter-mode-alist '("ruby1.8" . ruby-mode))
 
 (provide 'ruby-mode)
 ;;; ruby-mode.el ends here

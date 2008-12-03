@@ -10,7 +10,7 @@
   (tool-bar-mode -1))
 (menu-bar-mode -1)
 
-(if (version< emacs-version "23")
+(unless (fboundp 'with-selected-frame)
   (defmacro with-selected-frame (frame &rest body)
     "Execute the forms in BODY with FRAME as the selected frame.
 The value returned is the value of the last form in BODY.
@@ -61,74 +61,52 @@ See also `with-temp-buffer'."
 (require 'byte-code-cache)
 (require 'color-theme)
 
-(defun my-color-theme-mods ()
-  (interactive)
-  (color-theme-install
-   '(my-color-theme-mods
-     (())
-     ;; Don't highlight lines in the terminal
-     (hl-line (((min-colors 8)) (:inherit nil :background nil)))
-     (yas/field-highlight-face ((t (:background "gray30"))))
-     (erb-face ((t (:background "gray15"))))
-     (rcirc-server (((min-colors 8) (:foreground nil))
-                    (t (:foreground "gray40"))))
-     (mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
-     (textile-link-face ((t (:foreground "#398EE6"))))
-     (textile-ul-bullet-face ((t (:foreground "#398EE6")))))))
-
 (color-theme-initialize)
 (load "alexandres-theme")
 (my-color-theme-dark)
-(let ((color-theme-is-cumulative t)) (my-color-theme-mods))
+
+(custom-set-faces
+ '(default ((((min-colors 256)) (:foreground "pink"))
+            (t (:foreground "white"))))
+ ;; Don't highlight lines in the terminal
+ '(hl-line ((((min-colors 8)) (:inherit nil :background nil))))
+ '(yas/field-highlight-face ((t (:background "gray30"))))
+ '(erb-face ((t (:background "gray15"))))
+ '(rcirc-server ((((min-colors 8)) (:foreground nil))
+                 (t (:foreground "gray40"))))
+ '(mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
+ '(textile-link-face ((t (:foreground "#398EE6"))))
+ '(textile-ul-bullet-face ((t (:foreground "#398EE6")))))
+
 (setq frame-title-format '("Emacs: %b [" persp-curr-name "]"))
 
 ;; ----------
 ;; -- Loading Modules
 ;; ----------
 
+(require 'my-loaddefs)
 (require 'pager)
 (require 'perspective)
 (eval-when-compile (require 'cl))
 
-(autoload 'run-ruby "inf-ruby" "Run an inferior Ruby process, input and output via buffer *ruby*." t)
-(autoload 'rdebug "rdebug" "Run the Ruby debugger." t)
-(autoload 'blog "blog-mode" "Open up my blog file." t)
-(autoload 'run-arc "inferior-arc" "Run an inferior Arc process, input and output via buffer *arc*." t)
-(autoload 'gitsum "gitsum" "Entry point into gitsum-diff-mode." t)
+(defun load-mode (name regexp)
+  "Set up a language mode NAME-mode so that
+it's loaded for files matching REGEXP."
+  (add-to-list 'auto-mode-alist (cons regexp (intern (format "%s-mode" name)))))
 
-(defun autoload-mode (name regex &optional file)
-  "Automatically loads a language mode
-when opening a file of the appropriate type.
-
-`name' is the name of the mode.
-E.g. for javascript-mode, `name' would be \"javascript\".
-
-`regex' is the regular expression matching filenames of the appropriate type.
-
-`file' is the name of the file
-from which the mode function should be loaded.
-By default, it's `name'-mode.el."
-  (let* ((name-mode (concat name "-mode"))
-         (name-sym (intern name-mode)))
-    (autoload name-sym (or file name-mode)
-      (format "Major mode for editing %s." name) t)
-    (add-to-list 'auto-mode-alist (cons regex name-sym))))
-
-(autoload-mode "tex" "\\.tex$" "auctex")
-(autoload-mode "javascript" "\\.js$" "javascript")
-(autoload-mode "d" "\\.d[i]?\\'$")
-(autoload-mode "textile" "\\.textile$")
-(autoload-mode "haml" "\\.haml$")
-(autoload-mode "sass" "\\.sass$")
-(autoload-mode "rhtml" "\\.\\(rhtml\\|erb\\)$")
-(autoload-mode "yaml" "\\.ya?ml$")
-(autoload-mode "ruby" "\\(\\.\\(rb\\|rake\\|rjs\\|gemspec\\|thor\\)\\|Rakefile\\|Capfile\\|Thorfile\\)$")
-(autoload-mode "css" "\\.css$")
-(autoload-mode "haskell" "\\.l?hs$" "haskell-mode/haskell-site-file")
-(autoload-mode "arc" "\\.arc$" "arc")
-(autoload-mode "erlang" "\\.[he]rl$" "erlang/erlang")
-(autoload-mode "treetop" "\\.treetop$")
-(autoload-mode "lua" "\\.lua$")
+(load-mode 'javascript "\\.js$")
+(load-mode 'd "\\.d[i]?\\'$")
+(load-mode 'textile "\\.textile$")
+(load-mode 'haml "\\.haml$")
+(load-mode 'sass "\\.sass$")
+(load-mode 'rhtml "\\.\\(rhtml\\|erb\\)$")
+(load-mode 'yaml "\\.ya?ml$")
+(load-mode 'ruby "\\(\\.\\(rb\\|rake\\|rjs\\|gemspec\\|thor\\)\\|Rakefile\\|Capfile\\|Thorfile\\)$")
+(load-mode 'css "\\.css$")
+(load-mode 'haskell "\\.l?hs$")
+(load-mode 'arc "\\.arc$")
+(load-mode 'treetop "\\.treetop$")
+(load-mode 'lua "\\.lua$")
 
 (defmacro my-after-load (name &rest body)
   "Like `eval-after-load', but a macro."
@@ -182,8 +160,7 @@ By default, it's `name'-mode.el."
                        "DarkOliveGreen" "PaleGreen" "ForestGreen" "LightGoldenrodYellow"
                        "sienna"))
   (setq rcirc-server-alist '(("irc.freenode.net" :channels ("#haml" "#rubyfringe" "#freehackersunion"))
-                             ("irc.nex-3.com" :nick "Nathan" :channels ("#rc" "#dnd"))
-                             ("irc.oftc.net" :nick "nex3" :channels ("#awesome"))))
+                             ("irc.nex-3.com" :nick "Nathan" :channels ("#rc" "#dnd"))))
   (setq my-rcirc-notify-timeout 90)
   (setq rcirc-unambiguous-complete t)
   (setq rcirc-debug-flag t)

@@ -29,5 +29,22 @@ end
 # Called after the irb session is initialized and Rails has
 # been loaded (props: Mike Clark).
 IRB.conf[:IRB_RC] = lambda do
-  ActiveRecord::Base.logger = Logger.new(STDOUT) if defined?(ActiveRecord::Base)
+  if defined?(ActiveRecord::Base)
+    begin
+      name = User.column_names.include?("name")
+      login = User.column_names.include?("login")
+      if name || login
+        instance_eval <<RUBY
+def method_missing(name, *args, &block)
+  super unless args.empty? && block.nil?
+  instance_variable_get("@user_\#{name}") ||
+    instance_variable_set("@user_\#{name}", User.find_by_#{name ? 'name' : 'login'}(name.to_s))
+end
+RUBY
+      end
+    rescue
+    end
+
+    ActiveRecord::Base.logger = Logger.new(STDOUT)
+  end
 end

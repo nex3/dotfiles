@@ -13,7 +13,6 @@
   (color-theme-install
    '(my-color-theme-dark
      ((background-color . "black")
-      (foreground-color . "pink")
       (cursor-color . "white")
       (mouse-color . "white")
       (background-mode . dark))
