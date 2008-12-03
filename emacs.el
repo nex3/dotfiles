@@ -247,6 +247,7 @@ By default, it's `name'-mode.el."
     (setq ruby-deep-indent-paren-style nil)))
 
 (add-hook 'text-mode-hook 'flyspell-mode)
+(add-hook 'lisp-mode-hook 'pretty-lambdas)
 
 (define-key isearch-mode-map (kbd "M-n") 'isearch-delete-char)
 (define-key isearch-mode-map (kbd "M-O") 'isearch-ring-advance)
@@ -344,6 +345,13 @@ which should be selected."
     (yas/initialize))
   (yas/load-directory "~/.yasnippets"))
 
+(defun pretty-lambdas ()
+  "Make lambdas render as λ."
+  (font-lock-add-keywords
+   nil `(("(?\\(lambda\\>\\)"
+          (0 (progn (compose-region (match-beginning 1) (match-end 1)
+                                    ,(make-char 'greek-iso8859-7 107))
+                    nil))))))
 ;; ----------
 ;; -- Keybindings
 ;; ----------
