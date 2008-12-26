@@ -67,7 +67,7 @@
 ;; -- Loading Modules
 ;; ----------
 
-(require 'my-loaddefs)
+(load "my-loaddefs")
 (require 'pager)
 (require 'perspective)
 (require 'tex-site)
