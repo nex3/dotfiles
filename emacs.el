@@ -91,6 +91,7 @@ it's loaded for files matching REGEXP."
 (load-mode 'arc "\\.arc$")
 (load-mode 'treetop "\\.treetop$")
 (load-mode 'lua "\\.lua$")
+(load-mode 'csharp "\\.cs$")
 
 (defmacro my-after-load (name &rest body)
   "Like `eval-after-load', but a macro."
