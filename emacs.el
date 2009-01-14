@@ -61,7 +61,7 @@
  '(textile-link-face ((t (:foreground "#398EE6"))))
  '(textile-ul-bullet-face ((t (:foreground "#398EE6")))))
 
-(setq frame-title-format '("Emacs: %b [" persp-curr-name "]"))
+(setq frame-title-format '("Emacs: %b [" (:eval (persp-name persp-curr)) "]"))
 
 ;; ----------
 ;; -- Loading Modules
@@ -69,7 +69,6 @@
 
 (load "my-loaddefs")
 (require 'pager)
-(require 'perspective)
 (require 'tex-site)
 (eval-when-compile (require 'cl))
 
@@ -467,4 +466,5 @@ which should be selected."
 (my-key "C-n C-p b" gist-buffer)
 (my-key "C-n C-p g" gist-fetch)
 
+(persp-mode)
 (quick-perspective-keys)
