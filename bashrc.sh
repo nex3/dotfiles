@@ -108,8 +108,10 @@ function prompt_command {
     # Git branch stuff from escherfan on Reddit
     if [ -n ${GITBRANCH} ]; then
         BRANCH=`$GITBRANCH HEAD 2> /dev/null | awk "{ print \\$2 }"`
+        DIRTY=`[[ $(git status 2> /dev/null | tail -n1) != \
+            "nothing to commit (working directory clean)" ]] && echo '·'`
         if [ $BRANCH ]; then
-            BRANCH=" ${START_RED}($BRANCH)${END_COLOR}";
+            BRANCH=" ${START_RED}($BRANCH${DIRTY})${END_COLOR}";
         fi
     else
         BRANCH='';
