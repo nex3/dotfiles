@@ -142,6 +142,8 @@ function temacs {
 alias cd='my_cd'
 alias ssh='ssh -X'
 alias home='ssh -p 2042 nex3@home.nex-3.com'
+alias attu='ssh attu.cs.washington.edu'
+alias dante='ssh nweiz@dante.u.washington.edu'
 alias svni='svn --ignore-externals'
 alias pager='less'
 alias rl='rlwrap'
