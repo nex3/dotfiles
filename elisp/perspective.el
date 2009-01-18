@@ -3,7 +3,7 @@
 ;;
 ;; Licensed under the same terms as Emacs.
 
-(eval-when-compile (require 'cl))
+(require 'cl)
 
 ;; This is only available in Emacs >23,
 ;; so we redefine it here for compatibility.
@@ -41,6 +41,7 @@ See also `with-temp-buffer'."
 (define-key persp-mode-map (kbd "C-x x k") 'persp-remove-buffer)
 (define-key persp-mode-map (kbd "C-x x c") 'persp-kill)
 (define-key persp-mode-map (kbd "C-x x r") 'persp-rename)
+(define-key persp-mode-map (kbd "C-x x a") 'persp-add-buffer)
 (define-key persp-mode-map (kbd "C-x x i") 'persp-import)
 
 ;; make-variable-frame-local is obsolete according to the docs,
@@ -50,7 +51,8 @@ See also `with-temp-buffer'."
  (defvar perspectives-hash nil
    "A hash containing all perspectives. The keys are the
 perspetives' names. The values are persp structs,
-with the fields NAME, WINDOW-CONFIGURATION, and BUFFERS.
+with the fields NAME, WINDOW-CONFIGURATION, BUFFERS,
+and BUFFER-HISTORY.
 
 NAME is the name of the perspective.
 
@@ -60,6 +62,9 @@ saved (if this isn't the current perspective, this is when the
 perspective was last active).
 
 BUFFERS is a list of buffer objects that are associated with this
+perspective.
+
+BUFFER-HISTORY is the list of buffer history values for this
 perspective."))
 
 (make-variable-frame-local
@@ -105,23 +110,15 @@ perspective."))
          collect name)
    'string<))
 
-(defun persp-union (&rest lists)
-  "Returns the union of each sublist of LISTS."
-  (loop for l on lists
-        append (if (null (cdr l)) (car l)
-                 (let ((list1 (car l)) (list2 (cadr l)))
-                   (loop for el in list1
-                         unless (member el list2) collect el)))))
-
 (defun persp-all-names (&optional not-frame)
   "Return a list of the perspective names for all frames
 except NOT-FRAME (if passed)."
-  (apply 'persp-union
-         (mapcar
-          (lambda (frame)
-            (unless (equal frame not-frame)
-              (with-selected-frame frame (persp-names))))
-          (frame-list))))
+  (reduce 'union
+          (mapcar
+           (lambda (frame)
+             (unless (equal frame not-frame)
+               (with-selected-frame frame (persp-names))))
+           (frame-list))))
 
 (defun persp-prompt (&optional default require-match)
   "Prompt for the name of a perspective.
@@ -146,29 +143,14 @@ REQUIRE-MATCH can take the same values as in `completing-read'."
 name NAME, and switch to the new perspective.
 
 The new perspective initially has only one buffer: a
-Lisp-interaction buffer called \"*scratch* (NAME)\"."
+`initial-major-mode' buffer called \"*scratch* (NAME)\"."
   (interactive "sNew perspective: \n")
   (persp-save)
   (setq persp-curr (make-persp :name name))
   (switch-to-buffer (concat "*scratch* (" name ")"))
-  (lisp-interaction-mode)
+  (funcall initial-major-mode)
   (delete-other-windows)
   (persp-update-modestring))
-
-(defun persp-remove-dups (list &optional test)
-  "Remove duplicate items from LIST.
-
-TEST is a hash table test used to determine if two elements are
-equal. It defaults to `equal', but can also be set to `eq',
-`eql', or a test defined by `define-hash-table-test'.
-
-For example, (persp-remove-dups '(1 2 1 3 2 4 3 5)) gives '(1 2 3 4 5)."
-  (let ((seen (make-hash-table :test (or test 'equal))))
-    (loop for item in list
-          if (not (gethash item seen))
-            collect item into result
-            and do (puthash item t seen)
-          finally return result)))
 
 (defun persp-reactivate-buffers (buffers)
   "\"Reactivate\" BUFFERS by raising them to the top of the
@@ -182,14 +164,14 @@ See also `other-buffer'."
           and do (switch-to-buffer buf)
         finally return (reverse living-buffers)))
 
-(defun persp-intersperse (list val)
+(defun persp-intersperse (list interspersed-val)
   "Insert VAL between every pair of items in LIST and return the resulting list.
 
 For example, (persp-intersperse '(1 2 3) 'a) gives '(1 a 2 a 3)."
-  (if (or (null list) (null (cdr list))) list
-    (cons (car list)
-          (cons val
-                (persp-intersperse (cdr list) val)))))
+  (reverse
+   (reduce
+    (lambda (list el) (if list (list* el interspersed-val list) (list el)))
+    list :initial-value nil)))
 
 (defconst persp-mode-line-map
   (let ((map (make-sparse-keymap)))
@@ -286,7 +268,7 @@ See `persp-switch', `persp-get-quick'."
 This function tries to return the \"most appropriate\"
 perspective to switch to. It tries:
 
-  * The perspective given by `persp-last-name'.
+  * The perspective given by `persp-last'.
   * The main perspective.
   * The first existing perspective, alphabetically.
 
@@ -305,10 +287,14 @@ create a new main perspective and return \"main\"."
   "Associate BUFFER with the current perspective.
 
 See also `persp-switch' and `persp-remove-buffer'."
-  (interactive "bAdd buffer to perspective: \n")
-  (push (get-buffer buffer) (persp-buffers persp-curr)))
+  (interactive
+   (let ((read-buffer-function nil))
+     (read-buffer "Add buffer to perspective: ")))
+  (let ((buffer (get-buffer buffer)))
+    (unless (memq buffer (persp-buffers persp-curr))
+      (push buffer (persp-buffers persp-curr)))))
 
-(defun* persp-bufferx-in-other-p (buffer)
+(defun* persp-buffer-in-other-p (buffer)
   "Returns nil if BUFFER is only in the current perspective.
 Otherwise, returns (FRAME . NAME), the frame and name of another
 perspective that has the buffer."
@@ -347,8 +333,11 @@ perspective and no others are killed."
   (with-perspective name
     (mapcar 'persp-remove-buffer (persp-buffers persp-curr)))
   (remhash name perspectives-hash)
-  (if (equal name (persp-name persp-curr))
-      (persp-switch (persp-find-some))))
+  (persp-update-modestring)
+  (when (equal name (persp-name persp-last))
+    (setq persp-last nil))
+  (when (equal name (persp-name persp-curr))
+    (persp-switch (persp-find-some))))
 
 (defun persp-rename (name)
   "Rename the current perspective to NAME."
@@ -400,12 +389,12 @@ With a prefix arg, uses the old `read-buffer' instead."
 
 (defun persp-complete-buffer ()
   "Perform completion on all buffers within the current perspective."
-  (apply-partially 'completion-table-with-predicate
-                   (or minibuffer-completion-table 'internal-complete-buffer)
-                   (lambda (name)
-                     (member (if (consp name) (car name) name)
-                             (mapcar 'buffer-name (persp-buffers persp-curr))))
-                   nil))
+  (lexical-let ((persp-names (mapcar 'buffer-name (persp-buffers persp-curr))))
+    (apply-partially 'completion-table-with-predicate
+                     (or minibuffer-completion-table 'internal-complete-buffer)
+                     (lambda (name)
+                       (member (if (consp name) (car name) name) persp-names))
+                     nil)))
 
 (defun* persp-import (name &optional dont-switch)
   "Import a perspective named NAME from another frame.  If DONT-SWITCH
@@ -472,12 +461,14 @@ named collections of buffers and window configurations."
         (ad-activate 'recursive-edit)
         (ad-activate 'exit-recursive-edit)
         (add-hook 'after-make-frame-functions 'persp-init-frame)
+        (add-hook 'ido-make-buffer-list-hook 'persp-set-ido-buffers)
         (setq read-buffer-function 'persp-read-buffer)
 
         (persp-init-frame (selected-frame))
         (setf (persp-buffers persp-curr) (buffer-list)))
     (ad-deactivate-regexp "^persp-.*")
     (remove-hook 'after-make-frame-functions 'persp-init-frame)
+    (remove-hook 'ido-make-buffer-list-hook 'persp-set-ido-buffers)
     (setq read-buffer-function nil)
     (setq perspectives-hash nil)
     (setq global-mode-string (delq 'persp-modestring global-mode-string))))
@@ -500,6 +491,11 @@ named collections of buffers and window configurations."
       (unless (memq 'persp-modestring global-mode-string)
         (setq global-mode-string (append global-mode-string '(persp-modestring))))
       (persp-update-modestring))))
+
+(defun persp-set-ido-buffers ()
+  (setq ido-temp-list
+        (let ((names (remq nil (mapcar 'buffer-name (persp-buffers persp-curr)))))
+          (or (remove-if (lambda (name) (eq (string-to-char name) ? )) names) names))))
 
 (defun quick-perspective-keys ()
   "Binds all C-S-letter key combinations to switch to the first
