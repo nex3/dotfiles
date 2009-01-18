@@ -202,6 +202,7 @@ it's loaded for files matching REGEXP."
   (setq gist-view-gist t))
 
 (my-after-load ruby-mode
+  (setq ruby-deep-indent-paren-style nil)
   (add-hook 'ruby-mode-hook 'pretty-lambdas))
 
 (my-after-load javascript-mode
@@ -209,10 +210,9 @@ it's loaded for files matching REGEXP."
   (add-hook 'javascript-mode-hook (lambda () (pretty-lambdas "\\(function\\>\\)("))))
 
 (when window-system
-  (my-after-load "ruby-mode"
+  (my-after-load ruby-mode
     (define-key ruby-mode-map (kbd "C-M-l") 'ruby-forward-sexp)
-    (define-key ruby-mode-map (kbd "C-M-j") 'ruby-backward-sexp)
-    (setq ruby-deep-indent-paren-style nil)))
+    (define-key ruby-mode-map (kbd "C-M-j") 'ruby-backward-sexp)))
 
 (add-hook 'text-mode-hook 'flyspell-mode)
 (add-hook 'lisp-mode-hook 'pretty-lambdas)
