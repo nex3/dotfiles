@@ -28,7 +28,12 @@ See also `with-temp-buffer'."
 (defstruct (perspective
             (:conc-name persp-)
             (:constructor make-persp-internal))
-  name window-configuration buffers buffer-history)
+  name buffers killed
+  (buffer-history buffer-name-history)
+  (window-configuration (current-window-configuration)))
+
+(defalias 'persp-killed-p 'persp-killed
+  "Return whether the perspective CL-X has been killed.")
 
 (defvar persp-mode-map (make-sparse-keymap)
   "Keymap for perspective-mode.")
@@ -36,7 +41,6 @@ See also `with-temp-buffer'."
 (define-prefix-command 'perspective 'perspective-map)
 (define-key persp-mode-map (kbd "C-x x") perspective-map)
 
-(define-key persp-mode-map (kbd "C-x x n") 'persp-new)
 (define-key persp-mode-map (kbd "C-x x s") 'persp-switch)
 (define-key persp-mode-map (kbd "C-x x k") 'persp-remove-buffer)
 (define-key persp-mode-map (kbd "C-x x c") 'persp-kill)
@@ -91,11 +95,37 @@ perspective."))
   '((t (:weight bold :foreground "Blue")))
   "The face used to highlight the current perspective on the modeline.")
 
-(defun make-persp (&rest args)
-  "Create a new perspective struct and put it in `perspectives-hash'."
-  (let ((persp (apply 'make-persp-internal args)))
-    (puthash (persp-name persp) persp perspectives-hash)
-    persp))
+(defun check-persp (persp)
+  "Raise an error if PERSP has been killed."
+  (cond
+   ((not persp)
+    (error "Expected perspective, was nil"))
+   ((persp-killed-p persp)
+    (error "Using killed perspective `%s'" (persp-name persp)))))
+
+(defmacro make-persp (&rest args)
+  "Create a new perspective struct and put it in `perspectives-hash'.
+
+ARGS is a list of keyword arguments followed by an optional BODY.
+The keyword arguments set the fields of the perspective struct.
+If BODY is given, it is executed to set the window configuration
+for the perspective."
+  (declare (indent defun))
+  (let ((keywords))
+    (while (keywordp (car args))
+      (dotimes (_ 2) (push (pop args) keywords)))
+    (setq keywords (reverse keywords))
+    `(let ((persp (make-persp-internal ,@keywords)))
+       (puthash (persp-name persp) persp perspectives-hash)
+       ,(when args
+          ;; Body form given
+          `(with-perspective (persp-name persp)
+             (setf (persp-window-configuration persp-curr)
+                   (save-excursion
+                     (save-window-excursion
+                       ,@args
+                       (current-window-configuration))))))
+       persp)))
 
 (defun persp-save ()
   "Save the current window configuration to `persp-curr'"
@@ -139,18 +169,12 @@ REQUIRE-MATCH can take the same values as in `completing-read'."
      ,@body))
 
 (defun persp-new (name)
-  "Save the current perspective, create a new perspective with
-name NAME, and switch to the new perspective.
-
-The new perspective initially has only one buffer: a
-`initial-major-mode' buffer called \"*scratch* (NAME)\"."
-  (interactive "sNew perspective: \n")
-  (persp-save)
-  (setq persp-curr (make-persp :name name))
-  (switch-to-buffer (concat "*scratch* (" name ")"))
-  (funcall initial-major-mode)
-  (delete-other-windows)
-  (persp-update-modestring))
+  "Return a new perspective with name NAME, initialized with
+an `initial-major-mode' buffer called \"*scratch* (NAME)\"."
+  (make-persp :name name
+    (switch-to-buffer (concat "*scratch* (" name ")"))
+    (funcall initial-major-mode)
+    (delete-other-windows)))
 
 (defun persp-reactivate-buffers (buffers)
   "\"Reactivate\" BUFFERS by raising them to the top of the
@@ -234,19 +258,21 @@ and the perspective's window configuration is restored."
   (if (equal name (persp-name persp-curr)) name
     (let ((persp (gethash name perspectives-hash)))
       (setq persp-last persp-curr)
-      (if (null persp) (persp-new name)
-        (persp-save)
-        (persp-activate persp))
-      (persp-update-modestring)
+      (when (null persp)
+        (setq persp (persp-new name)))
+      (persp-save)
+      (persp-activate persp)
       name)))
 
 (defun persp-activate (persp)
   "Activate the perspective given by the persp struct PERSP."
+  (check-persp persp)
   (persp-save)
   (setq persp-curr persp)
   (persp-reactivate-buffers (persp-buffers persp))
   (setq buffer-name-history (persp-buffer-history persp))
-  (set-window-configuration (persp-window-configuration persp)))
+  (set-window-configuration (persp-window-configuration persp))
+  (persp-update-modestring))
 
 (defun persp-switch-quick (char)
   "Switches to the first perspective, alphabetically, that begins with CHAR.
@@ -278,9 +304,9 @@ create a new main perspective and return \"main\"."
    (persp-last (persp-name persp-last))
    ((gethash "main" perspectives-hash) "main")
    ((> (hash-table-count perspectives-hash) 0) (car (persp-names)))
-   (t (setq persp-curr (make-persp :name "main" :buffers (buffer-list)))
-      (persp-save)
-      (persp-update-modestring)
+   (t (persp-activate
+       (make-persp :name "main" :buffers (buffer-list)
+         :window-configuration (current-window-configuration)))
       "main")))
 
 (defun persp-add-buffer (buffer)
@@ -331,13 +357,15 @@ perspective and no others are killed."
   (interactive "i")
   (if (null name) (setq name (persp-prompt (persp-name persp-curr) t)))
   (with-perspective name
-    (mapcar 'persp-remove-buffer (persp-buffers persp-curr)))
+    (mapcar 'persp-remove-buffer (persp-buffers persp-curr))
+    (setf (persp-killed persp-curr) t))
   (remhash name perspectives-hash)
   (persp-update-modestring)
   (when (equal name (persp-name persp-last))
     (setq persp-last nil))
   (when (equal name (persp-name persp-curr))
-    (persp-switch (persp-find-some))))
+    ;; Don't let persp-last get set to the deleted persp.
+    (let ((persp-last persp-last)) (persp-switch (persp-find-some)))))
 
 (defun persp-rename (name)
   "Rename the current perspective to NAME."
@@ -410,17 +438,12 @@ is non-nil or with prefix arg, don't switch to the new perspective."
         persp)
     (if (null buffers)
         (error "Perspective `%s' doesn't exist in another frame." name))
-    (save-excursion
-      (save-window-excursion
-        (switch-to-buffer (car buffers))
-        (delete-other-windows)
-        (setq persp
-              (make-persp :name name :buffers buffers
-                          :window-configuration (current-window-configuration)))))
-    (unless dont-switch
-      (persp-save)
-      (persp-activate persp))
-    (persp-update-modestring)))
+    (setq persp (make-persp :name name :buffers buffers
+                  (switch-to-buffer (car buffers))
+                  (delete-other-windows)))
+    (if dont-switch
+        (persp-update-modestring)
+      (persp-activate persp))))
 
 (defadvice switch-to-buffer (after persp-add-buffer-adv)
   "Add BUFFER to the current perspective.
@@ -484,13 +507,16 @@ named collections of buffers and window configurations."
     ;; Don't set these variables in modify-frame-parameters
     ;; because that won't do anything if they've already been accessed
     (setq perspectives-hash (make-hash-table :test 'equal :size 10))
-    (setq persp-curr (make-persp :name "main" :buffers (list (current-buffer))))
 
     (when persp-show-modestring
       (setq global-mode-string (or global-mode-string '("")))
       (unless (memq 'persp-modestring global-mode-string)
         (setq global-mode-string (append global-mode-string '(persp-modestring))))
-      (persp-update-modestring))))
+      (persp-update-modestring))
+
+    (persp-activate
+     (make-persp :name "main" :buffers (list (current-buffer))
+       :window-configuration (current-window-configuration)))))
 
 (defun persp-set-ido-buffers ()
   (setq ido-temp-list
