@@ -28,7 +28,7 @@ end
 
 # Called after the irb session is initialized and Rails has
 # been loaded (props: Mike Clark).
-IRB.conf[:IRB_RC] = lambda do
+IRB.conf[:IRB_RC] = lambda do |context|
   if defined?(ActiveRecord::Base)
     begin
       name = User.column_names.include?("name")
