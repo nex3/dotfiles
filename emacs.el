@@ -209,7 +209,7 @@ it's loaded for files matching REGEXP."
 
 (when window-system
   (my-after-load ruby-mode
-    (define-key ruby-mode-map (kbd "C-M-l") 'ruby-forward-sexp)
+    (define-key ruby-mode-map (kbd "C-M-;") 'ruby-forward-sexp)
     (define-key ruby-mode-map (kbd "C-M-j") 'ruby-backward-sexp)))
 
 (my-after-load tramp
