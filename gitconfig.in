@@ -8,3 +8,4 @@
         cp = cherry-pick
         fp = format-patch
         bs = bisect
+        push = push --tags
