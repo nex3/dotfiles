@@ -142,7 +142,7 @@ it's loaded for files matching REGEXP."
                        "DarkOliveGreen" "PaleGreen" "ForestGreen" "LightGoldenrodYellow"
                        "sienna"))
   (setq rcirc-server-alist '(("irc.freenode.net" :channels ("#haml" "#rubyfringe" "#freehackersunion"))
-                             ("irc.nex-3.com" :nick "Nathan" :channels ("#rc" "#dnd"))))
+                             ("irc.nex-3.com" :nick "Nathan" :channels ("#rc"))))
   (setq my-rcirc-notify-timeout 90)
   (setq rcirc-unambiguous-complete t)
   (setq rcirc-debug-flag t)
