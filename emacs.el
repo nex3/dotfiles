@@ -121,7 +121,8 @@ it's loaded for files matching REGEXP."
   (add-hook
    'c-mode-hook
    (lambda ()
-     (when (string-match "^/home/nex3/code/awesome/" (buffer-file-name))
+     (when (and (stringp (buffer-file-name))
+                (string-match "^/home/nex3/code/awesome/" (buffer-file-name)))
        (let ((c-buffer-is-cc-mode t))
          (c-set-style "awesome")))))
 
