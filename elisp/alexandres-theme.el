@@ -7,7 +7,7 @@
   ;; highlight the line where the cursor is
   (global-hl-line-mode t)
   (when (facep 'hl-line)
-    (set-face-background 'hl-line "gray20")
+    (set-face-background 'hl-line "#222222")
     (set-face-foreground 'hl-line nil))
   ;; main theme
   (color-theme-install
@@ -21,16 +21,16 @@
      (bold-italic ((t (:italic t :bold t))))
      (italic ((t (:italic t))))
      ;; orange: #E67321
-     ;; purple: #8722c9
      ;; green: #00b200
-     ;; blue: #398EE6
+     ;; dark blue: #2B2BFF
+     ;; light blue: #398EE6
      (font-lock-builtin-face ((t (:bold t :foreground "#E67321"))))
-     (font-lock-comment-face ((t (:italic t :bold t :foreground "#8722c9"))))
+     (font-lock-comment-face ((t (:italic t :bold t :foreground "#2B2BFF"))))
      (font-lock-constant-face ((t (:bold t :foreground "#398EE6"))))
      (font-lock-doc-string-face ((t (:bold t :foreground "#00b200"))))
      (font-lock-function-name-face ((t (:foreground "LightSkyBlue"))))
      (font-lock-keyword-face ((t (:bold t :foreground "#E67321"))))
-     (font-lock-preprocessor-face ((t (:foreground "#8722c9" :bold t))))
+     (font-lock-preprocessor-face ((t (:foreground "#2B2BFF" :bold t))))
      (font-lock-reference-face ((t (:foreground "red3"))))
      (font-lock-string-face ((t (:bold t :foreground "#00b200"))))
      (font-lock-type-face ((t (:bold t :foreground "#398EE6"))))
