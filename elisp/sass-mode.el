@@ -1,16 +1,22 @@
-;;; sass-mode.el -- Major mode for editing Sass files
-;;; Written by Nathan Weizenbaum
+;;; sass-mode.el --- Major mode for editing Sass files
 
-;;; Because Sass's indentation schema is similar
-;;; to that of YAML and Python, many indentation-related
-;;; functions are similar to those in yaml-mode and python-mode.
+;; Copyright (c) 2007, 2008 Nathan Weizenbaum
 
-;;; To install, save this somewhere and add the following to your .emacs file:
-;;;
-;;; (add-to-list 'load-path "/path/to/sass-mode.el")
-;;; (require 'sass-mode nil 't)
-;;; (add-to-list 'auto-mode-alist '("\\.sass$" . sass-mode))
-;;;
+;; Author: Nathan Weizenbaum
+;; URL: http://github.com/nex3/haml/tree/master
+;; Version: 1.0
+;; Keywords: markup, language
+
+;;; Commentary:
+
+;; Because Sass's indentation schema is similar
+;; to that of YAML and Python, many indentation-related
+;; functions are similar to those in yaml-mode and python-mode.
+
+;; To install, save this on your load path and add the following to
+;; your .emacs file:
+;;
+;; (require 'sass-mode)
 
 ;;; Code:
 
@@ -79,11 +85,14 @@ text nested beneath them.")
 ;; Indentation
 
 (defun sass-indent-p ()
-  "Returns true if the current line can have lines nested beneath it."
+  "Returns t if the current line can have lines nested beneath it."
   (loop for opener in sass-non-block-openers
         unless (looking-at opener) return t
         return nil))
 
-;; Setup/Activation
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.sass$" . sass-mode))
 
+;; Setup/Activation
 (provide 'sass-mode)
+;;; sass-mode.el ends here
