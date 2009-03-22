@@ -12,3 +12,5 @@
         slog = log --pretty=oneline --abbrev-commit
 [color]
         ui = auto
+[apply]
+        whitespace = error
