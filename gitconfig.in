@@ -10,3 +10,5 @@
         bs = bisect
         push = push --tags
         slog = log --pretty=oneline --abbrev-commit
+[color]
+        ui = auto
