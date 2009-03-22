@@ -1408,7 +1408,7 @@ whichever comes first."
       (forward-char -1)
       (let ((beg (point)))
         (ruby-limited-forward-sexp limit)
-        (ruby-fontify-region-as-ruby (+ 1 beg) (point)))
+        (ruby-fontify-region (+ 1 beg) (point)))
 
       ;; Highlight the end of the interpolation.
       (when (eq (char-before) ?})
