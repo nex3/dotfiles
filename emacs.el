@@ -229,6 +229,9 @@ it's loaded for files matching REGEXP."
 ;; -- Random Customizations and Configurations
 ;; ----------
 
+(require 'uniquify)
+(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
+
 (setq make-backup-files nil)
 (setq completion-ignored-extensions
       '(".a" ".so" ".o" "~" ".bak" ".class" ".hi" ".beam"))
