@@ -4,6 +4,8 @@ require("awful")
 require("beautiful")
 -- Notification library
 require("naughty")
+-- Tabs
+require("tabulous")
 
 -- Themes define colours, icons, and wallpapers
 -- The default is a dark theme
@@ -280,6 +282,38 @@ clientkeys =
         function (c)
             c.maximized_horizontal = not c.maximized_horizontal
             c.maximized_vertical   = not c.maximized_vertical
+        end),
+
+    -- Tab Manipulation
+    key({ modkey, "Control" }, "y",
+        function (c)
+            local tabbedview = tabulous.tabindex_get(c)
+            local nextclient = awful.client.next(1)
+
+            if not tabbedview then
+                tabbedview = tabulous.tabindex_get(nextclient)
+
+                if not tabbedview then
+                    tabbedview = tabulous.tab_create(c)
+                    tabulous.tab(tabbedview, nextclient)
+                else
+                    tabulous.tab(tabbedview, c)
+                end
+            else
+                tabulous.tab(tabbedview, nextclient)
+            end
+        end),
+
+    key({ modkey, "Shift" }, "y", tabulous.untab),
+
+    key({ modkey }, "y",
+        function (c)
+            local tabbedview = tabulous.tabindex_get(c)
+
+            if tabbedview then
+                local n = tabulous.next(tabbedview, c)
+                tabulous.display(tabbedview, n)
+            end
         end),
 }
 
