@@ -1,8 +1,8 @@
 ;;; markdown-mode.el --- Major mode to edit Markdown files in Emacs
 
-;; Copyright (C) 2007, 2008 Jason Blevins
+;; Copyright (C) 2007, 2008, 2009 Jason Blevins
 
-;; Version: 1.6
+;; Version: 1.7-dev
 ;; Keywords: Markdown major mode
 ;; Author: Jason Blevins <jrblevin@sdf.lonestar.org>
 ;; URL: http://jblevins.org/projects/markdown-mode/
@@ -31,11 +31,11 @@
 ;;
 ;;  [Markdown]: http://daringfireball.net/projects/markdown/
 ;;
-;; The latest version is markdown-mode 1.6, released on June 4. 2008:
+;; The latest stable version is markdown-mode 1.6, released on June 4. 2008:
 ;;
-;;  * [markdown-mode.el][]
-;;  * [Screenshot][]
-;;  * [Release notes][]
+;;    * [markdown-mode.el][]
+;;    * [Screenshot][]
+;;    * [Release notes][]
 ;;
 ;; markdown-mode is also available in the Debian `emacs-goodies-el`
 ;; package (beginning with revision 27.0-1).
@@ -43,6 +43,17 @@
 ;;  [markdown-mode.el]: http://code.jblevins.org/markdown-mode/markdown-mode.el
 ;;  [screenshot]: http://jblevins.org/projects/markdown-mode/screenshots/20080604-001.png
 ;;  [release notes]: http://jblevins.org/projects/markdown-mode/rev-1-6
+
+;; The latest development version can be downloaded directly
+;; ([markdown-mode.el][devel.el]) or it can be obtained from the
+;; (browsable and clonable) Git repository at
+;; <http://code.jblevins.org/markdown-mode.git>.  The entire repository,
+;; including the full project history, can be cloned via the Git protocol
+;; by running
+;;
+;;     git clone git://code.jblevins.org/markdown-mode.git
+;;
+;;  [devel.el]: http://code.jblevins.org/markdown-mode.git/plain/markdown-mode.el
 
 ;;; Dependencies:
 
@@ -64,67 +75,102 @@
 ;; There is no consensus on an official file extension so change `.text` to
 ;; `.mdwn`, `.md`, `.mdt`, or whatever you call your markdown files.
 
+;;; Customization:
+
+;; Although no configuration is *necessary* there are a few things
+;; that can be customized.  The `M-x customize-mode` command
+;; provides an interface to all of the possible customizations:
+;;
+;;   * `markdown-command` - the command used to run Markdown
+;;     (default: `markdown`).
+;;
+;;   * `markdown-hr-length` - the length of horizontal rules
+;;     (default: `5`).
+;;
+;;   * `markdown-bold-underscore` - set to a non-nil value to use two
+;;     underscores for bold instead of two asterisks (default: `nil`).
+;;
+;;   * `markdown-italic-underscore` - set to a non-nil value to use
+;;     underscores for italic instead of asterisks (default: `nil`).
+;;
+;;   * `markdown-indent-function` - the function to use for automatic
+;;     indentation (default: `markdown-indent-line`).
+;;
+;;   * `markdown-indent-on-enter` - set to a non-nil value to
+;;     automatically indent new lines when the enter key is pressed
+;;     (default: `t`)
+;;
+;;   * `markdown-uri-types` - a list of protocols for URIs that
+;;     `markdown-mode' should highlight.
+;;
+;;   * `markdown-enable-math` - syntax highlighting for
+;;     LaTeX fragments (default: `nil`).
+;;
+;; Additionally, the faces used for syntax highlighting can be modified to
+;; your liking by issuing `M-x customize-group RET markdown-faces`
+;; or by using the "Markdown Faces" link at the bottom of the mode
+;; customization screen.
+
 ;;; Usage:
 
-;; Although no configuration is necessary there are a few things that can
-;; be customized (`M-x customize-mode`).
-;;
 ;; Keybindings are grouped by prefixes based on their function.  For
 ;; example, commands dealing with headers begin with `C-c C-t`.  The
 ;; primary commands in each group will are described below.  You can
 ;; obtain a list of all keybindings by pressing `C-c C-h`.
 ;;
-;; * Anchors: `C-c C-a`
+;;   * Anchors: `C-c C-a`
 ;;
-;;   `C-c C-a l` inserts inline links of the form `[text](url)`.  If
-;;   there is an active region, text in the region is used for the link
-;;   text.  `C-c C-a w` acts similarly for wiki links of the form
-;;   `[[WikiLink]]`.
+;;     `C-c C-a l` inserts inline links of the form `[text](url)`.  If
+;;     there is an active region, text in the region is used for the
+;;     link text.  `C-c C-a w` acts similarly for wiki links of the
+;;     form `[[WikiLink]]`.
 ;;
-;; * Commands: `C-c C-c`
+;;   * Commands: `C-c C-c`
 ;;
-;;   `C-c C-c m` will run Markdown on the current buffer and preview the
-;;   output in another buffer while `C-c C-c p` runs Markdown on the
-;;   current buffer and previews the output in a browser.
+;;     `C-c C-c m` will run Markdown on the current buffer and preview
+;;     the output in another buffer while `C-c C-c p` runs Markdown on
+;;     the current buffer and previews the output in a browser.
 ;;
-;;   `C-c C-c c` will check for undefined references.  If there are any,
-;;   a small buffer will open with a list of undefined references and
-;;   the line numbers on which they appear.  In Emacs 22 and greater,
-;;   selecting a reference from this list and pressing `RET` will insert
-;;   an empty reference definition at the end of the buffer.  Similarly,
-;;   selecting the line number will jump to the corresponding line.
+;;     `C-c C-c c` will check for undefined references.  If there are
+;;     any, a small buffer will open with a list of undefined
+;;     references and the line numbers on which they appear.  In Emacs
+;;     22 and greater, selecting a reference from this list and
+;;     pressing `RET` will insert an empty reference definition at the
+;;     end of the buffer.  Similarly, selecting the line number will
+;;     jump to the corresponding line.
 ;;
-;; * Images: `C-c C-i`
+;;   * Images: `C-c C-i`
 ;;
-;;   `C-c C-i i` inserts an image, using the active region (if any) as
-;;   the alt text.
+;;     `C-c C-i i` inserts an image, using the active region (if any)
+;;     as the alt text.
 ;;
-;; * Physical styles: `C-c C-p`
+;;   * Physical styles: `C-c C-p`
 ;;
-;;   These commands all act on text in the active region, if any, and
-;;   insert empty markup fragments otherwise.  `C-c C-p b` makes the
-;;   selected text bold, `C-c C-p f` formats the region as fixed-width
-;;   text, and `C-c C-p i` is used for italic text.
+;;     These commands all act on text in the active region, if any,
+;;     and insert empty markup fragments otherwise.  `C-c C-p b` makes
+;;     the selected text bold, `C-c C-p f` formats the region as
+;;     fixed-width text, and `C-c C-p i` is used for italic text.
 ;;
-;; * Logical styles: `C-c C-s`
+;;   * Logical styles: `C-c C-s`
 ;;
-;;   These commands all act on text in the active region, if any, and
-;;   insert empty markup fragments otherwise.  Logical styles include
-;;   blockquote (`C-c C-s b`), preformatted (`C-c C-s p`), code (`C-c C-s c`),
-;;   emphasis (`C-c C-s e`), and strong (`C-c C-s s`).
+;;     These commands all act on text in the active region, if any,
+;;     and insert empty markup fragments otherwise.  Logical styles
+;;     include blockquote (`C-c C-s b`), preformatted (`C-c C-s p`),
+;;     code (`C-c C-s c`), emphasis (`C-c C-s e`), and strong (`C-c
+;;     C-s s`).
 ;;
-;; * Headers: `C-c C-t`
+;;   * Headers: `C-c C-t`
 ;;
-;;   All header commands use text in the active region, if any, as the
-;;   header text.  To insert an atx or hash style level-n header, press
-;;   `C-c C-t n` where n is between 1 and 5.  For a top-level setext or
-;;   underline style header press `C-c C-t t` (mnemonic: title) and for
-;;   a second-level underline-style header press `C-c C-t s`
-;;   (mnemonic: section).
+;;     All header commands use text in the active region, if any, as
+;;     the header text.  To insert an atx or hash style level-n
+;;     header, press `C-c C-t n` where n is between 1 and 5.  For a
+;;     top-level setext or underline style header press `C-c C-t t`
+;;     (mnemonic: title) and for a second-level underline-style header
+;;     press `C-c C-t s` (mnemonic: section).
 ;;
-;; * Other commands
+;;   * Other commands
 ;;
-;;   `C-c -` inserts a horizontal rule.
+;;     `C-c -` inserts a horizontal rule.
 ;;
 ;; Many of the commands described above behave differently depending on
 ;; whether Transient Mark mode is enabled or not.  When it makes sense,
@@ -141,7 +187,7 @@
 ;; is bound to `C-c C-s C-b` and always applies to the region (when
 ;; nonempty).
 ;;
-;; Markdown mode supports outline-minor-mode as well as org-mode-style
+;; markdown-mode supports outline-minor-mode as well as org-mode-style
 ;; visibility cycling for atx- or hash-style headers.  There are two
 ;; types of visibility cycling: Pressing `S-TAB` cycles globally between
 ;; the table of contents view (headers only), outline view (top-level
@@ -167,57 +213,66 @@
 ;;       (setq markdown-command "markdown | smartypants"))
 ;;     (add-hook 'markdown-mode-hook '(lambda() (markdown-custom)))
 ;;
+;; [SmartyPants]: http://daringfireball.net/projects/smartypants/
+;;
 ;; Experimental syntax highlighting for mathematical expressions written
 ;; in LaTeX (only expressions denoted by `$..$`, `$$..$$`, or `\[..\]`)
-;; can be enabled by editing `markdown-mode.el` and changing `(defvar
-;; markdown-enable-itex nil)` to `(defvar markdown-enable-itex t)`.
+;; can be enabled by setting `markdown-enable-math` to a non-nil value,
+;; either via customize or by placing `(setq markdown-enable-itex t)`
+;; in `.emacs`, and restarting Emacs.
+
+;;; Acknowledgments:
+
+;; markdown-mode has benefited greatly from the efforts of the
+;; following people:
 ;;
-;; [SmartyPants]: http://daringfireball.net/projects/smartypants/
-
-;;; Thanks:
-
-;; * Cyril Brulebois <cyril.brulebois@enst-bretagne.fr> for Debian packaging.
-;; * Conal Elliott <conal@conal.net> for a font-lock regexp patch.
-;; * Edward O'Connor <hober0@gmail.com> for a font-lock regexp fix.
-;; * Greg Bognar <greg_bognar@hms.harvard.edu> for menus and a patch.
-;; * Daniel Burrows <dburrows@debian.org> for filing Debian bug #456592.
-;; * Peter S. Galbraith <psg@debian.org> for maintaining emacs-goodies-el.
-;; * Dmitry Dzhus <mail@sphinx.net.ru> for reference checking functions.
+;;   * Cyril Brulebois <cyril.brulebois@enst-bretagne.fr> for Debian packaging.
+;;   * Conal Elliott <conal@conal.net> for a font-lock regexp patch.
+;;   * Edward O'Connor <hober0@gmail.com> for a font-lock regexp fix.
+;;   * Greg Bognar <greg_bognar@hms.harvard.edu> for menus and a patch.
+;;   * Daniel Burrows <dburrows@debian.org> for filing Debian bug #456592.
+;;   * Peter S. Galbraith <psg@debian.org> for maintaining emacs-goodies-el.
+;;   * Dmitry Dzhus <mail@sphinx.net.ru> for reference checking functions.
+;;   * Bryan Kyle <bryan.kyle@gmail.com> for indentation code.
+;;   * intrigeri <intrigeri@boum.org> for face customizations.
+;;   * Ankit Solanki <ankit.solanki@gmail.com> for longlines.el compatibility.
+;;   * Hilko Bengen <bengen@debian.org> for proper XHTML output.
+;;   * Jose A. Ortega Ruiz <jao@gnu.org> for Emacs 23 fixes.
 
 ;;; Bugs:
 
-;; Markdown mode is developed and tested primarily using GNU Emacs 22
+;; markdown-mode is developed and tested primarily using GNU Emacs 22
 ;; although compatibility with GNU Emacs 21 is also a priority.
-;; 
-;; Presently Markdown mode does not attempt to distinguish between
+;;
+;; Presently markdown-mode does not attempt to distinguish between
 ;; multiple indentation levels and preformatted text (four or more
 ;; leading spaces).  I am not aware of a way to handle this using
 ;; Emacs's regexp-based font-lock facilities.  Implementing a more
 ;; robust approach to syntax highlighting is a high-priority item for
 ;; future work.
-;; 
+;;
 ;; If you find any bugs, such as syntax highlighting issues, please
 ;; construct a test case and email me at <jrblevin@sdf.lonestar.org>.
 ;; Comments and patches are welcome!
 
+;;; History:
+
+;; markdown-mode was written and is maintained by Jason Blevins.  The
+;; first revision, 1.1, was released on May 24, 2007.
+
 
+
 
 ;;; Code:
 
 (require 'easymenu)
 (require 'outline)
 
-;;; User Customizable Variables ===============================================
-
-;; To enable LaTeX/itex syntax highlighting, change to
-;; (defvar markdown-enable-itex t)
-(defvar markdown-enable-itex nil)
-
 
 ;;; Customizable variables ====================================================
 
 ;; Current revision
-(defconst markdown-mode-version "1.6")
+(defconst markdown-mode-version "1.7-dev")
 
 ;; A hook for users to run their own code when the mode is loaded.
 (defvar markdown-mode-hook nil)
@@ -251,146 +306,305 @@
   :group 'markdown
   :type 'boolean)
 
+(defcustom markdown-indent-function 'markdown-indent-line
+  "Function to use to indent."
+  :group 'markdown
+  :type 'function)
+
+(defcustom markdown-indent-on-enter t
+  "Automatically indent new lines when enter key is pressed."
+  :group 'markdown
+  :type 'boolean)
+
+(defcustom markdown-uri-types
+  '("acap" "cid" "data" "dav" "fax" "file" "ftp" "gopher" "http" "https"
+    "imap" "ldap" "mailto" "mid" "modem" "news" "nfs" "nntp" "pop" "prospero"
+    "rtsp" "service" "sip" "tel" "telnet" "tip" "urn" "vemmi" "wais")
+  "Link types for syntax highlighting of URIs."
+  :group 'markdown
+  :type 'list)
+
+(defcustom markdown-enable-math nil
+  "Syntax highlighting for inline LaTeX expressions.
+This will not take effect until Emacs is restarted."
+  :group 'markdown
+  :type 'boolean)
+
+(defcustom markdown-css-path nil
+  "CSS file to include in the output XHTML"
+  :group 'markdown
+  :type 'string)
 
 ;;; Font lock =================================================================
 
 (require 'font-lock)
+
+
+(defvar markdown-italic-face 'markdown-italic-face
+  "Face name to use for italic text.")
+
+(defvar markdown-bold-face 'markdown-bold-face
+  "Face name to use for bold text.")
+
+(defvar markdown-header-face 'markdown-header-face
+  "Face name to use as a base for headers.")
+
+(defvar markdown-header-face-1 'markdown-header-face-1
+  "Face name to use for level-1 headers.")
+
+(defvar markdown-header-face-2 'markdown-header-face-2
+  "Face name to use for level-2 headers.")
+
+(defvar markdown-header-face-3 'markdown-header-face-3
+  "Face name to use for level-3 headers.")
+
+(defvar markdown-header-face-4 'markdown-header-face-4
+  "Face name to use for level-4 headers.")
+
+(defvar markdown-inline-code-face 'markdown-inline-code-face
+  "Face name to use for inline code.")
+
+(defvar markdown-list-face 'markdown-list-face
+  "Face name to use for list markers.")
+
+(defvar markdown-blockquote-face 'markdown-blockquote-face
+  "Face name to use for blockquote.")
+
+(defvar markdown-pre-face 'markdown-pre-face
+  "Face name to use for preformatted text.")
+
+(defvar markdown-link-face 'markdown-link-face
+  "Face name to use for links.")
+
+(defvar markdown-reference-face 'markdown-reference-face
+  "Face name to use for reference.")
+
+(defvar markdown-url-face 'markdown-url-face
+  "Face name to use for URLs.")
+
+(defvar markdown-link-title-face 'markdown-link-title-face
+  "Face name to use for reference link titles.")
+
+(defvar markdown-comment-face 'markdown-comment-face
+  "Face name to use for HTML comments.")
+
+(defvar markdown-math-face 'markdown-math-face
+  "Face name to use for LaTeX expressions.")
+
 
 (defgroup markdown-faces nil
   "Faces used in Markdown Mode"
   :group 'markdown
   :group 'faces)
 
-(defcustom markdown-italic-face 'font-lock-variable-name-face
-  "Italic text."
-  :group 'markdown-faces
-  :type '(face))
+(defface markdown-italic-face
+  '((t :inherit font-lock-variable-name-face :italic t))
+  "Face for italic text."
+  :group 'markdown-faces)
 
-(defcustom markdown-bold-face 'font-lock-type-face
-  "Bold text"
-  :group 'markdown-faces
-  :type '(face))
+(defface markdown-bold-face
+  '((t :inherit font-lock-variable-name-face :bold t))
+  "Face for bold text."
+  :group 'markdown-faces)
 
-(defcustom markdown-header-face 'font-lock-function-name-face
-  "Headers"
-  :group 'markdown-faces
-  :type '(face))
+(defface markdown-header-face
+  '((t :inherit font-lock-function-name-face :weight bold))
+  "Base face for headers."
+  :group 'markdown-faces)
 
-(defcustom markdown-inline-code-face 'font-lock-builtin-face
-  "Inline code"
-  :group 'markdown-faces
-  :type '(face))
+(defface markdown-header-face-1
+  '((t :inherit markdown-header-face))
+  "Face for level-1 headers."
+  :group 'markdown-faces)
 
-(defcustom markdown-list-face 'font-lock-variable-name-face
-  "List item markers"
-  :group 'markdown-faces
-  :type '(face))
+(defface markdown-header-face-2
+  '((t :inherit markdown-header-face))
+  "Face for level-2 headers."
+  :group 'markdown-faces)
 
-(defcustom markdown-blockquote-face 'font-lock-comment-face
-  "Blockquote sections and preformatted text"
-  :group 'markdown-faces
-  :type '(face))
+(defface markdown-header-face-3
+  '((t :inherit markdown-header-face))
+  "Face for level-3 headers."
+  :group 'markdown-faces)
 
-(defcustom markdown-link-face 'font-lock-constant-face
-  "Link text"
-  :group 'markdown-faces
-  :type '(face))
+(defface markdown-header-face-4
+  '((t :inherit markdown-header-face))
+  "Face for level-4 headers."
+  :group 'markdown-faces)
 
-(defcustom markdown-reference-face 'font-lock-type-face
-  "Link references"
-  :group 'markdown-faces
-  :type '(face))
+(defface markdown-inline-code-face
+  '((t :inherit font-lock-constant-face))
+  "Face for inline code."
+  :group 'markdown-faces)
 
-(defcustom markdown-url-face 'font-lock-string-face
-  "URLs"
-  :group 'markdown-faces
-  :type '(face))
+(defface markdown-list-face
+  '((t :inherit font-lock-builtin-face))
+  "Face for list item markers."
+  :group 'markdown-faces)
 
-(defcustom markdown-math-face 'font-lock-builtin-face
-  "LaTeX expressions"
-  :group 'markdown-faces
-  :type '(face))
+(defface markdown-blockquote-face
+  '((t :inherit font-lock-doc-face))
+  "Face for blockquote sections."
+  :group 'markdown-faces)
+
+(defface markdown-pre-face
+  '((t :inherit font-lock-constant-face))
+  "Face for preformatted text."
+  :group 'markdown-faces)
+
+(defface markdown-link-face
+  '((t :inherit font-lock-keyword-face))
+  "Face for links."
+  :group 'markdown-faces)
+
+(defface markdown-reference-face
+  '((t :inherit font-lock-type-face))
+  "Face for link references."
+  :group 'markdown-faces)
+
+(defface markdown-url-face
+  '((t :inherit font-lock-string-face))
+  "Face for URLs."
+  :group 'markdown-faces)
+
+(defface markdown-link-title-face
+  '((t :inherit font-lock-comment-face))
+  "Face for reference link titles."
+  :group 'markdown-faces)
+
+(defface markdown-comment-face
+  '((t :inherit font-lock-comment-face))
+  "Face for HTML comments."
+  :group 'markdown-faces)
+
+(defface markdown-math-face
+  '((t :inherit font-lock-string-face))
+  "Face for LaTeX expressions."
+  :group 'markdown-faces)
 
 (defconst markdown-regex-link-inline
   "\\(!?\\[[^]]*?\\]\\)\\(([^\\)]*)\\)"
-  "Regular expression for a [text](file) or an image link ![text](file)")
+  "Regular expression for a [text](file) or an image link ![text](file).")
 
 (defconst markdown-regex-link-reference
   "\\(!?\\[[^]]+?\\]\\)[ ]?\\(\\[[^]]*?\\]\\)"
-  "Regular expression for a reference link [text][id]")
+  "Regular expression for a reference link [text][id].")
 
 (defconst markdown-regex-reference-definition
   "^ \\{0,3\\}\\(\\[.+?\\]\\):\\s *\\(.*?\\)\\s *\\( \"[^\"]*\"$\\|$\\)"
   "Regular expression for a link definition [id]: ...")
 
-(defconst markdown-regex-header-atx
-  "^\\(#+ \\)\\(.*?\\)\\($\\| #+$\\)"
-  "Regular expression for atx-style (hash mark) headers")
+(defconst markdown-regex-header-1-atx
+  "^\\(# \\)\\(.*?\\)\\($\\| #+$\\)"
+  "Regular expression for level 1 atx-style (hash mark) headers.")
 
-(defconst markdown-regex-header-setext
-  "^\\(.*\\)\n\\(===+\\|---+\\)$"
-  "Regular expression for setext-style (underline) headers")
+(defconst markdown-regex-header-2-atx
+  "^\\(## \\)\\(.*?\\)\\($\\| #+$\\)"
+  "Regular expression for level 2 atx-style (hash mark) headers.")
+
+(defconst markdown-regex-header-3-atx
+  "^\\(### \\)\\(.*?\\)\\($\\| #+$\\)"
+  "Regular expression for level 3 atx-style (hash mark) headers.")
+
+(defconst markdown-regex-header-4-atx
+  "^\\(#### \\)\\(.*?\\)\\($\\| #+$\\)"
+  "Regular expression for level 4 atx-style (hash mark) headers.")
+
+(defconst markdown-regex-header-1-setext
+  "^\\(.*\\)\n\\(===+\\)$"
+  "Regular expression for level 1 setext-style (underline) headers.")
+
+(defconst markdown-regex-header-2-setext
+  "^\\(.*\\)\n\\(---+\\)$"
+  "Regular expression for level 2 setext-style (underline) headers.")
 
 (defconst markdown-regex-hr
   "^\\(\\*[ ]?\\*[ ]?\\*[ ]?[\\* ]*\\|-[ ]?-[ ]?-[--- ]*\\)$"
-  "Regular expression for matching Markdown horizontal rules")
+  "Regular expression for matching Markdown horizontal rules.")
 
 (defconst markdown-regex-code
   "\\(^\\|[^\\]\\)\\(\\(`\\{1,2\\}\\)\\([^ \\]\\|[^ ].*?[^ \\]\\)\\3\\)"
-  "Regular expression for matching inline code fragments")
+  "Regular expression for matching inline code fragments.")
 
 (defconst markdown-regex-pre
-  "^    .*$"
-  "Regular expression for matching preformatted text sections")
+  "^\\(    \\|\t\\).*$"
+  "Regular expression for matching preformatted text sections.")
 
 (defconst markdown-regex-list
   "^[ \t]*\\([0-9]+\\.\\|[\\*\\+-]\\) "
-  "Regular expression for matching list markers")
+  "Regular expression for matching list markers.")
 
 (defconst markdown-regex-bold
   "\\(^\\|[^\\]\\)\\(\\([*_]\\{2\\}\\)\\(.\\|\n\\)*?[^\\ ]\\3\\)"
-  "Regular expression for matching bold text")
+  "Regular expression for matching bold text.")
 
 (defconst markdown-regex-italic
   "\\(^\\|[^\\]\\)\\(\\([*_]\\)\\([^ \\]\\3\\|[^ ]\\(.\\|\n\\)*?[^\\ ]\\3\\)\\)"
-  "Regular expression for matching italic text")
+  "Regular expression for matching italic text.")
 
 (defconst markdown-regex-blockquote
   "^>.*$"
-  "Regular expression for matching blockquote lines")
+  "Regular expression for matching blockquote lines.")
 
 (defconst markdown-regex-line-break
   "  $"
-  "Regular expression for matching line breaks")
+  "Regular expression for matching line breaks.")
 
 (defconst markdown-regex-wiki-link
   "\\[\\[[^]]+\\]\\]"
-  "Regular expression for matching wiki links")
+  "Regular expression for matching wiki links.")
 
 (defconst markdown-regex-uri
-  "<\\(acap\\|cid\\|data\\|dav\\|fax\\|file\\|ftp\\|gopher\\|http\\|https\\|imap\\|ldap\\|mailto\\|mid\\|modem\\|news\\|nfs\\|nntp\\|pop\\|prospero\\|rtsp\\|service\\|sip\\|tel\\|telnet\\|tip\\|urn\\|vemmi\\|wais\\)://[^>]*>"
-  "Regular expression for matching inline URIs")
+  (concat
+   "\\(" (mapconcat 'identity markdown-uri-types "\\|")
+   "\\):[^]\t\n\r<>,;() ]+")
+  "Regular expression for matching inline URIs.")
+
+(defconst markdown-regex-angle-uri
+  (concat
+   "\\(<\\)\\("
+   (mapconcat 'identity markdown-uri-types "\\|")
+   "\\):[^]\t\n\r<>,;()]+\\(>\\)")
+  "Regular expression for matching inline URIs in angle brackets.")
 
 (defconst markdown-regex-email
   "<\\(\\sw\\|\\s_\\|\\s.\\)+@\\(\\sw\\|\\s_\\|\\s.\\)+>"
-  "Regular expression for matching inline email addresses")
+  "Regular expression for matching inline email addresses.")
 
 (defconst markdown-regex-latex-expression
   "\\(^\\|[^\\]\\)\\(\\$\\($\\([^\\$]\\|\\\\.\\)*\\$\\|\\([^\\$]\\|\\\\.\\)*\\)\\$\\)"
-  "Regular expression for itex $..$ or $$..$$ math mode expressions")
+  "Regular expression for itex $..$ or $$..$$ math mode expressions.")
 
 (defconst markdown-regex-latex-display
     "^\\\\\\[\\(.\\|\n\\)*?\\\\\\]$"
-  "Regular expression for itex \[..\] display mode expressions")
+  "Regular expression for itex \[..\] display mode expressions.")
 
-(defconst markdown-mode-font-lock-keywords-basic
+; From html-helper-mode
+(defun markdown-match-comments (last)
+  "Matches HTML comments from the point to LAST"
+  (cond ((search-forward "<!--" last t)
+         (backward-char 4)
+         (let ((beg (point)))
+           (cond ((search-forward-regexp "--[ \t]*>" last t)
+                  (set-match-data (list beg (point)))
+                  t)
+                 (t nil))))
+        (t nil)))
+
+(defvar markdown-mode-font-lock-keywords-basic
   (list
+   '(markdown-match-comments 0 markdown-comment-face t t)
    (cons markdown-regex-code '(2 markdown-inline-code-face))
-   (cons markdown-regex-pre markdown-blockquote-face)
-   (cons markdown-regex-header-setext markdown-header-face)
-   (cons markdown-regex-header-atx markdown-header-face)
-   (cons markdown-regex-list markdown-list-face)
-   (cons markdown-regex-hr markdown-header-face)
+   (cons markdown-regex-pre 'markdown-pre-face)
+   (cons markdown-regex-blockquote 'markdown-blockquote-face)
+   (cons markdown-regex-header-1-setext 'markdown-header-face-1)
+   (cons markdown-regex-header-2-setext 'markdown-header-face-2)
+   (cons markdown-regex-header-1-atx 'markdown-header-face-1)
+   (cons markdown-regex-header-2-atx 'markdown-header-face-2)
+   (cons markdown-regex-header-3-atx 'markdown-header-face-3)
+   (cons markdown-regex-header-4-atx 'markdown-header-face-4)
+   (cons markdown-regex-hr 'markdown-header-face)
+   (cons markdown-regex-list 'markdown-list-face)
    (cons markdown-regex-link-inline
          '((1 markdown-link-face t)
            (2 markdown-url-face t)))
@@ -400,37 +614,34 @@
    (cons markdown-regex-reference-definition
          '((1 markdown-reference-face t)
            (2 markdown-url-face t)
-           (3 markdown-link-face t)))
+           (3 markdown-link-title-face t)))
+   (cons markdown-regex-wiki-link 'markdown-link-face)
    (cons markdown-regex-bold '(2 markdown-bold-face))
    (cons markdown-regex-italic '(2 markdown-italic-face))
-   (cons markdown-regex-blockquote markdown-blockquote-face)
-   (cons markdown-regex-wiki-link markdown-link-face)
-   (cons markdown-regex-uri markdown-link-face)
-   (cons markdown-regex-email markdown-link-face))
+   (cons markdown-regex-angle-uri 'markdown-link-face)
+   (cons markdown-regex-uri 'markdown-link-face)
+   (cons markdown-regex-email 'markdown-link-face)
+   )
   "Syntax highlighting for Markdown files.")
 
-
-;; Includes additional Latex/itex/Instiki font lock keywords
-(defconst markdown-mode-font-lock-keywords-itex
-  (append
-    (list
-     ;; itex math mode $..$ or $$..$$
-     (cons markdown-regex-latex-expression '(2 markdown-math-face))
-     ;; Display mode equations with brackets: \[ \]
-     (cons markdown-regex-latex-display markdown-math-face)
-     ;; Equation reference (eq:foo)
-     (cons "(eq:\\w+)" markdown-reference-face)
-     ;; Equation reference \eqref
-     (cons "\\\\eqref{\\w+}" markdown-reference-face))
-    markdown-mode-font-lock-keywords-basic)
-  "Syntax highlighting for Markdown, itex, and wiki expressions.")
-
+(defconst markdown-mode-font-lock-keywords-latex
+  (list
+   ;; Math mode $..$ or $$..$$
+   (cons markdown-regex-latex-expression '(2 markdown-math-face))
+   ;; Display mode equations with brackets: \[ \]
+   (cons markdown-regex-latex-display 'markdown-math-face)
+   ;; Equation reference (eq:foo)
+   (cons "(eq:\\w+)" 'markdown-reference-face)
+   ;; Equation reference \eqref{foo}
+   (cons "\\\\eqref{\\w+}" 'markdown-reference-face))
+  "Syntax highlighting for LaTeX fragments.")
 
 (defvar markdown-mode-font-lock-keywords
-  (if markdown-enable-itex 
-      markdown-mode-font-lock-keywords-itex
-    markdown-mode-font-lock-keywords-basic)
-  "Default highlighting expressions for Markdown mode")
+  (append
+   (if markdown-enable-math
+       markdown-mode-font-lock-keywords-latex)
+   markdown-mode-font-lock-keywords-basic)
+  "Default highlighting expressions for Markdown mode.")
 
 
 
@@ -440,7 +651,7 @@
   (let ((markdown-mode-syntax-table (make-syntax-table)))
     (modify-syntax-entry ?\" "w" markdown-mode-syntax-table)
     markdown-mode-syntax-table)
-  "Syntax table for markdown-mode")
+  "Syntax table for `markdown-mode'.")
 
 
 
@@ -459,7 +670,7 @@ and S2 around the region."
    (insert s1 s2)))
 
 (defun markdown-insert-hr ()
-  "Inserts a horizonal rule."
+  "Insert a horizonal rule."
   (interactive)
   (let (hr)
     (dotimes (count (- markdown-hr-length 1) hr)        ; Count to n - 1
@@ -468,7 +679,7 @@ and S2 around the region."
     (insert hr)))
 
 (defun markdown-insert-bold ()
-  "Inserts markup for a bold word or phrase.
+  "Insert markup for a bold word or phrase.
 If Transient Mark mode is on and a region is active, it is made bold."
   (interactive)
   (if markdown-bold-underscore
@@ -477,7 +688,7 @@ If Transient Mark mode is on and a region is active, it is made bold."
   (backward-char 2))
 
 (defun markdown-insert-italic ()
-  "Inserts markup for an italic word or phrase.
+  "Insert markup for an italic word or phrase.
 If Transient Mark mode is on and a region is active, it is made italic."
   (interactive)
   (if markdown-italic-underscore
@@ -486,7 +697,7 @@ If Transient Mark mode is on and a region is active, it is made italic."
   (backward-char 1))
 
 (defun markdown-insert-code ()
-  "Inserts markup for an inline code fragment.
+  "Insert markup for an inline code fragment.
 If Transient Mark mode is on and a region is active, it is marked
 as inline code."
   (interactive)
@@ -494,7 +705,7 @@ as inline code."
   (backward-char 1))
 
 (defun markdown-insert-link ()
-  "Inserts an inline link of the form []().
+  "Insert an inline link of the form []().
 If Transient Mark mode is on and a region is active, it is used
 as the link text."
   (interactive)
@@ -503,7 +714,7 @@ as the link text."
   (backward-char 1))
 
 (defun markdown-insert-wiki-link ()
-  "Inserts a wiki link of the form [[WikiLink]].
+  "Insert a wiki link of the form [[WikiLink]].
 If Transient Mark mode is on and a region is active, it is used
 as the link text."
   (interactive)
@@ -511,7 +722,7 @@ as the link text."
   (backward-char 2))
 
 (defun markdown-insert-image ()
-  "Inserts an inline image tag of the form ![]().
+  "Insert an inline image tag of the form ![]().
 If Transient Mark mode is on and a region is active, it is used
 as the alt text of the image."
   (interactive)
@@ -520,49 +731,49 @@ as the alt text of the image."
   (backward-char 1))
 
 (defun markdown-insert-header-1 ()
-  "Inserts a first level atx-style (hash mark) header.
+  "Insert a first level atx-style (hash mark) header.
 If Transient Mark mode is on and a region is active, it is used
 as the header text."
   (interactive)
   (markdown-insert-header 1))
 
 (defun markdown-insert-header-2 ()
-  "Inserts a second level atx-style (hash mark) header.
+  "Insert a second level atx-style (hash mark) header.
 If Transient Mark mode is on and a region is active, it is used
 as the header text."
   (interactive)
   (markdown-insert-header 2))
 
 (defun markdown-insert-header-3 ()
-  "Inserts a third level atx-style (hash mark) header.
+  "Insert a third level atx-style (hash mark) header.
 If Transient Mark mode is on and a region is active, it is used
 as the header text."
   (interactive)
   (markdown-insert-header 3))
 
 (defun markdown-insert-header-4 ()
-  "Inserts a fourth level atx-style (hash mark) header.
+  "Insert a fourth level atx-style (hash mark) header.
 If Transient Mark mode is on and a region is active, it is used
 as the header text."
   (interactive)
   (markdown-insert-header 4))
 
 (defun markdown-insert-header-5 ()
-  "Inserts a fifth level atx-style (hash mark) header.
+  "Insert a fifth level atx-style (hash mark) header.
 If Transient Mark mode is on and a region is active, it is used
 as the header text."
   (interactive)
   (markdown-insert-header 5))
 
 (defun markdown-insert-header (n)
-  "Inserts an atx-style (hash mark) header.
+  "Insert an atx-style (hash mark) header.
 With no prefix argument, insert a level-1 header.  With prefix N,
 insert a level-N header.  If Transient Mark mode is on and the
 region is active, it is used as the header text."
   (interactive "p")
   (unless n                             ; Test to see if n is defined
     (setq n 1))                         ; Default to level 1 header
-  (let (hdr)
+  (let (hdr hdrl hdrr)
     (dotimes (count n hdr)
       (setq hdr (concat "#" hdr)))      ; Build a hash mark header string
     (setq hdrl (concat hdr " "))
@@ -612,14 +823,42 @@ If Transient Mark mode is on and a region is active, it is used as
 the blockquote text."
   (interactive)
   (if (and (boundp 'transient-mark-mode) transient-mark-mode mark-active)
-      (markdown-blockquote-region)
+      (markdown-blockquote-region (region-beginning) (region-end))
     (insert "> ")))
 
-(defun markdown-blockquote-region (beg end &optional arg)
-  "Blockquote the region."
-  (interactive "*r\nP")
+(defun markdown-block-region (beg end prefix)
+  "Format the region using a block prefix.
+Arguments BEG and END specify the beginning and end of the
+region.The characters PREFIX will appear at the beginning
+of each line."
   (if mark-active
-      (perform-replace "^" "> " nil 1 nil nil nil beg end)))
+      (save-excursion
+        (let ((endpos end))
+          ; Ensure that there is a leading blank line
+          (goto-char beg)
+          (while (not (looking-back "\n\n" 2))
+            (insert "\n")
+            (setq endpos (+ 1 endpos)))
+          ; Insert blockquote characters
+          (move-to-left-margin)
+          (while (< (point-at-bol) endpos)
+            (insert prefix)
+            (setq endpos (+ (length prefix) endpos))
+            (forward-line))
+          ; Move back before any blank lines at the end
+          (goto-char endpos)
+          (while (looking-back "\n" 1)
+            (backward-char))
+          ; Ensure one blank line at the end
+          (while (not (looking-at "\n\n"))
+            (insert "\n")
+            (backward-char))))))
+
+(defun markdown-blockquote-region (beg end)
+  "Blockquote the region.
+Arguments BEG and END specify the beginning and end of the region."
+  (interactive "*r")
+  (markdown-block-region beg end "> "))
 
 (defun markdown-insert-pre ()
   "Start a preformatted section (or apply to the region).
@@ -627,15 +866,104 @@ If Transient Mark mode is on and a region is active, it is marked
 as preformatted text."
   (interactive)
   (if (and (boundp 'transient-mark-mode) transient-mark-mode mark-active)
-      (markdown-pre-region)
+      (markdown-pre-region (region-beginning) (region-end))
     (insert "    ")))
 
-(defun markdown-pre-region (beg end &optional arg)
-  "Format the region as preformatted text."
-  (interactive "*r\nP")
-  (if mark-active
-      (perform-replace "^" "    " nil 1 nil nil nil beg end)))
+(defun markdown-pre-region (beg end)
+  "Format the region as preformatted text.
+Arguments BEG and END specify the beginning and end of the region."
+  (interactive "*r")
+  (markdown-block-region beg end "    "))
 
+;;; Indentation ====================================================================
+
+;;; Indentation functions contributed by Bryan Kyle <bryan.kyle@gmail.com>..
+
+(defun markdown-indent-find-next-position (cur-pos positions)
+  "Return the position after the index of CUR-POS in POSITIONS."
+  (while (and positions
+              (not (equal cur-pos (car positions))))
+    (setq positions (cdr positions)))
+  (or (cadr positions) 0))
+
+(defun markdown-indent-line ()
+  "Indent the current line using some heuristics."
+  (interactive)
+  (let (cur-pos
+        prev-line-pos
+        positions
+        computed-pos)
+    (setq cur-pos (current-column))
+
+    ;; Indentation of previous line
+    (setq pos
+          (save-excursion
+            (forward-line -1)
+            (goto-char (point-at-bol))
+            (when (re-search-forward "\\s +" (point-at-eol) t)
+              (current-column))))
+    (if pos
+        (progn
+          (setq prev-line-pos pos)
+          (setq positions (cons pos positions))))
+
+    ;; Position of the first non-list marker on the previous line
+    (setq pos
+          (save-excursion
+            (forward-line -1)
+            (goto-char (point-at-bol))
+            (when (re-search-forward "\\s *\\([0-9]\\.\\|[-\\*\\+]\\)\\s *" (point-at-eol) t)
+              (current-column))))
+    (if pos
+        (setq positions (cons pos positions)))
+
+    ;; Indentation of the previous line + tab-width
+    (cond
+     (prev-line-pos
+      (setq positions (cons (+ (car positions) tab-width) positions)))
+
+     (t
+      (setq positions (cons tab-width positions))))
+
+    ;; Indentation of the previous line - tab-width
+    (if (and prev-line-pos
+             (> prev-line-pos tab-width))
+        (setq positions (cons (- prev-line-pos tab-width) positions)))
+
+    ;; Indentation of the bullet of any preceeding line
+    (setq pos
+          (save-excursion
+            (catch 'break
+              (while (not (equal (point) 0))
+                (forward-line -1)
+                (goto-char (point-at-bol))
+                (when (re-search-forward "\\s *\\([0-9]\\.\\|[-\\*\\+]\\)" (point-at-eol) t)
+                  (throw 'break (- (current-column) (length (match-string 1))))))
+              nil)))
+    (if pos
+        (setq positions (cons pos positions)))
+
+
+    (setq positions (cons 0 (reverse positions)))
+
+    ;; If the current column is any of the positions, remove all of the positions up-to
+    ;; and including the current column
+
+    (setq computed-pos (markdown-indent-find-next-position cur-pos positions))
+    (indent-line-to computed-pos)))
+
+
+(defun markdown-enter-key ()
+  "Insert a newline and optionally indent the next line."
+  (interactive)
+  (let (indent)
+    (if markdown-indent-on-enter
+        (setq indent
+              (save-excursion
+                (goto-char (point-at-bol))
+                (if (re-search-forward "^\\s " (point-at-eol) t) t))))
+    (newline)
+    (if indent (funcall indent-line-function))))
 
 
 
@@ -665,6 +993,8 @@ as preformatted text."
     (define-key markdown-mode-map "\C-c-" 'markdown-insert-hr)
     (define-key markdown-mode-map "\C-c\C-tt" 'markdown-insert-title)
     (define-key markdown-mode-map "\C-c\C-ts" 'markdown-insert-section)
+	;; Indentation
+	(define-key markdown-mode-map "\C-m" 'markdown-enter-key)
     ;; Visibility cycling
     (define-key markdown-mode-map (kbd "<tab>") 'markdown-cycle)
     (define-key markdown-mode-map (kbd "<S-iso-lefttab>") 'markdown-shifttab)
@@ -674,7 +1004,7 @@ as preformatted text."
     ;; References
     (define-key markdown-mode-map "\C-c\C-cc" 'markdown-check-refs)
     markdown-mode-map)
-  "Keymap for Markdown major mode")
+  "Keymap for Markdown major mode.")
 
 ;;; Menu ==================================================================
 
@@ -721,8 +1051,9 @@ as preformatted text."
 
 (defconst markdown-refcheck-buffer
   "*Undefined references for %BUFFER%*"
-  "Name of buffer which will contain a list of undefined
-references in `markdown-mode' buffer named %BUFFER%.")
+  "Pattern for name of buffer for listing undefined references.
+The string %BUFFER% will be replaced by the corresponding
+`markdown-mode' buffer name.")
 
 (defun markdown-has-reference-definition (reference)
     "Find out whether Markdown REFERENCE is defined.
@@ -867,10 +1198,9 @@ defined."
 
 ;; Based on org-end-of-subtree from org.el
 (defun markdown-end-of-subtree (&optional invisible-OK)
-  ;; This is an exact copy of the original function, but it uses
-  ;; `outline-back-to-heading', to make it work also in invisible
-  ;; trees.  And is uses an invisible-OK argument.
-  ;; Under Emacs this is not needed, but the old outline.el needs this fix.
+  "Move to the end of the current subtree.
+Only visible heading lines are considered, unless INVISIBLE-OK is
+non-nil."
   (outline-back-to-heading invisible-OK)
   (let ((first t)
         (level (funcall outline-level)))
@@ -889,7 +1219,10 @@ defined."
 
 ;; Based on org-cycle from org.el.
 (defun markdown-cycle (&optional arg)
-  "Visibility cycling for Markdown mode."
+  "Visibility cycling for Markdown mode.
+If ARG is t, perform global visibility cycling.  If the point is
+at an atx-style header, cycle visibility of the corresponding
+subtree.  Otherwise, insert a tab using `indent-relative'."
   (interactive "P")
   (cond
      ((eq arg t) ;; Global cycling
@@ -957,13 +1290,13 @@ defined."
 
      (t
       (message "TAB")
-      (indent-relative))))
+      (funcall indent-line-function))))
 
 ;; Based on org-shifttab from org.el.
-(defun markdown-shifttab (&optional arg)
-  "Global visibility cycling or move to previous table field.
-Calls `markdown-cycle' with argument t"
-  (interactive "P")
+(defun markdown-shifttab ()
+  "Global visibility cycling.
+Calls `markdown-cycle' with argument t."
+  (interactive)
   (markdown-cycle t))
 
 ;;; Commands ==================================================================
@@ -971,11 +1304,33 @@ Calls `markdown-cycle' with argument t"
 (defun markdown ()
   "Run markdown on the current buffer and preview the output in another buffer."
   (interactive)
-    (if (and (boundp 'transient-mark-mode) transient-mark-mode mark-active)
-        (shell-command-on-region (region-beginning) (region-end) markdown-command
-                                 "*markdown-output*" nil)
-      (shell-command-on-region (point-min) (point-max) markdown-command
-                               "*markdown-output*" nil)))
+  (if (and (boundp 'transient-mark-mode) transient-mark-mode mark-active)
+      (shell-command-on-region (region-beginning) (region-end) markdown-command
+                               "*markdown-output*" nil)
+    (shell-command-on-region (point-min) (point-max) markdown-command
+                             "*markdown-output*" nil))
+  (let (title)
+    (setq title (buffer-name))
+    (save-excursion
+      (set-buffer "*markdown-output*")
+      (goto-char (point-min))
+      (insert "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+              "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\"\n"
+              "\t\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n\n"
+              "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n\n"
+              "<head>\n<title>")
+      (insert title)
+      (insert "</title>\n")
+      (if markdown-css-path
+          (insert "<link rel=\"stylesheet\" type=\"text/css\" media=\"all\" href=\""
+                  markdown-css-path
+                  "\"  />\n"))
+      (insert "</head>\n\n"
+              "<body>\n\n")
+      (goto-char (point-max))
+      (insert "\n"
+              "</body>\n"
+              "</html>\n"))))
 
 (defun markdown-preview ()
   "Run markdown on the current buffer and preview the output in a browser."
@@ -989,7 +1344,7 @@ Calls `markdown-cycle' with argument t"
 (defun markdown-line-number-at-pos (&optional pos)
   "Return (narrowed) buffer line number at position POS.
 If POS is nil, use current buffer location.
-This is an exact copy of line-number-at-pos for use in emacs21."
+This is an exact copy of `line-number-at-pos' for use in emacs21."
   (let ((opoint (or pos (point))) start)
     (save-excursion
       (goto-char (point-min))
@@ -1010,17 +1365,31 @@ This is an exact copy of line-number-at-pos for use in emacs21."
 ;;;###autoload
 (define-derived-mode markdown-mode text-mode "Markdown"
   "Major mode for editing Markdown files."
+  ;; Comments
+  (make-local-variable 'comment-start)
+  (setq comment-start "<!-- ")
+  (make-local-variable 'comment-end)
+  (setq comment-end " -->")
+  (make-local-variable 'comment-start-skip)
+  (setq comment-start-skip "<!--[ \t]*")
+  (make-local-variable 'comment-column)
+  (setq comment-column 0)
   ;; Font lock.
   (set (make-local-variable 'font-lock-defaults)
        '(markdown-mode-font-lock-keywords))
   (set (make-local-variable 'font-lock-multiline) t)
   ;; For menu support in XEmacs
   (easy-menu-add markdown-mode-menu markdown-mode-map)
+  ;; Make filling work with lists
+  (set (make-local-variable 'paragraph-start)
+       "\f\\|[ \t]*$\\|^[ \t]*[*+-] \\|^[ \t*][0-9]+\\. ")
   ;; Outline mode
   (make-local-variable 'outline-regexp)
   (setq outline-regexp "#+")
   ;; Cause use of ellipses for invisible text.
-  (add-to-invisibility-spec '(outline . t)))
+  (add-to-invisibility-spec '(outline . t))
+  ;; Indentation
+  (setq indent-line-function markdown-indent-function))
 
 ;(add-to-list 'auto-mode-alist '("\\.text$" . markdown-mode))
 
