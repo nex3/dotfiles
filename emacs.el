@@ -218,6 +218,9 @@ it's loaded for files matching REGEXP."
   (add-to-list 'tramp-default-proxies-alist
                '("\\`nex-3.com\\'" "\\`root\\'" "/ssh:%h:")))
 
+(my-after-load markdown-mode
+  (setq markdown-command "maruku -o /dev/stdout 2> /dev/null"))
+
 (add-hook 'text-mode-hook 'flyspell-mode)
 (add-hook 'lisp-mode-hook 'pretty-lambdas)
 (add-hook 'emacs-lisp-mode-hook 'pretty-lambdas)
