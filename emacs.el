@@ -78,6 +78,7 @@ it's loaded for files matching REGEXP."
 (load-mode 'javascript "\\.js$")
 (load-mode 'd "\\.d[i]?\\'$")
 (load-mode 'textile "\\.textile$")
+(load-mode 'markdown "\\.\\(markdown\\|md\\)$")
 (load-mode 'haml "\\.haml$")
 (load-mode 'sass "\\.sass$")
 (load-mode 'rhtml "\\.\\(rhtml\\|erb\\)$")
