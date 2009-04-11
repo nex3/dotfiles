@@ -214,6 +214,7 @@ it's loaded for files matching REGEXP."
     (define-key ruby-mode-map (kbd "C-M-;") 'ruby-forward-sexp)
     (define-key ruby-mode-map (kbd "C-M-j") 'ruby-backward-sexp)))
 
+;; /sudo:nex-3.com:
 (my-after-load tramp
   (add-to-list 'tramp-default-proxies-alist
                '("\\`nex-3.com\\'" "\\`root\\'" "/ssh:%h:")))
