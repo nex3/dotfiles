@@ -17,10 +17,11 @@ ln -s ../git-hooks .git/hooks
 conf=`pwd`
 cd ~
 
-rm -rf .{emacs,elisp,bashrc,inputrc,irbrc,screenrc,gitconfig,yasnippets}
+rm -rf .{emacs,elisp,bashrc,inputrc,irbrc,factor-rc,screenrc,gitconfig,yasnippets}
 ln -s $conf/emacs.el .emacs
 ln -s $conf/bashrc.sh .bashrc
 ln -s $conf/irbrc.rb .irbrc
+ln -s $conf/rc.factor .factor-rc
 ln -s {$conf/,.}elisp
 ln -s {$conf/,.}inputrc
 ln -s {$conf/,.}screenrc

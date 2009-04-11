@@ -13,6 +13,9 @@
 (add-to-list 'load-path "/usr/share/emacs/site-lisp")
 (add-to-list 'load-path "/usr/share/emacs-snapshot/site-lisp")
 (add-to-list 'load-path "~/.elisp/rcirc-notify-el")
+(add-to-list 'load-path "~/.elisp/fuel")
+(add-to-list 'load-path "~/.elisp/haskell-mode")
+(add-to-list 'load-path "~/.elisp/auctex")
 (add-to-list 'load-path "~/.elisp")
 (add-to-list 'load-path "~/share/emacs/site-lisp")
 
@@ -90,6 +93,7 @@ it's loaded for files matching REGEXP."
 (load-mode 'treetop "\\.treetop$")
 (load-mode 'lua "\\.lua$")
 (load-mode 'csharp "\\.cs$")
+(load-mode 'factor "\\.factor$")
 
 (defmacro my-after-load (name &rest body)
   "Like `eval-after-load', but a macro."
