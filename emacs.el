@@ -213,6 +213,10 @@ it's loaded for files matching REGEXP."
   (setq javascript-auto-indent-flag nil)
   (add-hook 'javascript-mode-hook (lambda () (pretty-lambdas "\\(function\\>\\)("))))
 
+(my-after-load fuel-mode
+  (define-key fuel-mode-map "\M-." nil)
+  (define-key fuel-mode-map "\M-," nil))
+
 (when window-system
   (my-after-load ruby-mode
     (define-key ruby-mode-map (kbd "C-M-;") 'ruby-forward-sexp)
@@ -254,6 +258,7 @@ it's loaded for files matching REGEXP."
 (setq windmove-wrap-around t)
 (setq disabled-command-function nil)
 (setq repeat-message-function 'ignore)
+(setq fuel-factor-root-dir "~/src/factor")
 (fset 'yes-or-no-p 'y-or-n-p)
 (global-font-lock-mode 1)
 (transient-mark-mode -1)
