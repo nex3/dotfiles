@@ -139,11 +139,27 @@ function temacs {
     emacsclient -t "$@" || emacs -nw "$@"
 }
 
+function dante {
+    if isatty out
+    then
+        ssh `dante`
+    else
+        echo nweiz@dante.u.washington.edu
+    fi
+}
+
+function attu {
+    if isatty out
+    then
+        ssh `attu $1`
+    else
+        echo "nex3@attu$1.cs.washington.edu"
+    fi
+}
+
 alias cd='my_cd'
 alias ssh='ssh -X'
 alias home='ssh -p 2042 nex3@home.nex-3.com'
-alias attu='ssh attu.cs.washington.edu'
-alias dante='ssh nweiz@dante.u.washington.edu'
 alias svni='svn --ignore-externals'
 alias pager='less'
 alias rl='rlwrap'
