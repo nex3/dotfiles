@@ -1412,8 +1412,7 @@ whichever comes first."
 
       ;; Highlight the end of the interpolation.
       (when (eq (char-before) ?})
-        (put-text-property (- (point) 1) (point)
-                           'font-lock-face font-lock-variable-name-face))
+        (put-text-property (- (point) 1) (point) 'face font-lock-variable-name-face))
       t)))
 
 ;;;###autoload
