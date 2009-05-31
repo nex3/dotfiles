@@ -139,23 +139,21 @@ function temacs {
     emacsclient -t "$@" || emacs -nw "$@"
 }
 
-function dante {
-    if isatty out
-    then
-        ssh `dante`
-    else
-        echo nweiz@dante.u.washington.edu
-    fi
+function ssh-fn {
+    eval "
+function $1 {
+   if isatty out
+   then
+       ssh \`$1 \$@\`
+   else
+       echo $2
+   fi
+}
+"
 }
 
-function attu {
-    if isatty out
-    then
-        ssh `attu $1`
-    else
-        echo "nex3@attu$1.cs.washington.edu"
-    fi
-}
+ssh-fn dante 'nweiz@dante.u.washington.edu'
+ssh-fn attu  '"nex3@attu$1.cs.washington.edu"'
 
 alias cd='my_cd'
 alias ssh='ssh -X'
