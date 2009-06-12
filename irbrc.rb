@@ -28,7 +28,7 @@ end
 
 # Called after the irb session is initialized and Rails has
 # been loaded (props: Mike Clark).
-IRB.conf[:IRB_RC] = lambda do
+IRB.conf[:IRB_RC] = lambda do |_|
   if defined?(ActiveRecord::Base)
     ActiveRecord::Base.logger = Logger.new(STDOUT)
     ActiveRecord::Base.logger.level = Logger::DEBUG
