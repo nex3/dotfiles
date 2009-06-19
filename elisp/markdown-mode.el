@@ -40,20 +40,20 @@
 ;; markdown-mode is also available in the Debian `emacs-goodies-el`
 ;; package (beginning with revision 27.0-1).
 ;;
-;;  [markdown-mode.el]: http://code.jblevins.org/markdown-mode/markdown-mode.el
+;;  [markdown-mode.el]: http://jblevins.org/projects/markdown-mode/markdown-mode.el
 ;;  [screenshot]: http://jblevins.org/projects/markdown-mode/screenshots/20080604-001.png
 ;;  [release notes]: http://jblevins.org/projects/markdown-mode/rev-1-6
 
 ;; The latest development version can be downloaded directly
 ;; ([markdown-mode.el][devel.el]) or it can be obtained from the
 ;; (browsable and clonable) Git repository at
-;; <http://code.jblevins.org/markdown-mode.git>.  The entire repository,
+;; <http://jblevins.org/git/markdown-mode.git>.  The entire repository,
 ;; including the full project history, can be cloned via the Git protocol
 ;; by running
 ;;
-;;     git clone git://code.jblevins.org/markdown-mode.git
+;;     git clone git://jblevins.org/git/markdown-mode.git
 ;;
-;;  [devel.el]: http://code.jblevins.org/markdown-mode.git/plain/markdown-mode.el
+;;  [devel.el]: http://jblevins.org/git/markdown-mode.git/plain/markdown-mode.el
 
 ;;; Dependencies:
 
@@ -193,7 +193,7 @@
 ;; the table of contents view (headers only), outline view (top-level
 ;; headers only), and the full document view.  Pressing `TAB` while the
 ;; point is at a header will cycle through levels of visibility for the
-;; subtree: completely folded, visiable children, and fully visible.
+;; subtree: completely folded, visible children, and fully visible.
 ;; Note that mixing hash and underline style headers will give undesired
 ;; results.
 
@@ -241,24 +241,37 @@
 
 ;;; Bugs:
 
-;; markdown-mode is developed and tested primarily using GNU Emacs 22
-;; although compatibility with GNU Emacs 21 is also a priority.
+;; Although markdown-mode is developed and tested primarily using
+;; GNU Emacs 23, compatibility with GNU Emacs 21 and 22 is also a
+;; priority.
 ;;
-;; Presently markdown-mode does not attempt to distinguish between
-;; multiple indentation levels and preformatted text (four or more
-;; leading spaces).  I am not aware of a way to handle this using
-;; Emacs's regexp-based font-lock facilities.  Implementing a more
-;; robust approach to syntax highlighting is a high-priority item for
-;; future work.
+;; markdown-mode's syntax highlighting is accomplished using the
+;; search-based fontification features of Emacs through a series of
+;; regular expressions.  Unfortunately, Emacs has trouble highlighting
+;; multi-line constructs using regular expressions and this creates
+;; several syntax-highlighting quirks such as mistaking indented
+;; lists for preformatted text, etc.  Making markdown-mode's syntax
+;; highlighting more robust through the use of matching functions
+;; or syntactic font lock is a high-priority item for future work.
 ;;
-;; If you find any bugs, such as syntax highlighting issues, please
-;; construct a test case and email me at <jrblevin@sdf.lonestar.org>.
-;; Comments and patches are welcome!
+;; If you find any bugs not mentioned here, please construct a test
+;; case and/or a patch and email me at <jrblevin@sdf.lonestar.org>.
 
 ;;; History:
 
 ;; markdown-mode was written and is maintained by Jason Blevins.  The
-;; first revision, 1.1, was released on May 24, 2007.
+;; first version was released on May 24, 2007.
+;;
+;;   * 2007-05-24: Version 1.1
+;;   * 2007-05-25: Version 1.2
+;;   * 2007-06-05: [Version 1.3][]
+;;   * 2007-06-29: Version 1.4
+;;   * 2008-05-24: [Version 1.5][]
+;;   * 2008-06-04: [Version 1.6][]
+;;
+;; [Version 1.3]: http://jblevins.org/projects/markdown-mode/rev-1-3
+;; [Version 1.5]: http://jblevins.org/projects/markdown-mode/rev-1-5
+;; [Version 1.6]: http://jblevins.org/projects/markdown-mode/rev-1-6
 
 
 
@@ -594,7 +607,6 @@ This will not take effect until Emacs is restarted."
 (defvar markdown-mode-font-lock-keywords-basic
   (list
    '(markdown-match-comments 0 markdown-comment-face t t)
-   (cons markdown-regex-code '(2 markdown-inline-code-face))
    (cons markdown-regex-pre 'markdown-pre-face)
    (cons markdown-regex-blockquote 'markdown-blockquote-face)
    (cons markdown-regex-header-1-setext 'markdown-header-face-1)
@@ -934,10 +946,10 @@ Arguments BEG and END specify the beginning and end of the region."
     (setq pos
           (save-excursion
             (catch 'break
-              (while (not (equal (point) 0))
+              (while (not (equal (point) (point-min)))
                 (forward-line -1)
                 (goto-char (point-at-bol))
-                (when (re-search-forward "\\s *\\([0-9]\\.\\|[-\\*\\+]\\)" (point-at-eol) t)
+                (when (re-search-forward markdown-regex-list (point-at-eol) t)
                   (throw 'break (- (current-column) (length (match-string 1))))))
               nil)))
     (if pos
