@@ -103,11 +103,10 @@ function pwd_with_tilde {
 # Otherwise, restores normal prompt.
 #
 # Also print git branch if available
-GITBRANCH=`which git-name-rev 2>/dev/null`
 function prompt_command {
     # Git branch stuff from escherfan on Reddit
     if [ -n ${GITBRANCH} ]; then
-        BRANCH=`$GITBRANCH HEAD 2> /dev/null | awk "{ print \\$2 }"`
+        BRANCH=`git name-rev HEAD 2> /dev/null | awk "{ print \\$2 }"`
         DIRTY=`[[ $(git status 2> /dev/null | tail -n1) != \
             "nothing to commit (working directory clean)" ]] && echo '·'`
         if [ $BRANCH ]; then
