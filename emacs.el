@@ -206,8 +206,19 @@ it's loaded for files matching REGEXP."
   (setq gist-view-gist t))
 
 (my-after-load ruby-mode
+  (defface ruby-tab-face
+    '((((class color)) (:background "hotpink"))
+      (t (:reverse-video t)))
+    "Face to use for highlighting tabs in Ruby files."
+    :group 'faces)
+
+  (font-lock-add-keywords 'ruby-mode '(("\t" 0 'ruby-tab-face)))
   (setq ruby-deep-indent-paren-style nil)
-  (add-hook 'ruby-mode-hook 'pretty-lambdas))
+  (add-hook 'ruby-mode-hook
+            (lambda ()
+              (pretty-lambdas)
+              (setq tab-width 2)
+              (set-variable (make-variable-buffer-local 'whitespace-tab-width) 2))))
 
 (my-after-load javascript-mode
   (setq javascript-auto-indent-flag nil)
@@ -341,6 +352,7 @@ which should be selected."
           (0 (progn (compose-region (match-beginning 1) (match-end 1)
                                     ,(make-char 'greek-iso8859-7 107))
                     nil))))))
+
 ;; ----------
 ;; -- Keybindings
 ;; ----------
