@@ -129,13 +129,21 @@ export PROMPT_COMMAND="if type prompt_command &> /dev/null; then prompt_command;
 ## -- Personal Aliases and Advice
 ## ----------
 
-if ! type -p my_cd
-then
-    function my_cd {
-        cd "$@";
-        ls
-    }
-fi
+function advise {
+    name="advice-$1-$2"
+    if type -p "$name"; then return; fi
+
+    alias super="$1"
+    eval "
+function $name {
+    $3
+}
+alias $1=$name
+"
+    unalias super
+}
+
+advise cd with-ls 'super "$@" && ls'
 
 function ssh-fn {
     eval "
@@ -153,8 +161,7 @@ function $1 {
 ssh-fn dante 'nweiz@dante.u.washington.edu'
 ssh-fn attu  '"nex3@attu$1.cs.washington.edu"'
 
-alias cd='my_cd'
-alias ssh='ssh -X'
+advise ssh with-x 'super -X'
 alias home='ssh -p 2042 nex3@home.nex-3.com'
 alias svni='svn --ignore-externals'
 alias pager='less'
