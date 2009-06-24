@@ -134,10 +134,6 @@ function my_cd {
     ls
 }
 
-function temacs {
-    emacsclient -t "$@" || emacs -nw "$@"
-}
-
 function ssh-fn {
     eval "
 function $1 {
