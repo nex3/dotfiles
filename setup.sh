@@ -12,7 +12,6 @@ fi
 
 rm -rf .git/hooks
 ln -s ../git-hooks .git/hooks
-./git-hooks/post-commit
 
 conf=`pwd`
 cd ~
@@ -27,6 +26,7 @@ ln -s {$conf/,.}inputrc
 ln -s {$conf/,.}screenrc
 ln -s {$conf/,.}gitconfig
 
+$conf/git-hooks/post-commit
 ln -s $conf/elisp/yasnippet/snippets .yasnippets
 
 mkdir -p ~/.config
