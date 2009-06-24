@@ -1,2 +1,3 @@
 xterm*faceName: Bitstream Vera Sans Mono
 xterm*faceSize: 9
+xterm*metaSendsEscape: true
