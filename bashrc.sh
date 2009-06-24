@@ -129,10 +129,13 @@ export PROMPT_COMMAND="if type prompt_command &> /dev/null; then prompt_command;
 ## -- Personal Aliases and Advice
 ## ----------
 
-function my_cd {
-    cd "$@";
-    ls
-}
+if ! type -p my_cd
+then
+    function my_cd {
+        cd "$@";
+        ls
+    }
+fi
 
 function ssh-fn {
     eval "
