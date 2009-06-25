@@ -1,3 +1,6 @@
-xterm*faceName: Bitstream Vera Sans Mono
+xterm*faceName: Monospace
 xterm*faceSize: 9
 xterm*metaSendsEscape: true
+
+Xft.hinting: 1
+Xft.dpi: 96
