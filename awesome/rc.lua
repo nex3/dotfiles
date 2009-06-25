@@ -56,6 +56,7 @@ floatapps =
     ["MPlayer"] = true,
     ["pinentry"] = true,
     ["gimp"] = true,
+    ["Tomboy"] = true,
     -- by instance
     ["mocp"] = true
 }
