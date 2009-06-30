@@ -353,6 +353,29 @@ which should be selected."
                                     ,(make-char 'greek-iso8859-7 107))
                     nil))))))
 
+(defvar my-last-tag-was-search nil
+  "Non-nil if the last tag lookup was a regexp search.")
+
+(defun my-find-tag ()
+  "Go to the tag at point.
+
+The main differences between this and `find-tag' are that
+this cycles through tags when used repeatedly and that
+it doesn't prompt for a tag name."
+  (interactive)
+  (if (and last-tag (memq last-command (list this-command 'my-tag-search)))
+      (find-tag last-tag t my-last-tag-was-search)
+    (setq my-last-tag-was-search nil)
+    (find-tag (funcall (or find-tag-default-function
+                           (get major-mode 'find-tag-default-function)
+                           'find-tag-default)))))
+
+(defun my-tag-search (tagname)
+  "Search for a tag as a regexp."
+  (interactive (find-tag-interactive "Search for tag: "))
+  (setq my-last-tag-was-search t)
+  (find-tag tagname nil t))
+
 ;; ----------
 ;; -- Keybindings
 ;; ----------
@@ -480,6 +503,11 @@ which should be selected."
 (my-key "M-'" repeat)
 (my-key "M-a" execute-extended-command)
 (my-key "M-/" hippie-expand)
+
+(my-key "M-\"" back-to-indentation)
+
+(my-key "M-a" my-find-tag)
+(my-key "M-A" my-tag-search)
 
 ;; My Keymap
 
