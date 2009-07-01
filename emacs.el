@@ -363,12 +363,28 @@ The main differences between this and `find-tag' are that
 this cycles through tags when used repeatedly and that
 it doesn't prompt for a tag name."
   (interactive)
-  (if (and last-tag (memq last-command (list this-command 'my-tag-search)))
-      (find-tag last-tag t my-last-tag-was-search)
-    (setq my-last-tag-was-search nil)
-    (find-tag (funcall (or find-tag-default-function
-                           (get major-mode 'find-tag-default-function)
-                           'find-tag-default)))))
+  (if (or (string-equal mode-name "Emacs-Lisp")
+          (string-equal mode-name "Lisp Interaction"))
+      (let* ((sym (let ((sym (variable-at-point t)))
+                    (if (eq sym 0) nil sym)))
+             (type (cond
+                    ((facep sym) 'face)
+                    ((functionp sym) 'function)
+                    ((and sym (boundp sym)) 'variable)
+                    (t (let ((fn (function-called-at-point)))
+                         (when fn (setq sym fn) 'function)))))
+             (file (find-lisp-object-file-name
+                    sym (if (eq type 'function) (symbol-function sym) type))))
+        (if type
+            (funcall (button-type-get (intern (format "help-%s-def" type)) 'help-function)
+                     sym file)
+          (message "%S is not defined" sym)))
+    (if (and last-tag (memq last-command (list this-command 'my-tag-search)))
+        (find-tag last-tag t my-last-tag-was-search)
+      (setq my-last-tag-was-search nil)
+      (find-tag (funcall (or find-tag-default-function
+                             (get major-mode 'find-tag-default-function)
+                             'find-tag-default))))))
 
 (defun my-tag-search (tagname)
   "Search for a tag as a regexp."
