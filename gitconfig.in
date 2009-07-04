@@ -8,7 +8,9 @@
         cp = cherry-pick
         fp = format-patch
         bs = bisect
+        rb = rebase
         push = push --tags
         slog = log --pretty=oneline --abbrev-commit
+        sdiff = diff --stat
 [color]
         ui = auto
