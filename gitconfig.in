@@ -8,9 +8,11 @@
         cp = cherry-pick
         fp = format-patch
         bs = bisect
+        br = branch
         rb = rebase
         push = push --tags
         slog = log --pretty=oneline --abbrev-commit
+        from = !sh -c 'git slog --no-merges "$1.."' --
         sdiff = diff --stat
 [color]
         ui = auto
