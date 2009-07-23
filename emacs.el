@@ -49,6 +49,9 @@
 (load "alexandres-theme")
 (my-color-theme-dark)
 
+(require 'perspective)
+(persp-mode)
+
 (custom-set-faces
  '(default ((((min-colors 256)) (:foreground "pink"))
             (t (:foreground "white"))))
@@ -240,6 +243,10 @@ it's loaded for files matching REGEXP."
 
 (my-after-load markdown-mode
   (setq markdown-command "maruku -o /dev/stdout 2> /dev/null"))
+
+(my-after-load compile
+  (persp-make-variable-persp-local 'compile-history)
+  (persp-make-variable-persp-local 'compile-command))
 
 (add-hook 'text-mode-hook 'flyspell-mode)
 (add-hook 'lisp-mode-hook 'pretty-lambdas)
@@ -542,5 +549,4 @@ it doesn't prompt for a tag name."
 (my-key "C-n C-p b" gist-buffer)
 (my-key "C-n C-p g" gist-fetch)
 
-(persp-mode)
 (quick-perspective-keys)
