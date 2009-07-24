@@ -249,9 +249,11 @@ it's loaded for files matching REGEXP."
 (my-after-load markdown-mode
   (setq markdown-command "maruku -o /dev/stdout 2> /dev/null"))
 
-(my-after-load (perspective compile)
-  (persp-make-variable-persp-local 'compile-history)
-  (persp-make-variable-persp-local 'compile-command))
+(my-after-load compile
+  (add-hook 'persp-mode-hook
+            (lambda ()
+              (persp-make-variable-persp-local 'compile-history)
+              (persp-make-variable-persp-local 'compile-command))))
 
 (add-hook 'text-mode-hook 'flyspell-mode)
 (add-hook 'lisp-mode-hook 'pretty-lambdas)
