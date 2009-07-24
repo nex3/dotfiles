@@ -49,9 +49,6 @@
 (load "alexandres-theme")
 (my-color-theme-dark)
 
-(require 'perspective)
-(persp-mode)
-
 (custom-set-faces
  '(default ((((min-colors 256)) (:foreground "pink"))
             (t (:foreground "white"))))
@@ -101,7 +98,15 @@ it's loaded for files matching REGEXP."
 (defmacro my-after-load (name &rest body)
   "Like `eval-after-load', but a macro."
   (declare (indent 1))
-  `(eval-after-load ',name '(progn ,@body)))
+  (my-after-load-helper name body))
+
+(defun my-after-load-helper (name body)
+  (if (eq name nil)
+      `(progn ,@body)
+    (let ((head (if (symbolp name) name (car name)))
+          (rest (when (consp name) (cdr name))))
+      `(eval-after-load ',head
+         ',(my-after-load-helper rest body)))))
 
 (my-after-load comint
   (define-key comint-mode-map (kbd "M-O") 'comint-previous-input)
@@ -244,7 +249,7 @@ it's loaded for files matching REGEXP."
 (my-after-load markdown-mode
   (setq markdown-command "maruku -o /dev/stdout 2> /dev/null"))
 
-(my-after-load compile
+(my-after-load (perspective compile)
   (persp-make-variable-persp-local 'compile-history)
   (persp-make-variable-persp-local 'compile-command))
 
@@ -549,4 +554,5 @@ it doesn't prompt for a tag name."
 (my-key "C-n C-p b" gist-buffer)
 (my-key "C-n C-p g" gist-fetch)
 
+(persp-mode)
 (quick-perspective-keys)
