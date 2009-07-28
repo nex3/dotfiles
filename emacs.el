@@ -299,6 +299,14 @@ it's loaded for files matching REGEXP."
         try-complete-lisp-symbol-partially
         try-complete-lisp-symbol))
 
+(defadvice server-save-buffers-kill-terminal (around confirm-before-killing activate)
+  "Confirm before killing a windowed emacsclient."
+  (unless (and window-system
+               (eq this-command 'save-buffers-kill-terminal)
+               confirm-kill-emacs
+               (not (funcall confirm-kill-emacs "Really kill terminal? ")))
+    ad-do-it))
+
 ;; ----------
 ;; -- Useful Functions
 ;; ----------
