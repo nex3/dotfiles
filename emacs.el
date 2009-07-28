@@ -435,8 +435,13 @@ it doesn't prompt for a tag name."
   :init-value t
   :keymap my-keymap)
 
-(defmacro my-key (key fn &optional global)
-  `(define-key ,(if global 'global-map 'my-keymap) (kbd ,key) ',fn))
+(defmacro my-with-keymap (keymap &rest body)
+  "Within BODY, `my-key' defines keys on KEYMAP by default."
+  (declare (indent 1))
+  `(let ((my-keymap ,keymap)) ,@body))
+
+(defmacro my-key (key fn &optional map)
+  `(define-key ,(or map 'my-keymap) (kbd ,key) ',fn))
 
 (defmacro my-map (key name)
   (let ((varname (intern (concat (symbol-name name) "-map"))))
@@ -500,15 +505,17 @@ it doesn't prompt for a tag name."
 (my-key "M-P" end-of-buffer)
 (my-key "M-U" beginning-of-buffer)
 
-(my-key "C-M-;" forward-sexp :global)
-(my-key "C-M-j" backward-sexp :global)
-(my-key "C-M-k" down-list :global)
-(my-key "C-M-l" backward-up-list :global)
-(my-key "C-M-o" beginning-of-defun :global)
-(my-key "M-TAB" end-of-defun :global)
+(my-with-keymap global-map
+  (my-key "C-M-;" forward-sexp)
+  (my-key "C-M-j" backward-sexp)
+  (my-key "C-M-k" down-list)
+  (my-key "C-M-l" backward-up-list)
+  (my-key "C-M-o" beginning-of-defun)
+  (my-key "M-TAB" end-of-defun))
 
-(define-key emacs-lisp-mode-map (kbd "M-TAB") 'end-of-defun)
-(define-key emacs-lisp-mode-map (kbd "M-<tab>") 'lisp-complete-symbol)
+(my-with-keymap emacs-lisp-mode-map
+  (my-key "M-TAB" end-of-defun)
+  (my-key "M-<tab>" lisp-complete-symbol))
 
 (my-key "M-n" delete-backward-char)
 (my-key "M-." delete-char)
