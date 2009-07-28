@@ -511,6 +511,11 @@ it doesn't prompt for a tag name."
 (my-key "C-M-j" backward-sexp :global)
 (my-key "C-M-k" down-list :global)
 (my-key "C-M-l" backward-up-list :global)
+(my-key "C-M-o" beginning-of-defun :global)
+(my-key "M-TAB" end-of-defun :global)
+
+(define-key emacs-lisp-mode-map (kbd "M-TAB") 'end-of-defun)
+(define-key emacs-lisp-mode-map (kbd "M-<tab>") 'lisp-complete-symbol)
 
 (my-key "M-n" delete-backward-char)
 (my-key "M-." delete-char)
