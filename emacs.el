@@ -435,13 +435,6 @@ it doesn't prompt for a tag name."
   :init-value t
   :keymap my-keymap)
 
-(defun my-movement-wrapper (name wrapper wrapped)
-  `(defun ,(my-fn name wrapped) (arg)
-     ,(concat (capitalize name) " the region moved by `" (symbol-name wrapped) "':\n\n"
-              (documentation wrapped))
-     (interactive "p")
-     (,wrapper (point) (progn (,wrapped arg) (point)))))
-
 (defmacro my-key (key fn &optional global)
   `(define-key ,(if global 'global-map 'my-keymap) (kbd ,key) ',fn))
 
