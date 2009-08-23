@@ -108,6 +108,19 @@ it's loaded for files matching REGEXP."
       `(eval-after-load ',head
          ',(my-after-load-helper rest body)))))
 
+(defmacro my-add-hook (name &rest body)
+  "Like `add-hook', but a macro.
+The -hook prefix is unnecessary."
+  (declare (indent 1))
+  (let ((name (format "%s" name)))
+    `(add-hook ',(intern
+                  (if (string-match "-hook$" name) name
+                    (format "%s-hook" name)))
+             ,(if (and (eq (length body) 1)
+                       (symbolp (car body)))
+                  (list 'quote (car body))
+                `(lambda () ,@body)))))
+
 (my-after-load comint
   (define-key comint-mode-map (kbd "M-O") 'comint-previous-input)
   (define-key comint-mode-map (kbd "M-I") 'comint-next-input))
@@ -130,21 +143,17 @@ it's loaded for files matching REGEXP."
                 (substatement-open 0)
                 (arglist-intro 2)
                 (arglist-close 0))))
-  (add-hook 'c-mode-common-hook (lambda () (c-toggle-electric-state -1)))
-  (add-hook
-   'c-mode-hook
-   (lambda ()
-     (when (and (stringp (buffer-file-name))
-                (string-match "^/home/nex3/code/awesome/" (buffer-file-name)))
-       (let ((c-buffer-is-cc-mode t))
-         (c-set-style "awesome")))))
+  (my-add-hook c-mode-common (c-toggle-electric-state -1))
+  (my-add-hook c-mode
+    (when (and (stringp (buffer-file-name))
+               (string-match "^/home/nex3/code/awesome/" (buffer-file-name)))
+      (let ((c-buffer-is-cc-mode t))
+        (c-set-style "awesome"))))
 
-  (add-hook
-   'java-mode-hook
-   (lambda ()
-     (when (string-match "^/home/nex3/hw/cse/473/slotcar/" (buffer-file-name))
-       (setq indent-tabs-mode t)
-       (setq tab-width 4)))))
+  (my-add-hook java-mode
+    (when (string-match "^/home/nex3/hw/cse/473/slotcar/" (buffer-file-name))
+      (setq indent-tabs-mode t)
+      (setq tab-width 4))))
 
 (my-after-load rcirc
   (require 'rcirc-color)
@@ -170,9 +179,9 @@ it's loaded for files matching REGEXP."
   (set-face-foreground 'rcirc-timestamp "gray60")
   (rcirc-track-minor-mode 1)
  
-  (add-hook 'rcirc-mode-hook (lambda ()
-                               (flyspell-mode 1)
-                               (rcirc-omit-mode)))
+  (my-add-hook rcirc-mode
+    (flyspell-mode 1)
+    (rcirc-omit-mode))
   (define-key rcirc-mode-map (kbd "M-O") 'rcirc-insert-prev-input)
   (define-key rcirc-mode-map (kbd "M-I") 'rcirc-insert-next-input)
  
@@ -187,12 +196,12 @@ it's loaded for files matching REGEXP."
           '("." "evince %o")))
 
 (my-after-load haskell-mode
-  (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
-  (add-hook 'haskell-mode-hook 'turn-on-haskell-indent))
+  (my-add-hook haskell-mode turn-on-haskell-doc-mode)
+  (my-add-hook haskell-mode turn-on-haskell-indent))
 
 (my-after-load erlang
-  (add-hook 'erlang-mode-hook
-            (lambda () (setq inferior-erlang-machine-options '("-sname" "emacs"))))
+  (my-add-hook erlang-mode
+    (setq inferior-erlang-machine-options '("-sname" "emacs")))
   (condition-case nil
       (progn
         (require 'distel)
@@ -204,10 +213,9 @@ it's loaded for files matching REGEXP."
             ("\M-."    erl-find-source-under-point)
             ("\M-,"    erl-find-source-unwind) 
             ("\M-*"    erl-find-source-unwind)))
-        (add-hook 'erlang-shell-mode-hook
-                  (lambda ()
-                    (dolist (spec distel-shell-keys)
-                      (define-key erlang-shell-mode-map (car spec) (cadr spec))))))
+        (my-add-hook erlang-shell-mode
+          (dolist (spec distel-shell-keys)
+            (define-key erlang-shell-mode-map (car spec) (cadr spec)))))
     (file-error nil)))
 
 (my-after-load gist
@@ -222,15 +230,15 @@ it's loaded for files matching REGEXP."
 
   (font-lock-add-keywords 'ruby-mode '(("\t" 0 'ruby-tab-face)))
   (setq ruby-deep-indent-paren-style nil)
-  (add-hook 'ruby-mode-hook
-            (lambda ()
-              (pretty-lambdas)
-              (setq tab-width 2)
-              (set-variable (make-variable-buffer-local 'whitespace-tab-width) 2))))
+  (my-add-hook ruby-mode
+    (pretty-lambdas)
+    (setq tab-width 2)
+    (set-variable (make-variable-buffer-local 'whitespace-tab-width) 2)))
 
 (my-after-load javascript-mode
   (setq javascript-auto-indent-flag nil)
-  (add-hook 'javascript-mode-hook (lambda () (pretty-lambdas "\\(function\\>\\)("))))
+  (my-add-hook javascript-mode
+    (pretty-lambdas "\\(function\\>\\)(")))
 
 (my-after-load fuel-mode
   (define-key fuel-mode-map "\M-." nil)
@@ -250,14 +258,13 @@ it's loaded for files matching REGEXP."
   (setq markdown-command "maruku -o /dev/stdout 2> /dev/null"))
 
 (my-after-load compile
-  (add-hook 'persp-mode-hook
-            (lambda ()
-              (persp-make-variable-persp-local 'compile-history)
-              (persp-make-variable-persp-local 'compile-command))))
+  (my-add-hook persp-mode
+    (persp-make-variable-persp-local 'compile-history)
+    (persp-make-variable-persp-local 'compile-command)))
 
-(add-hook 'text-mode-hook 'flyspell-mode)
-(add-hook 'lisp-mode-hook 'pretty-lambdas)
-(add-hook 'emacs-lisp-mode-hook 'pretty-lambdas)
+(my-add-hook text-mode flyspell-mode)
+(my-add-hook lisp-mode pretty-lambdas)
+(my-add-hook emacs-lisp-mode pretty-lambdas)
 
 (define-key isearch-mode-map (kbd "M-n") 'isearch-delete-char)
 (define-key isearch-mode-map (kbd "M-O") 'isearch-ring-advance)
@@ -428,15 +435,13 @@ it doesn't prompt for a tag name."
   :init-value t
   :keymap my-keymap)
 
-(defun my-movement-wrapper (name wrapper wrapped)
-  `(defun ,(my-fn name wrapped) (arg)
-     ,(concat (capitalize name) " the region moved by `" (symbol-name wrapped) "':\n\n"
-              (documentation wrapped))
-     (interactive "p")
-     (,wrapper (point) (progn (,wrapped arg) (point)))))
+(defmacro my-with-keymap (keymap &rest body)
+  "Within BODY, `my-key' defines keys on KEYMAP by default."
+  (declare (indent 1))
+  `(let ((my-keymap ,keymap)) ,@body))
 
-(defmacro my-key (key fn &optional global)
-  `(define-key ,(if global 'global-map 'my-keymap) (kbd ,key) ',fn))
+(defmacro my-key (key fn &optional map)
+  `(define-key ,(or map 'my-keymap) (kbd ,key) ',fn))
 
 (defmacro my-map (key name)
   (let ((varname (intern (concat (symbol-name name) "-map"))))
@@ -500,10 +505,17 @@ it doesn't prompt for a tag name."
 (my-key "M-P" end-of-buffer)
 (my-key "M-U" beginning-of-buffer)
 
-(my-key "C-M-;" forward-sexp :global)
-(my-key "C-M-j" backward-sexp :global)
-(my-key "C-M-k" down-list :global)
-(my-key "C-M-l" backward-up-list :global)
+(my-with-keymap global-map
+  (my-key "C-M-;" forward-sexp)
+  (my-key "C-M-j" backward-sexp)
+  (my-key "C-M-k" down-list)
+  (my-key "C-M-l" backward-up-list)
+  (my-key "C-M-o" beginning-of-defun)
+  (my-key "M-TAB" end-of-defun))
+
+(my-with-keymap emacs-lisp-mode-map
+  (my-key "M-TAB" end-of-defun)
+  (my-key "M-<tab>" lisp-complete-symbol))
 
 (my-key "M-n" delete-backward-char)
 (my-key "M-." delete-char)
