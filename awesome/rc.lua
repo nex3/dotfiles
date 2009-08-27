@@ -9,7 +9,7 @@ require("tabulous")
 
 -- Themes define colours, icons, and wallpapers
 -- The default is a dark theme
-theme_path = "/usr/local/share/awesome/themes/nex3/theme"
+theme_path = "/usr/local/share/awesome/themes/default/theme"
 -- Uncommment this for a lighter theme
 -- theme_path = "/usr/local/share/awesome/themes/sky/theme"
 
