@@ -4,9 +4,8 @@ require("awful")
 require("beautiful")
 -- Notification library
 require("naughty")
--- Tabs
-require("tabulous")
 
+-- {{{ Variable definitions
 -- Themes define colours, icons, and wallpapers
 -- The default is a dark theme
 theme_path = "/usr/local/share/awesome/themes/default/theme"
@@ -16,11 +15,8 @@ theme_path = "/usr/local/share/awesome/themes/default/theme"
 -- Actually load theme
 beautiful.init(theme_path)
 
--- My own little tweaks
-naughty.config.presets.normal.border_color = beautiful.border_focus
-
 -- This is used later as the default terminal and editor to run.
-terminal = "x-terminal-emulator"
+terminal = "xterm"
 editor = os.getenv("EDITOR") or "nano"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -29,8 +25,7 @@ editor_cmd = terminal .. " -e " .. editor
 -- If you do not like this or do not have such a key,
 -- I suggest you to remap Mod4 to another key using xmodmap or other tools.
 -- However, you can use another modifier like Mod1, but it may interact with others.
-modkey = "Mod3"
-modkey2 = "Mod4"
+modkey = "Mod4"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 layouts =
@@ -41,9 +36,10 @@ layouts =
     awful.layout.suit.tile.top,
     awful.layout.suit.fair,
     awful.layout.suit.fair.horizontal,
-    awful.layout.suit.floating,
-    awful.layout.suit.max.fullscreen,
     awful.layout.suit.max,
+    awful.layout.suit.max.fullscreen,
+    awful.layout.suit.magnifier,
+    awful.layout.suit.floating
 }
 
 -- Table of clients that should be set floating. The index may be either
@@ -56,7 +52,6 @@ floatapps =
     ["MPlayer"] = true,
     ["pinentry"] = true,
     ["gimp"] = true,
-    ["Tomboy"] = true,
     -- by instance
     ["mocp"] = true
 }
@@ -67,16 +62,6 @@ apptags =
 {
     -- ["Firefox"] = { screen = 1, tag = 2 },
     -- ["mocp"] = { screen = 2, tag = 4 },
-}
-
--- Names of tags
-tagnames =
-{
-    "check",
-    "prog",
-    "hw",
-    "im",
-    "music",
 }
 
 -- Define if we want to use titlebar on all applications.
@@ -91,7 +76,7 @@ for s = 1, screen.count() do
     tags[s] = {}
     -- Create 9 tags per screen.
     for tagnumber = 1, 9 do
-        tags[s][tagnumber] = tag(tagnames[tagnumber] or tagnumber)
+        tags[s][tagnumber] = tag(tagnumber)
         -- Add tags to screen one by one
         tags[s][tagnumber].screen = s
         awful.layout.set(layouts[1], tags[s][tagnumber])
@@ -99,18 +84,9 @@ for s = 1, screen.count() do
     -- I'm sure you want to see at least one tag.
     tags[s][1].selected = true
 end
-
-namedtags = {}
-for s = 1, screen.count() do
-    namedtags[s] = {}
-    for i, n in ipairs(tagnames) do
-        namedtags[s][n] = tags[s][i]
-    end
-end
 -- }}}
 
 -- {{{ Wibox
-
 -- Create a textbox widget
 mytextbox = widget({ type = "textbox", align = "right" })
 -- Set the default text in textbox
@@ -184,7 +160,7 @@ for s = 1, screen.count() do
 
     -- Create the wibox
     mywibox[s] = wibox({ position = "top", fg = beautiful.fg_normal, bg = beautiful.bg_normal })
-   -- Add widgets to the wibox - order matters
+    -- Add widgets to the wibox - order matters
     mywibox[s].widgets = { mylauncher,
                            mytaglist[s],
                            mytasklist[s],
@@ -211,12 +187,12 @@ globalkeys =
     key({ modkey,           }, "Right",  awful.tag.viewnext       ),
     key({ modkey,           }, "Escape", awful.tag.history.restore),
 
-    key({ modkey,           }, "k",
+    key({ modkey,           }, "j",
         function ()
             awful.client.focus.byidx( 1)
             if client.focus then client.focus:raise() end
         end),
-    key({ modkey,           }, "l",
+    key({ modkey,           }, "k",
         function ()
             awful.client.focus.byidx(-1)
             if client.focus then client.focus:raise() end
@@ -224,10 +200,10 @@ globalkeys =
     key({ modkey,           }, "w", function () mymainmenu:show(true)        end),
 
     -- Layout manipulation
-    key({ modkey, "Shift"   }, "k", function () awful.client.swap.byidx(  1) end),
-    key({ modkey, "Shift"   }, "l", function () awful.client.swap.byidx( -1) end),
-    key({ modkey, "Control" }, "k", function () awful.screen.focus( 1)       end),
-    key({ modkey, "Control" }, "l", function () awful.screen.focus(-1)       end),
+    key({ modkey, "Shift"   }, "j", function () awful.client.swap.byidx(  1) end),
+    key({ modkey, "Shift"   }, "k", function () awful.client.swap.byidx( -1) end),
+    key({ modkey, "Control" }, "j", function () awful.screen.focus( 1)       end),
+    key({ modkey, "Control" }, "k", function () awful.screen.focus(-1)       end),
     key({ modkey,           }, "u", awful.client.urgent.jumpto),
     key({ modkey,           }, "Tab",
         function ()
@@ -238,21 +214,21 @@ globalkeys =
         end),
 
     -- Standard program
-    key({ modkey, "Shift"   }, "Return", function () awful.util.spawn(terminal) end),
+    key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
     key({ modkey, "Control" }, "r", awesome.restart),
     key({ modkey, "Shift"   }, "q", awesome.quit),
 
-    key({ modkey,           }, ";",     function () awful.tag.incmwfact( 0.05)    end),
-    key({ modkey,           }, "j",     function () awful.tag.incmwfact(-0.05)    end),
-    key({ modkey, "Shift"   }, "j",     function () awful.tag.incnmaster( 1)      end),
-    key({ modkey, "Shift"   }, ";",     function () awful.tag.incnmaster(-1)      end),
-    key({ modkey, "Control" }, "j",     function () awful.tag.incncol( 1)         end),
-    key({ modkey, "Control" }, ";",     function () awful.tag.incncol(-1)         end),
+    key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)    end),
+    key({ modkey,           }, "h",     function () awful.tag.incmwfact(-0.05)    end),
+    key({ modkey, "Shift"   }, "h",     function () awful.tag.incnmaster( 1)      end),
+    key({ modkey, "Shift"   }, "l",     function () awful.tag.incnmaster(-1)      end),
+    key({ modkey, "Control" }, "h",     function () awful.tag.incncol( 1)         end),
+    key({ modkey, "Control" }, "l",     function () awful.tag.incncol(-1)         end),
     key({ modkey,           }, "space", function () awful.layout.inc(layouts,  1) end),
     key({ modkey, "Shift"   }, "space", function () awful.layout.inc(layouts, -1) end),
 
     -- Prompt
-    key({ modkey }, "Return",
+    key({ modkey }, "F1",
         function ()
             awful.prompt.run({ prompt = "Run: " },
             mypromptbox[mouse.screen],
@@ -278,43 +254,11 @@ clientkeys =
     key({ modkey, "Control" }, "Return", function (c) c:swap(awful.client.getmaster()) end),
     key({ modkey,           }, "o",      awful.client.movetoscreen                        ),
     key({ modkey, "Shift"   }, "r",      function (c) c:redraw()                       end),
-    key({ modkey, "Control" }, "t",      awful.client.togglemarked),
+    key({ modkey }, "t", awful.client.togglemarked),
     key({ modkey,}, "m",
         function (c)
             c.maximized_horizontal = not c.maximized_horizontal
             c.maximized_vertical   = not c.maximized_vertical
-        end),
-
-    -- Tab Manipulation
-    key({ modkey, "Control" }, "y",
-        function (c)
-            local tabbedview = tabulous.tabindex_get(c)
-            local nextclient = awful.client.next(1)
-
-            if not tabbedview then
-                tabbedview = tabulous.tabindex_get(nextclient)
-
-                if not tabbedview then
-                    tabbedview = tabulous.tab_create(c)
-                    tabulous.tab(tabbedview, nextclient)
-                else
-                    tabulous.tab(tabbedview, c)
-                end
-            else
-                tabulous.tab(tabbedview, nextclient)
-            end
-        end),
-
-    key({ modkey, "Shift" }, "y", tabulous.untab),
-
-    key({ modkey }, "y",
-        function (c)
-            local tabbedview = tabulous.tabindex_get(c)
-
-            if tabbedview then
-                local n = tabulous.next(tabbedview, c)
-                tabulous.display(tabbedview, n)
-            end
         end),
 }
 
@@ -324,46 +268,39 @@ for s = 1, screen.count() do
    keynumber = math.min(9, math.max(#tags[s], keynumber));
 end
 
-function tagkey(mod, char, tagfn)
-    table.insert(globalkeys,
-        key({ mod }, char,
-            function ()
-                local screen = mouse.screen
-                if tagfn(screen) then
-                    awful.tag.viewonly(tagfn(screen))
-                end
-            end))
-    table.insert(globalkeys,
-        key({ mod, "Control" }, char,
-            function ()
-                local screen = mouse.screen
-                if tagfn(screen) then
-                    tagfn(screen).selected = not tagfn(screen).selected
-                end
-            end))
-    table.insert(globalkeys,
-        key({ mod, "Shift" }, char,
-            function ()
-                if client.focus and tagfn(client.focus.screen) then
-                    awful.client.movetotag(tagfn(client.focus.screen))
-                end
-            end))
-    table.insert(globalkeys,
-        key({ mod, "Control", "Shift" }, char,
-            function ()
-                if client.focus and tagfn(client.focus.screen) then
-                    awful.client.toggletag(tagfn(client.focus.screen))
-                end
-            end))
-end
-
 for i = 1, keynumber do
-    tagkey(modkey, i, function(screen) return tags[screen][i] end)
+    table.insert(globalkeys,
+        key({ modkey }, i,
+            function ()
+                local screen = mouse.screen
+                if tags[screen][i] then
+                    awful.tag.viewonly(tags[screen][i])
+                end
+            end))
+    table.insert(globalkeys,
+        key({ modkey, "Control" }, i,
+            function ()
+                local screen = mouse.screen
+                if tags[screen][i] then
+                    tags[screen][i].selected = not tags[screen][i].selected
+                end
+            end))
+    table.insert(globalkeys,
+        key({ modkey, "Shift" }, i,
+            function ()
+                if client.focus and tags[client.focus.screen][i] then
+                    awful.client.movetotag(tags[client.focus.screen][i])
+                end
+            end))
+    table.insert(globalkeys,
+        key({ modkey, "Control", "Shift" }, i,
+            function ()
+                if client.focus and tags[client.focus.screen][i] then
+                    awful.client.toggletag(tags[client.focus.screen][i])
+                end
+            end))
 end
 
-for i, n in ipairs(tagnames) do
-    tagkey(modkey2, n:sub(1, 1), function(screen) return namedtags[screen][n] end)
-end
 
 for i = 1, keynumber do
     table.insert(globalkeys, key({ modkey, "Shift" }, "F" .. i,
@@ -492,8 +429,8 @@ awful.hooks.arrange.register(function (screen)
     end
 end)
 
--- Hook called every second
-awful.hooks.timer.register(1, function ()
-    mytextbox.text = os.date(" <span weight='bold' color='#fff'>%l:%M</span> %a %d %b ")
+-- Hook called every minute
+awful.hooks.timer.register(60, function ()
+    mytextbox.text = os.date(" %a %b %d, %H:%M ")
 end)
 -- }}}
