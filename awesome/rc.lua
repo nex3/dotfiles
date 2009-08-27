@@ -7,6 +7,7 @@ require("naughty")
 -- Tabs
 require("tabulous")
 
+-- {{{ Variable definitions
 -- Themes define colours, icons, and wallpapers
 -- The default is a dark theme
 theme_path = "/usr/local/share/awesome/themes/default/theme"
@@ -110,7 +111,6 @@ end
 -- }}}
 
 -- {{{ Wibox
-
 -- Create a textbox widget
 mytextbox = widget({ type = "textbox", align = "right" })
 -- Set the default text in textbox
@@ -184,7 +184,7 @@ for s = 1, screen.count() do
 
     -- Create the wibox
     mywibox[s] = wibox({ position = "top", fg = beautiful.fg_normal, bg = beautiful.bg_normal })
-   -- Add widgets to the wibox - order matters
+    -- Add widgets to the wibox - order matters
     mywibox[s].widgets = { mylauncher,
                            mytaglist[s],
                            mytasklist[s],
