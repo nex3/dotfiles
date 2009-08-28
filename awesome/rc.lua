@@ -274,8 +274,7 @@ globalkeys = awful.util.table.join(
 )
 
 -- Client awful tagging: this is useful to tag some clients and then do stuff like move to tag on them
-clientkeys =
-{
+clientkeys = awful.util.table.join(
     awful.key({ modkey,           }, "f",      function (c) c.fullscreen = not c.fullscreen  end),
     awful.key({ modkey, "Shift"   }, "c",      function (c) c:kill()                         end),
     awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle                     ),
@@ -319,8 +318,8 @@ clientkeys =
                 local n = tabulous.next(tabbedview, c)
                 tabulous.display(tabbedview, n)
             end
-        end)
-}
+         end)
+)
 
 -- Compute the maximum number of digit we need, limited to 9
 keynumber = 0
