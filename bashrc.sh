@@ -161,7 +161,7 @@ function $1 {
 ssh-fn dante 'nweiz@dante.u.washington.edu'
 ssh-fn attu  '"nex3@attu$1.cs.washington.edu"'
 
-advise ssh with-x 'super -X'
+advise ssh with-x 'super -X "$@"'
 alias home='ssh -p 2042 nex3@home.nex-3.com'
 alias svni='svn --ignore-externals'
 alias pager='less'
