@@ -538,6 +538,10 @@ it doesn't prompt for a tag name."
 (my-key "M-o" pager-page-up)
 (my-key "M-i" pager-page-down)
 
+(my-with-keymap minibuffer-local-map
+  (my-key "M-O" previous-history-element)
+  (my-key "M-I" next-history-element))
+
 (my-key "M-RET" comment-indent-new-line)
 (my-key "C-v" x-clipboard-only-yank)
 (my-key "C-z" clipboard-kill-region)
