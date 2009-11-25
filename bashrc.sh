@@ -188,6 +188,9 @@ then
     export LIBRARY_PATH=$HOME/lib:$LIBRARY_PATH
     export C_INCLUDE_PATH=$HOME/include
     export PATH=$HOME/bin:/var/lib/gems/1.8/bin/:/usr/local/bin:$PATH
+    for bindir in $HOME/bin/*; do
+        PATH="$bindir:$PATH"
+    done
     export EDITOR=em
     export DARCS_EDITOR=em
     export SVN_EDITOR=em
