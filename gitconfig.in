@@ -14,5 +14,6 @@
         slog = log --pretty=oneline --abbrev-commit
         from = !sh -c 'git slog --no-merges "$1.."' --
         sdiff = diff --stat
+        msg = commit --allow-empty -m
 [color]
         ui = auto
