@@ -171,21 +171,24 @@ alias rl='rlwrap'
 ## -- New Lookup Paths
 ## ----------
 
-function refresh-bin {
-   for bindir in $HOME/bin/*; do
-       if [[ -d "$bindir" && ! ":$PATH" =~ ":$bindir" ]]; then
-           PATH="$bindir:$PATH"
-       fi
-   done
+original_path=$PATH
+function refresh-path {
+    PATH=$original_path
+
+    if [ -e $HOME/gems ]; then export PATH=$HOME/gems/bin:$PATH; fi
+    PATH=/var/lib/gems/1.8/bin/:/usr/local/bin:$PATH
+
+    for bindir in $HOME/bin/*; do
+        if [[ -d "$bindir" && ! ":$PATH" =~ ":$bindir" ]]; then
+            PATH="$bindir:$PATH"
+        fi
+    done
+    export PATH=$HOME/bin:$PATH
 }
 
 if [ "$PROMPT_VAR" != " rb1.9" ]
 then
-    if [ -e $HOME/gems ]
-    then
-        export GEM_PATH=$HOME/gems:$GEM_PATH
-        export PATH=$HOME/gems/bin:$PATH
-    fi
+    if [ -e $HOME/gems ]; then export GEM_PATH=$HOME/gems:$GEM_PATH; fi
 
     if [ -e $HOME/lib/python ]
     then
@@ -195,11 +198,11 @@ then
     export LD_LIBRARY_PATH=/usr/local/lib:$HOME/lib:$LD_LIBRARY_PATH
     export LIBRARY_PATH=$HOME/lib:$LIBRARY_PATH
     export C_INCLUDE_PATH=$HOME/include
-    export PATH=$HOME/bin:/var/lib/gems/1.8/bin/:/usr/local/bin:$PATH
-    refresh-bin
     export EDITOR=em
     export DARCS_EDITOR=em
     export SVN_EDITOR=em
+
+    refresh-path
 fi
 
 ## ----------
