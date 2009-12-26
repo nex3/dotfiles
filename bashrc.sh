@@ -171,11 +171,10 @@ alias rl='rlwrap'
 ## -- New Lookup Paths
 ## ----------
 
-original_path=$PATH
 function refresh-path {
     PATH=$original_path
 
-    if [ -e $HOME/gems ]; then export PATH=$HOME/gems/bin:$PATH; fi
+    if [ -e $HOME/gems ]; then PATH=$HOME/gems/bin:$PATH; fi
     PATH=/var/lib/gems/1.8/bin/:/usr/local/bin:$PATH
 
     for bindir in $HOME/bin/*; do
@@ -186,8 +185,10 @@ function refresh-path {
     export PATH=$HOME/bin:$PATH
 }
 
-if [ "$PROMPT_VAR" != " rb1.9" ]
+if [ ! "$STARTED_SCREEN" ]
 then
+    export original_path=$PATH
+
     if [ -e $HOME/gems ]; then export GEM_PATH=$HOME/gems:$GEM_PATH; fi
 
     if [ -e $HOME/lib/python ]
