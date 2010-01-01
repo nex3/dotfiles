@@ -16,6 +16,7 @@
 (add-to-list 'load-path "~/.elisp/fuel")
 (add-to-list 'load-path "~/.elisp/haskell-mode")
 (add-to-list 'load-path "~/.elisp/auctex")
+(add-to-list 'load-path "~/.elisp/ocaml")
 (add-to-list 'load-path "~/.elisp")
 (add-to-list 'load-path "~/share/emacs/site-lisp")
 
@@ -94,6 +95,7 @@ it's loaded for files matching REGEXP."
 (load-mode 'lua "\\.lua$")
 (load-mode 'csharp "\\.cs$")
 (load-mode 'factor "\\.factor$")
+(load-mode 'caml "\\.ml[iylp]?$")
 
 (defmacro my-after-load (name &rest body)
   "Like `eval-after-load', but a macro."
