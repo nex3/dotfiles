@@ -382,6 +382,29 @@ which should be selected."
                                     ,(make-char 'greek-iso8859-7 107))
                     nil))))))
 
+(defun my-calc-embedded ()
+  "Similar to `calc-embedded', but runs on the region and exits immediately."
+  (interactive)
+  (let ((text (buffer-substring (point) (mark))))
+    (with-current-buffer (generate-new-buffer "thing")
+      (LaTeX-mode)
+      (insert "\\begin{document}\n$")
+      (insert text)
+      (insert "$\n\\end{document}")
+      (forward-line -1)
+      (end-of-line)
+      (backward-char 1)
+      (save-excursion
+        (beginning-of-line)
+        (replace-string "\\cdot" "*"))
+      (calc-embedded nil)
+      (calc-embedded nil)
+      (let ((bol (save-excursion (beginning-of-line) (point)))
+            (eol (save-excursion (end-of-line) (point))))
+        (setq text (buffer-substring (+ bol 1) (- eol 1)))))
+    (delete-region (point) (mark))
+    (insert text)))
+
 (defvar my-last-tag-was-search nil
   "Non-nil if the last tag lookup was a regexp search.")
 
@@ -574,6 +597,7 @@ it doesn't prompt for a tag name."
 (my-key "C-n m" make-directory-from-minibuffer)
 (my-key "C-n f" auto-fill-mode)
 (my-key "C-n y" load-yasnippet)
+(my-key "C-n =" my-calc-embedded)
 
 (my-map "C-n C-p" nex3-paste)
 (my-key "C-n C-p p" gist-region)
