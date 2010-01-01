@@ -122,6 +122,7 @@ be sent from another buffer in Caml mode.
 ;; patched to from original run-caml sharing code with
 ;;  caml-run-process-when-needed
 
+;;;###autoload
 (defun run-caml (&optional cmd)
   "Run an inferior Caml process.
 Input and output via buffer `*inferior-caml*'."

@@ -483,6 +483,7 @@ have caml-electric-indent on, which see.")
 (defvar caml-mode-hook nil
   "Hook for caml-mode")
 
+;;;###autoload
 (defun caml-mode ()
   "Major mode for editing Caml code.
 

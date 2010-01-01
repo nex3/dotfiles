@@ -117,6 +117,7 @@ type call ident"
 (defvar caml-types-buffer nil
   "buffer for diplaying caml types")
 
+;;;###autoload
 (defun caml-types-show-type (arg)
   "Show the type of expression or pattern at point.
    The smallest expression or pattern that contains point is
@@ -584,6 +585,7 @@ See `caml-types-location-re' for annotation file format.
      (+ (* (mod (cadr time) 1000) 1000)
                   (/ (cadr (cdr time)) 1000))))
 
+;;;###autoload
 (defun caml-types-explore (event)
   "Explore type annotations by mouse dragging.
 

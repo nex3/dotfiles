@@ -132,6 +132,7 @@
       (setq files (cdr files)))
     modules))
 
+;;;###autoload
 (defun ocaml-add-path (dir &optional path)
   "Extend  ocaml-module-alist with modules of DIR relative to PATH"
   (interactive "D")
@@ -231,6 +232,7 @@
         )))
   ocaml-visible-modules)
 
+;;;###autoload
 (defun ocaml-open-module (arg)
   "*Make module of name ARG visible whe ARG is a string.
 When call interactively, make completion over known modules."
@@ -248,6 +250,7 @@ When call interactively, make completion over known modules."
         ))
   (message "%S" (mapcar 'car (ocaml-visible-modules))))
 
+;;;###autoload
 (defun ocaml-close-module (arg)
   "*Close module of name ARG when ARG is a string. 
 When call interactively, make completion over visible modules. 
@@ -332,6 +335,7 @@ with an optional non-nil argument.
         res)
       )))
 
+;;;###autoload
 (defun caml-complete (arg)
   "Does completion for OCaml identifiers qualified. 
 
@@ -629,6 +633,7 @@ current buffer using \\[ocaml-qualified-identifier]."
     (if (window-live-p window) (select-window window))
     ))
 
+;;;###autoload
 (defun caml-help (arg)
   "Find documentation for OCaml qualified identifiers. 
 
