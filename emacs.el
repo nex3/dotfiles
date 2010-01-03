@@ -264,6 +264,10 @@ The -hook prefix is unnecessary."
     (persp-make-variable-persp-local 'compile-history)
     (persp-make-variable-persp-local 'compile-command)))
 
+(my-after-load caml
+  (require 'caml-font)
+  (define-key caml-mode-map (kbd "C-c C-b") 'caml-eval-buffer))
+
 (my-add-hook text-mode flyspell-mode)
 (my-add-hook lisp-mode pretty-lambdas)
 (my-add-hook emacs-lisp-mode pretty-lambdas)
