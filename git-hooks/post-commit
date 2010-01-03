@@ -12,6 +12,7 @@ emacs --batch --eval '
   (update-directory-autoloads "~/.elisp")
   (update-directory-autoloads "~/.elisp/haskell-mode")
   (update-directory-autoloads "~/.elisp/auctex")
+  (update-directory-autoloads "~/.elisp/ocaml")
   (update-directory-autoloads "~/.elisp/fuel")
 
   (byte-compile-file "~/.elisp/byte-code-cache.el"))

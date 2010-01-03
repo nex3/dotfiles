@@ -16,6 +16,7 @@
 (add-to-list 'load-path "~/.elisp/fuel")
 (add-to-list 'load-path "~/.elisp/haskell-mode")
 (add-to-list 'load-path "~/.elisp/auctex")
+(add-to-list 'load-path "~/.elisp/ocaml")
 (add-to-list 'load-path "~/.elisp")
 (add-to-list 'load-path "~/share/emacs/site-lisp")
 
@@ -94,6 +95,7 @@ it's loaded for files matching REGEXP."
 (load-mode 'lua "\\.lua$")
 (load-mode 'csharp "\\.cs$")
 (load-mode 'factor "\\.factor$")
+(load-mode 'caml "\\.ml[iylp]?$")
 
 (defmacro my-after-load (name &rest body)
   "Like `eval-after-load', but a macro."
@@ -262,6 +264,10 @@ The -hook prefix is unnecessary."
     (persp-make-variable-persp-local 'compile-history)
     (persp-make-variable-persp-local 'compile-command)))
 
+(my-after-load caml
+  (require 'caml-font)
+  (define-key caml-mode-map (kbd "C-c C-b") 'caml-eval-buffer))
+
 (my-add-hook text-mode flyspell-mode)
 (my-add-hook lisp-mode pretty-lambdas)
 (my-add-hook emacs-lisp-mode pretty-lambdas)
@@ -381,6 +387,29 @@ which should be selected."
           (0 (progn (compose-region (match-beginning 1) (match-end 1)
                                     ,(make-char 'greek-iso8859-7 107))
                     nil))))))
+
+(defun my-calc-embedded ()
+  "Similar to `calc-embedded', but runs on the region and exits immediately."
+  (interactive)
+  (let ((text (buffer-substring (point) (mark))))
+    (with-current-buffer (generate-new-buffer "thing")
+      (LaTeX-mode)
+      (insert "\\begin{document}\n$")
+      (insert text)
+      (insert "$\n\\end{document}")
+      (forward-line -1)
+      (end-of-line)
+      (backward-char 1)
+      (save-excursion
+        (beginning-of-line)
+        (replace-string "\\cdot" "*"))
+      (calc-embedded nil)
+      (calc-embedded nil)
+      (let ((bol (save-excursion (beginning-of-line) (point)))
+            (eol (save-excursion (end-of-line) (point))))
+        (setq text (buffer-substring (+ bol 1) (- eol 1)))))
+    (delete-region (point) (mark))
+    (insert text)))
 
 (defvar my-last-tag-was-search nil
   "Non-nil if the last tag lookup was a regexp search.")
@@ -574,6 +603,7 @@ it doesn't prompt for a tag name."
 (my-key "C-n m" make-directory-from-minibuffer)
 (my-key "C-n f" auto-fill-mode)
 (my-key "C-n y" load-yasnippet)
+(my-key "C-n =" my-calc-embedded)
 
 (my-map "C-n C-p" nex3-paste)
 (my-key "C-n C-p p" gist-region)
