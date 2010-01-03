@@ -6,8 +6,6 @@ require("awful.rules")
 require("beautiful")
 -- Notification library
 require("naughty")
--- Tabs
-require("tabulous")
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, and wallpapers
@@ -258,39 +256,7 @@ clientkeys = awful.util.table.join(
         function (c)
             c.maximized_horizontal = not c.maximized_horizontal
             c.maximized_vertical   = not c.maximized_vertical
-        end),
-
-    -- Tab Manipulation
-    awful.key({ modkey, "Control" }, "y",
-        function (c)
-            local tabbedview = tabulous.tabindex_get(c)
-            local nextclient = awful.client.next(1)
-
-            if not tabbedview then
-                tabbedview = tabulous.tabindex_get(nextclient)
-
-                if not tabbedview then
-                    tabbedview = tabulous.tab_create(c)
-                    tabulous.tab(tabbedview, nextclient)
-                else
-                    tabulous.tab(tabbedview, c)
-                end
-            else
-                tabulous.tab(tabbedview, nextclient)
-            end
-        end),
-
-    awful.key({ modkey, "Shift" }, "y", tabulous.untab),
-
-    awful.key({ modkey }, "y",
-        function (c)
-            local tabbedview = tabulous.tabindex_get(c)
-
-            if tabbedview then
-                local n = tabulous.next(tabbedview, c)
-                tabulous.display(tabbedview, n)
-            end
-         end)
+        end)
 )
 
 -- Compute the maximum number of digit we need, limited to 9
