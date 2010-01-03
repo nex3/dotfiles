@@ -30,7 +30,7 @@
     (when window-system
       (cond ((and (>= emacs-major-version 23)
                   (not (string-match "\\.cs\\.washington\.edu$" system-name)))
-             (set-frame-font "Monospace-8"))
+             (set-frame-font "Monospace-8.5"))
             ((and (eq window-system 'mac)
                   (x-list-fonts "-apple-bitstream vera sans mono-medium-r-normal--0-0-0-0-m-0-mac-roman"))
              (set-default-font "-apple-bitstream vera sans mono-medium-r-normal--0-0-0-0-m-0-mac-roman"))
