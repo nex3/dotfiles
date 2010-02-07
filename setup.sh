@@ -35,7 +35,7 @@ ln -s {$conf/,.}gitconfig
 $conf/git-hooks/post-commit
 ln -s $conf/elisp/yasnippet/snippets .yasnippets
 
-which xrdb &> /dev/null && xrdb -merge .Xresources
+which xrdb &> /dev/null && [ ! -z "$DISPLAY" ] && xrdb -merge .Xresources
 
 mkdir -p ~/.config
 cd ~/.config
