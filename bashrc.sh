@@ -5,9 +5,6 @@
 # If not running interactively, don't do anything
 [ -z "$PS1" ] && return
 
-# Use this variable to customize for specific computers
-[ -r $HOME/.sysname ] && export SYSNAME=`cat $HOME/.sysname`
-
 # don't put duplicate lines in the history.
 export HISTCONTROL=ignoredups
 
@@ -24,7 +21,7 @@ shopt -s checkwinsize
 # enable color ls
 if [ "$TERM" != "dumb" ]; then
     [ -x /usr/bin/dircolors ] && eval "`dircolors -b`"
-    if [ "$SYSNAME" = Calliope ]; then
+    if [ `uname` = Darwin ]; then
         alias ls='ls -G'
     else
         alias ls='ls --color=auto'
