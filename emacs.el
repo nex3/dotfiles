@@ -112,7 +112,7 @@ it's loaded for files matching REGEXP."
 
 (defmacro my-add-hook (name &rest body)
   "Like `add-hook', but a macro.
-The -hook prefix is unnecessary."
+The -hook suffix is unnecessary."
   (declare (indent 1))
   (let ((name (format "%s" name)))
     `(add-hook ',(intern
