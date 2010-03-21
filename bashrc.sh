@@ -188,6 +188,14 @@ then
 
     if [ -e $HOME/gems ]; then export GEM_PATH=$HOME/gems:$GEM_PATH; fi
 
+    if [ -e $HOME/.rip ]
+    then
+        RIPDIR=/home/nex3/.rip
+        RUBYLIB="$RUBYLIB:$RIPDIR/active/lib"
+        PATH="$PATH:$RIPDIR/active/bin"
+        export RIPDIR RUBYLIB PATH
+    fi
+
     if [ -e $HOME/lib/python ]
     then
         export PYTHONPATH=$HOME/lib/python:$PYTHONPATH
