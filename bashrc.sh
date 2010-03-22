@@ -209,8 +209,6 @@ then
     export SVN_EDITOR=em
 
     refresh-path
-
-    if [[ -s "$HOME/.rvm/scripts/rvm" ]]; then source "$HOME/.rvm/scripts/rvm"; fi
 fi
 
 ## ----------
@@ -230,3 +228,9 @@ start_or_join_screen
 cd .
 
 fi
+
+# This should be required outside of the interactive-only
+# and top-level-of-screen-only blocks,
+# because we need the rvm command to be a function
+# so it can modify our environment variables.
+if [[ -s "$HOME/.rvm/scripts/rvm" ]]; then source "$HOME/.rvm/scripts/rvm"; fi
