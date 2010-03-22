@@ -3,7 +3,7 @@
 ## ----------
 
 # If not running interactively, don't do anything
-[ -z "$PS1" ] && return
+if [[ ! -z "$PS1" ]]; then
 
 # don't put duplicate lines in the history.
 export HISTCONTROL=ignoredups
@@ -209,6 +209,8 @@ then
     export SVN_EDITOR=em
 
     refresh-path
+
+    if [[ -s "$HOME/.rvm/scripts/rvm" ]]; then source "$HOME/.rvm/scripts/rvm"; fi
 fi
 
 ## ----------
@@ -227,3 +229,4 @@ start_or_join_screen
 
 cd .
 
+fi
