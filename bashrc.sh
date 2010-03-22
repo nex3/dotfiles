@@ -70,6 +70,7 @@ complete -o default -o nospace -F _gemdocomplete gemdoc
 START_GREEN=''
 START_BLUE=''
 START_RED=''
+START_YELLOW=''
 END_COLOR=''
 
 # Colorful prompt for smart terminals
@@ -77,6 +78,7 @@ if [ "$TERM" != "dumb" ]; then
     START_GREEN="\[\033[01;32m\]"
     START_BLUE="\[\033[01;34m\]"
     START_RED="\[\033[01;31m\]"
+    START_YELLOW="\[\033[01;33m\]"
     END_COLOR="\[\033[00m\]"
 fi
 # Black/white prompt for dumb terminals
@@ -99,7 +101,7 @@ function pwd_with_tilde {
 # sets it on a separate line from the rest of the prompt.
 # Otherwise, restores normal prompt.
 #
-# Also print git branch if available
+# Also print git branch and rvm interpreter if available
 function prompt_command {
     # Git branch stuff from escherfan on Reddit
     if [ -n ${GITBRANCH} ]; then
@@ -113,10 +115,15 @@ function prompt_command {
         BRANCH='';
     fi
 
+    if [ "$rvm_tmp_path" -a -e "$rvm_tmp_path/$$/prompt" ]
+    then RVM_PROMPT=" ${START_YELLOW}(`cat "$rvm_tmp_path/$$/prompt"`)${END_COLOR}"
+    else RVM_PROMPT=''
+    fi
+
     if [ `pwd_with_tilde | wc -c` -lt '35' ]; then
-        PS1="$PROMPT_MAIN:$PROMPT_DIR$BRANCH$PROMPT_VAR$ "
+        PS1="$PROMPT_MAIN:$PROMPT_DIR$BRANCH$RVM_PROMPT$PROMPT_VAR$ "
     else
-        PS1="\n$PROMPT_DIR$BRANCH\n$PROMPT_MAIN$PROMPT_VAR$ "
+        PS1="\n$PROMPT_DIR$BRANCH$RVM_PROMPT\n$PROMPT_MAIN$PROMPT_VAR$ "
     fi
 }
 
@@ -233,4 +240,8 @@ fi
 # and top-level-of-screen-only blocks,
 # because we need the rvm command to be a function
 # so it can modify our environment variables.
-if [[ -s "$HOME/.rvm/scripts/rvm" ]]; then source "$HOME/.rvm/scripts/rvm"; fi
+if [[ -s "$HOME/.rvm/scripts/rvm" ]]
+then
+    source "$HOME/.rvm/scripts/rvm"
+    mkdir -p "$rvm_tmp_path/$$"
+fi
