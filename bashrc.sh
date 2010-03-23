@@ -232,7 +232,13 @@ start_or_join_screen
 
 # Everything after here will only be executed on an in-screen terminal
 
-cd .
+if [ "$TERM" != "dumb" ]; then
+    if [ `uname` = Darwin ]; then ls -G
+    else ls --color=auto
+    fi
+else
+    ls
+fi
 
 fi
 
@@ -243,5 +249,6 @@ fi
 if [[ -s "$HOME/.rvm/scripts/rvm" ]]
 then
     source "$HOME/.rvm/scripts/rvm"
+    advise cd with-ls-and-rvm 'super "$@" && ls'
     mkdir -p "$rvm_tmp_path/$$"
 fi
