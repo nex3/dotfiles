@@ -1,7 +1,7 @@
 ;;; ruby-mode.el --- Major mode for editing Ruby files
 
 ;; Copyright (C) 1994, 1995, 1996 1997, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 ;;   Free Software Foundation, Inc.
 
 ;; Authors: Yukihiro Matsumoto
@@ -613,7 +613,7 @@ and `\\' when preceded by `?'."
        ((looking-at ":\\(['\"]\\)")
         (goto-char (match-beginning 1))
         (ruby-forward-string (buffer-substring (match-beginning 1) (match-end 1)) end))
-       ((looking-at ":\\([-,.+*/%&|^~<>]=?\\|===?\\|<=>\\)")
+       ((looking-at ":\\([-,.+*/%&|^~<>]=?\\|===?\\|<=>\\|![~=]?\\)")
         (goto-char (match-end 0)))
        ((looking-at ":\\([a-zA-Z_][a-zA-Z_0-9]*[!?=]?\\)?")
         (goto-char (match-end 0)))
@@ -1364,10 +1364,10 @@ See `font-lock-syntax-table'.")
    '("\\(^\\|[^_]\\)\\b\\([A-Z]+\\(\\w\\|_\\)*\\)"
      2 font-lock-type-face)
    ;; symbols
-   '("\\(^\\|[^:]\\)\\(:\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|\\[\\]=?\\|\\(\\w\\|_\\)+\\([!?=]\\|\\b_*\\)\\|#{[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\)\\)"
+   '("\\(^\\|[^:]\\)\\(:\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|![~=]?\\|\\[\\]=?\\|\\(\\w\\|_\\)+\\([!?=]\\|\\b_*\\)\\|#{[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\)\\)"
      2 font-lock-reference-face)
    ;; expression expansion
-   '("#\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+"
+   '("#\\({[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\)"
      0 font-lock-variable-name-face t)
    ;; warn lower camel case
                                         ;'("\\<[a-z]+[a-z0-9]*[A-Z][A-Za-z0-9]*\\([!?]?\\|\\>\\)"
@@ -1461,11 +1461,11 @@ The variable `ruby-indent-level' controls the amount of indentation.
 ;;; Invoke ruby-mode when appropriate
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.rb\\'" . ruby-mode))
+(add-to-list 'auto-mode-alist (cons (purecopy "\\.rb\\'") 'ruby-mode))
 
 ;;;###autoload
 (dolist (name (list "ruby" "rbx" "jruby" "ruby1.9" "ruby1.8"))
-  (add-to-list 'interpreter-mode-alist (cons name 'ruby-mode)))
+  (add-to-list 'interpreter-mode-alist (cons (purecopy name) 'ruby-mode)))
 
 (provide 'ruby-mode)
 
