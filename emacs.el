@@ -231,7 +231,6 @@ The -hook suffix is unnecessary."
   (font-lock-add-keywords 'ruby-mode '(("\t" 0 'ruby-tab-face)))
   (setq ruby-deep-indent-paren-style nil)
   (my-add-hook ruby-mode
-    (pretty-lambdas)
     (setq tab-width 2)
     (set-variable (make-variable-buffer-local 'whitespace-tab-width) 2)))
 
