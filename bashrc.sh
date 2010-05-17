@@ -203,11 +203,7 @@ then
         export RIPDIR RUBYLIB PATH
     fi
 
-    if [ -e $HOME/lib/python ]
-    then
-        export PYTHONPATH=$HOME/lib/python:$PYTHONPATH
-    fi
-
+    export PYTHONPATH=$HOME/lib/python:/usr/local/lib/python2.6/site-packages:/usr/local/lib/python2.6/dist-packages:$PYTHONPATH
     export LD_LIBRARY_PATH=/usr/local/lib:$HOME/lib:$LD_LIBRARY_PATH
     export LIBRARY_PATH=$HOME/lib:$LIBRARY_PATH
     export C_INCLUDE_PATH=$HOME/include
