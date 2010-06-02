@@ -282,7 +282,7 @@ The -hook suffix is unnecessary."
 
 (setq make-backup-files nil)
 (setq completion-ignored-extensions
-      '(".a" ".so" ".o" "~" ".bak" ".class" ".hi" ".beam"))
+      '(".a" ".so" ".o" "~" ".bak" ".class" ".hi" ".beam" ".rbc"))
 (setq default-truncate-lines t)
 (setq-default indent-tabs-mode nil)
 (setq column-number-mode t)
