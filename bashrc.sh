@@ -207,6 +207,7 @@ then
     export LD_LIBRARY_PATH=/usr/local/lib:$HOME/lib:$LD_LIBRARY_PATH
     export LIBRARY_PATH=$HOME/lib:$LIBRARY_PATH
     export C_INCLUDE_PATH=$HOME/include
+    export INFOPATH=$HOME/.info:$INFOPATH
     export EDITOR=em
     export DARCS_EDITOR=em
     export SVN_EDITOR=em

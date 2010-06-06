@@ -27,6 +27,7 @@ ln -s $conf/bashrc.sh .bashrc
 ln -s $conf/irbrc.rb .irbrc
 ln -s $conf/rc.factor .factor-rc
 ln -s {$conf/,.}elisp
+ln -s {$conf/,.}info
 ln -s {$conf/,.}inputrc
 ln -s {$conf/,.}screenrc
 ln -s {$conf/,.}Xresources

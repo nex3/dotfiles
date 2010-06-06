@@ -294,6 +294,8 @@ The -hook suffix is unnecessary."
 (setq disabled-command-function nil)
 (setq repeat-message-function 'ignore)
 (setq fuel-factor-root-dir "~/src/factor")
+(setq magit-save-some-buffers nil)
+(setq magit-commit-all-when-nothing-staged t)
 (fset 'yes-or-no-p 'y-or-n-p)
 (global-font-lock-mode 1)
 (transient-mark-mode -1)
