@@ -591,6 +591,8 @@ it doesn't prompt for a tag name."
 (my-key "M-a" my-find-tag)
 (my-key "M-A" my-tag-search)
 
+(my-key "<M-S-return>" magit-status)
+
 ;; My Keymap
 
 (my-map "C-n" nex3)
