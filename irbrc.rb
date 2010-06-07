@@ -1,6 +1,6 @@
 # -*- mode: ruby; -*-
 
-%w{irb/completion irb/ext/save-history pp rubygems}.map(&method(:require))
+%w{irb/completion irb/ext/save-history pp rubygems}.map {|f| require f}
 begin
   require 'what_methods'
 rescue LoadError; end
