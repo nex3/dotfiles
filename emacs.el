@@ -243,6 +243,8 @@ The -hook suffix is unnecessary."
   (define-key fuel-mode-map "\M-." nil)
   (define-key fuel-mode-map "\M-," nil))
 
+(my-after-load magit (require 'my-magit))
+
 (when window-system
   (my-after-load ruby-mode
     (define-key ruby-mode-map (kbd "C-M-;") 'ruby-forward-sexp)
@@ -591,7 +593,7 @@ it doesn't prompt for a tag name."
 (my-key "M-a" my-find-tag)
 (my-key "M-A" my-tag-search)
 
-(my-key "<M-S-return>" magit-status)
+(my-key "<M-S-return>" my-magit-status)
 
 ;; My Keymap
 
