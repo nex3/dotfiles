@@ -607,6 +607,7 @@ it doesn't prompt for a tag name."
 (my-key "C-n f" auto-fill-mode)
 (my-key "C-n y" load-yasnippet)
 (my-key "C-n =" my-calc-embedded)
+(my-key "C-n C" my-magithub-clone)
 
 (my-map "C-n C-p" nex3-paste)
 (my-key "C-n C-p p" gist-region)

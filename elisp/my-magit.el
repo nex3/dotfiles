@@ -33,6 +33,26 @@ simply prompting the user."
                                                (> (car current-prefix-arg) 4)))))))
   (magit-status dir))
 
+;;;###autoload
+(defun my-magithub-clone (username repo &optional srcp)
+  "Clone GitHub repo USERNAME/REPO.
+The clone is placed in ~/code, or with SRCP in ~/src.
+
+Creates and switches to a new perspective named like the repo.
+
+Interactively, prompts for the repo name, and by default creates
+the repo in ~/code. With a prefix argument, creates the repo in
+~/src."
+  (interactive
+   (destructuring-bind (username . repo) (magithub-read-repo)
+     (list username repo current-prefix-arg)))
+  ;; The trailing slash is necessary for Magit to be able to figure out
+  ;; that this is actually a directory, not a file
+  (let ((dir (concat (getenv "HOME") "/" (if srcp "src" "code") "/" repo "/")))
+    (magit-run-git "clone" (concat "http://github.com/" username "/" repo ".git") dir)
+    (persp-switch repo)
+    (magit-status dir)))
+
 (provide 'my-magit)
 
 ;;; my-magit.el ends here
