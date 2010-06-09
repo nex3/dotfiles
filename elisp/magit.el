@@ -1,20 +1,30 @@
 ;;; Magit -- control Git from Emacs.
 
-;; Copyright (C) 2008, 2009  Marius Vollmer
-;; Copyright (C) 2008  Linh Dang
-;; Copyright (C) 2008  Alex Ott
-;; Copyright (C) 2008  Marcin Bachry
-;; Copyright (C) 2009  Alexey Voinov
-;; Copyright (C) 2009  John Wiegley
-;; Copyright (C) 2010  Phil Jackson
-;; Copyright (C) 2010  Roger Crew
-;; Copyright (C) 2010  Rémi Vanicat
-;; Copyright (C) 2010  Moritz Bunkus
-;; Copyright (C) 2010  Ben Walton
-;; Copyright (C) 2010  Hannu Koivisto
-;; Copyright (C) 2010  Pavel Holejsovsky
-;; Copyright (C) 2010  David Abrahams
-;; Copyright (C) 2010  Mark Hepburn
+;; Copyright (C) 2008 Alex Ott.
+;; Copyright (C) 2008, 2009, 2010 Alexey Voinov.
+;; Copyright (C) 2010 Ben Walton.
+;; Copyright (C) 2008 Daniel Farina.
+;; Copyright (C) 2010 David Abrahams.
+;; Copyright (C) 2009 David Wallin.
+;; Copyright (C) 2009, 2010 Hannu Koivisto.
+;; Copyright (C) 2009 Ian Eure.
+;; Copyright (C) 2009 Jesse Alama.
+;; Copyright (C) 2009 John Wiegley.
+;; Copyright (C) 2010 Leo.
+;; Copyright (C) 2008, 2009 Marcin Bachry.
+;; Copyright (C) 2008, 2009 Marius Vollmer.
+;; Copyright (C) 2010 Mark Hepburn.
+;; Copyright (C) 2010 Moritz Bunkus.
+;; Copyright (C) 2010 Nathan Weizenbaum.
+;; Copyright (C) 2009 Pavel Holejsovsky.
+;; Copyright (C) 2009, 2010 Phil Jackson.
+;; Copyright (C) 2010 Ramkumar Ramachandra.
+;; Copyright (C) 2009 René Stadler.
+;; Copyright (C) 2010 Roger Crew.
+;; Copyright (C) 2009, 2010 Rémi Vanicat.
+;; Copyright (C) 2009 Steve Purcell.
+;; Copyright (C) 2010 Ævar Arnfjörð Bjarmason.
+;; Copyright (C) 2010 Óscar Fuentes.
 
 ;;
 ;; Magit is free software; you can redistribute it and/or modify it
@@ -489,6 +499,14 @@ Many Magit faces inherit from this one by default."
 	(substring head 11)
       nil)))
 
+(defun magit-get-current-remote ()
+  "Return the name of the remote for the current branch.
+If there is no current branch, or no remote for that branch,
+return nil."
+  (let* ((branch (magit-get-current-branch))
+         (remote (and branch (magit-get "branch" branch "remote"))))
+    (if (string= remote "") nil remote)))
+
 (defun magit-ref-exists-p (ref)
   (= (magit-git-exit-code "show-ref" "--verify" ref) 0))
 
@@ -641,6 +659,19 @@ Many Magit faces inherit from this one by default."
 		(match-string 1 branch)
 		branch)))))
 
+(defun magit-read-remote (&optional prompt def)
+  "Read the name of a remote.
+PROMPT is used as the prompt, and defaults to \"Remote\".
+DEF is the default value, and defaults to the value of `magit-get-current-branch'."
+  (let* ((prompt (or prompt "Remote"))
+         (def (or def (magit-get-current-remote)))
+         (prompt (if def
+		     (format "%s (default %s): " prompt def)
+		   (format "%s: " prompt)))
+	 (remotes (magit-git-lines "remote"))
+	 (reply (funcall magit-completing-read prompt remotes
+				 nil nil nil nil def)))
+    (if (string= reply "") nil reply)))
 
 ;;; Sections
 
@@ -1448,6 +1479,7 @@ FUNC should leave point at the end of the modified region"
     (define-key map (kbd "G") 'magit-refresh-all)
     (define-key map (kbd "?") 'magit-describe-item)
     (define-key map (kbd "!") 'magit-shell-command)
+    (define-key map (kbd ":") 'magit-git-command)
     (define-key map (kbd "RET") 'magit-visit-item)
     (define-key map (kbd "SPC") 'magit-show-item-or-scroll-up)
     (define-key map (kbd "DEL") 'magit-show-item-or-scroll-down)
@@ -1474,7 +1506,6 @@ FUNC should leave point at the end of the modified region"
     (define-key map (kbd "$") 'magit-display-process)
     (define-key map (kbd "E") 'magit-interactive-rebase)
     (define-key map (kbd "V") 'magit-show-branches)
-    (define-key map (kbd ":") 'magit-run-git-interactively)
     (define-key map (kbd "q") 'quit-window)
     map))
 
@@ -2588,9 +2619,9 @@ Fails if working tree or staging area contain uncommitted changes.
 If REVISION is a remote branch, offer to create a local tracking branch.
 \('git checkout [-b] REVISION')."
   (interactive (list (magit-read-rev "Switch to" (magit-default-rev))))
-  (if rev
-      (if (not (magit-maybe-create-local-tracking-branch rev))
-	  (magit-run-git "checkout" (magit-rev-to-git rev)))))
+  (if revision
+      (if (not (magit-maybe-create-local-tracking-branch revision))
+	  (magit-run-git "checkout" (magit-rev-to-git revision)))))
 
 (defun magit-read-create-branch-args ()
   (let* ((cur-branch (magit-get-current-branch))
@@ -2626,19 +2657,19 @@ With a prefix-arg, the merge will be squashed.
 				 (when current-prefix-arg
 				   " (squashed)"))
 			 (magit-guess-branch))))
-  (if rev
+  (if revision
       (magit-run-git "merge" "--no-commit"
 		     (if current-prefix-arg
 			 "--squash"
 		       "--no-ff")
-		     (magit-rev-to-git rev))))
+		     (magit-rev-to-git revision))))
 
 (defun magit-automatic-merge (revision)
   "Merge REVISION into the current 'HEAD'; commit unless merge fails.
 \('git merge REVISION')."
   (interactive (list (magit-read-rev "Merge" (magit-guess-branch))))
-  (if rev
-      (magit-run-git "merge" (magit-rev-to-git rev))))
+  (if revision
+      (magit-run-git "merge" (magit-rev-to-git revision))))
 
 ;;; Rebasing
 
@@ -2791,9 +2822,9 @@ and staging area are lost.
 				     (or (magit-default-rev)
 					 "HEAD^"))
 		     current-prefix-arg))
-  (if rev
+  (if revision
       (magit-run-git "reset" (if hard "--hard" "--soft")
-		     (magit-rev-to-git rev))))
+		     (magit-rev-to-git revision))))
 
 (defun magit-reset-head-hard (revision)
   "Switch 'HEAD' to REVISION, losing all changes.
@@ -2802,7 +2833,7 @@ Uncomitted changes in both working tree and staging area are lost.
   (interactive (list (magit-read-rev (format "Hard reset head to")
 				     (or (magit-default-rev)
 					 "HEAD"))))
-  (magit-reset-head rev t))
+  (magit-reset-head revision t))
 
 (defun magit-reset-working-tree ()
   "Revert working tree and clear changes from staging area.
@@ -2938,11 +2969,17 @@ Uncomitted changes in both working tree and staging area are lost.
 
 ;;; Updating, pull, and push
 
-(defun magit-remote-update ()
-  (interactive)
+(defun magit-remote-update (remote)
+  "Update REMOTE.
+
+When called interactively, update the current remote unless a
+prefix arg is given.  With prefix arg, prompt for a remote and
+update it."
+  (interactive (list (if current-prefix-arg (magit-read-remote)
+                       (magit-get-current-remote))))
   (if (magit-svn-enabled)
       (magit-run-git-async "svn" "fetch")
-    (magit-run-git-async "remote" "update")))
+    (magit-run-git-async "remote" "update" remote)))
 
 (defun magit-pull ()
   (interactive)
@@ -2965,6 +3002,23 @@ Uncomitted changes in both working tree and staging area are lost.
 		     (pcomplete-parse-buffer-arguments))))
 	(magit-process-popup-time 0))
     (magit-run* args nil nil nil t)))
+
+(defun magit-git-command (command)
+  "Perform arbitrary Git COMMAND.
+
+Similar to `magit-shell-command', but involves slightly less
+typing and automatically refreshes the status buffer."
+  (interactive "sRun git like this: ")
+  (require 'pcomplete)
+  (let ((args (car (with-temp-buffer
+		     (insert command)
+		     (pcomplete-parse-buffer-arguments))))
+	(magit-process-popup-time 0))
+    (magit-with-refresh
+      (magit-run* (append (cons magit-git-executable
+                                magit-git-standard-options)
+                          args)
+                  nil nil nil t))))
 
 (defun magit-read-remote (prompt def)
   (funcall magit-completing-read (if def
@@ -3555,10 +3609,18 @@ With a non numeric prefix ARG, show all entries"
     (magit-log-mode t)))
 
 (defun magit-log-all (&optional arg)
+  "Display the state of all refs in the log output."
   (interactive "P")
   (magit-display-log arg "--all"))
 
+(defun magit-log-first-parent (&optional arg)
+  "Display the log buffer excluding anything more than first
+level commits."
+  (interactive "P")
+  (magit-display-log arg "--first-parent"))
+
 (defun magit-log (&optional arg)
+  "View and act upon the output of git log."
   (interactive "P")
   (magit-display-log arg))
 
@@ -3886,11 +3948,6 @@ With a non numeric prefix ARG, show all entries"
     ((commit)
      (kill-new info)
      (message "%s" info))))
-
-(defun magit-run-git-interactively (cmd)
-  "Run Git command CMD."
-  (interactive "Mgit ")
-  (apply 'magit-run-git (split-string cmd " ")))
 
 (eval-when-compile (require 'server))
 
