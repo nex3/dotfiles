@@ -59,7 +59,8 @@
                  (t (:foreground "gray40"))))
  '(mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
  '(textile-link-face ((t (:foreground "#398EE6"))))
- '(textile-ul-bullet-face ((t (:foreground "#398EE6")))))
+ '(textile-ul-bullet-face ((t (:foreground "#398EE6"))))
+ '(magit-item-highlight ((t (:background "#222222")))))
 
 (setq frame-title-format '("Emacs: %b [" (:eval (persp-name persp-curr)) "]"))
 
@@ -298,6 +299,7 @@ The -hook suffix is unnecessary."
 (setq fuel-factor-root-dir "~/src/factor")
 (setq magit-save-some-buffers nil)
 (setq magit-commit-all-when-nothing-staged t)
+(setq magit-remote-ref-format 'remote-slash-branch)
 (fset 'yes-or-no-p 'y-or-n-p)
 (global-font-lock-mode 1)
 (transient-mark-mode -1)

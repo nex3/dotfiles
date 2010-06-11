@@ -26,7 +26,7 @@ When called interactively, use `my-magit-status-buffer' to find
 the correct status buffer.  Fall back on the default directory or
 simply prompting the user."
   (interactive (list
-                (let ((buffer (my-magit-current-buffer)))
+                (let ((buffer (my-magit-status-buffer)))
                   (or (if buffer (buffer-local-value 'default-directory buffer))
                       (magit-get-top-dir default-directory)
                       (magit-read-top-dir (and (consp current-prefix-arg)
@@ -52,6 +52,10 @@ the repo in ~/code. With a prefix argument, creates the repo in
     (magit-run-git "clone" (concat "http://github.com/" username "/" repo ".git") dir)
     (persp-switch repo)
     (magit-status dir)))
+
+(define-key magit-mode-map (kbd "M-I") 'magit-goto-next-section)
+(define-key magit-mode-map (kbd "M-O") 'magit-goto-previous-section)
+
 
 (provide 'my-magit)
 
