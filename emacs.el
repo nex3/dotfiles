@@ -16,6 +16,7 @@
 (add-to-list 'load-path "~/.elisp/fuel")
 (add-to-list 'load-path "~/.elisp/haskell-mode")
 (add-to-list 'load-path "~/.elisp/auctex")
+(add-to-list 'load-path "~/.elisp/auctex/preview")
 (add-to-list 'load-path "~/.elisp/ocaml")
 (add-to-list 'load-path "~/.elisp")
 (add-to-list 'load-path "~/share/emacs/site-lisp")
