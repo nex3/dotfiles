@@ -53,6 +53,10 @@ the repo in ~/code. With a prefix argument, creates the repo in
     (persp-switch repo)
     (magit-status dir)))
 
+(define-key magit-mode-map (kbd "M-I") 'magit-goto-next-section)
+(define-key magit-mode-map (kbd "M-O") 'magit-goto-previous-section)
+
+
 (provide 'my-magit)
 
 ;;; my-magit.el ends here
