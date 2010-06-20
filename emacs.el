@@ -88,7 +88,7 @@ it's loaded for files matching REGEXP."
 (load-mode 'sass "\\.sass$")
 (load-mode 'rhtml "\\.\\(rhtml\\|erb\\)$")
 (load-mode 'yaml "\\.ya?ml$")
-(load-mode 'ruby "\\(\\.\\(rb\\|rake\\|rjs\\|gemspec\\|thor\\)\\|Rakefile\\|Capfile\\|Thorfile\\)$")
+(load-mode 'ruby "\\(\\.\\(rb\\|rake\\|rjs\\|duby\\|gemspec\\|thor\\)\\|Rakefile\\|Capfile\\|Thorfile\\)$")
 (load-mode 'css "\\.css$")
 (load-mode 'haskell "\\.l?hs$")
 (load-mode 'arc "\\.arc$")
