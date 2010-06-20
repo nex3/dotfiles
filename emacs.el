@@ -53,7 +53,8 @@
  '(default ((((min-colors 256)) (:foreground "pink"))
             (t (:foreground "white"))))
  ;; Don't highlight lines in the terminal
- '(hl-line ((((min-colors 8)) (:inherit nil :background nil))))
+ '(hl-line ((((min-colors 256)) (:inherit highlight))
+            (((min-colors 8)) (:inherit nil :background nil))))
  '(yas/field-highlight-face ((t (:background "gray30"))))
  '(erb-face ((t (:background "gray15"))))
  '(rcirc-server ((((min-colors 8)) (:foreground nil))
