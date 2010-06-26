@@ -40,8 +40,10 @@
   :group 'sass)
 
 (defvar sass-non-block-openers
-  '("^ *:[^ \t]+[ \t]+[^ \t]"
-    "^ *[^ \t:]+[ \t]*[=:][ \t]*[^ \t]")
+  '("^.*,$" ;; Continued selectors
+    "^ *@\\(extend\\|debug\\|warn\\|include\\|import\\)" ;; Single-line mixins
+    "^ *[$!]" ;; Variables
+    )
   "A list of regexps that match lines of Sass that couldn't have
 text nested beneath them.")
 
