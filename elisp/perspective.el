@@ -68,7 +68,9 @@ them in Emacs >= 23.2.  In older versions, this is identical to
                                `(if (boundp ',name) ,name nil))))
                      binding-syms)
          (unwind-protect
-             (let ,bindings ,@body)
+             (progn
+               ,@(mapcar (lambda (binding) (list 'setq (car binding) (cadr binding))) bindings)
+               ,@body)
            ,@(mapcar (lambda (binding)
                        (let ((name (car binding)))
                          `(when (boundp ',name) (setq ,name ,(cdr binding)))))
