@@ -39,9 +39,6 @@
 (init-frame)
 (add-hook 'after-make-frame-functions 'init-frame)
 
-(setq byte-compile-verbose nil)
-(setq byte-compile-warnings nil)
-(require 'byte-code-cache)
 (require 'color-theme)
 
 (color-theme-initialize)

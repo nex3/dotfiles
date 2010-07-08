@@ -6,15 +6,15 @@
 # To enable this hook, make this file executable.
 
 emacs --batch --eval '
-(progn
-  (setq make-backup-files nil)
-  (setq generated-autoload-file "~/.elisp/my-loaddefs.el")
-  (update-directory-autoloads "~/.elisp")
-  (update-directory-autoloads "~/.elisp/haskell-mode")
-  (update-directory-autoloads "~/.elisp/auctex")
-  (update-directory-autoloads "~/.elisp/auctex/preview")
-  (update-directory-autoloads "~/.elisp/ocaml")
-  (update-directory-autoloads "~/.elisp/fuel")
-
-  (byte-compile-file "~/.elisp/byte-code-cache.el"))
+(let ((make-backup-files nil)
+      (generated-autoload-file "~/.elisp/my-loaddefs.el")
+      (byte-compile-warnings nil)
+      (byte-compile-verbose nil)
+      (noninteractive t)
+      (dirs '\''("~/.elisp/ocaml" "~/.elisp/fuel"
+                 "~/.elisp/auctex/preview" "~/.elisp/auctex"
+                 "~/.elisp/haskell-mode" "~/.elisp")))
+  (setq load-path (append dirs load-path))
+  (dolist (dir dirs) (update-directory-autoloads dir))
+  (byte-recompile-directory "~/.elisp" 0))
 '
