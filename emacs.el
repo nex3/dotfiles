@@ -13,7 +13,6 @@
 (add-to-list 'load-path "/usr/share/emacs/site-lisp")
 (add-to-list 'load-path "/usr/share/emacs-snapshot/site-lisp")
 (add-to-list 'load-path "~/.elisp/rcirc-notify-el")
-(add-to-list 'load-path "~/.elisp/fuel")
 (add-to-list 'load-path "~/.elisp/haskell-mode")
 (add-to-list 'load-path "~/.elisp/auctex")
 (add-to-list 'load-path "~/.elisp/auctex/preview")
