@@ -238,9 +238,7 @@ The -hook suffix is unnecessary."
     (set-variable (make-variable-buffer-local 'whitespace-tab-width) 2)))
 
 (my-after-load javascript-mode
-  (setq javascript-auto-indent-flag nil)
-  (my-add-hook javascript-mode
-    (pretty-lambdas "\\(function\\>\\)(")))
+  (setq javascript-auto-indent-flag nil))
 
 (my-after-load fuel-mode
   (define-key fuel-mode-map "\M-." nil)
