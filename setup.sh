@@ -2,6 +2,7 @@
 
 if [ ! -e private ]; then
     scp -r nex3@nex-3.com:config-private private
+    chmod -R go-rwx private
 fi
 
 if [ -e private ]; then
