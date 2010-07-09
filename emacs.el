@@ -39,26 +39,27 @@
 (init-frame)
 (add-hook 'after-make-frame-functions 'init-frame)
 
-(require 'color-theme)
+(when (or window-system (and (fboundp 'daemonp) (daemonp)))
+  (require 'color-theme)
 
-(color-theme-initialize)
-(load "alexandres-theme")
-(my-color-theme-dark)
+  (color-theme-initialize)
+  (load "alexandres-theme")
+  (my-color-theme-dark)
 
-(custom-set-faces
- '(default ((((min-colors 256)) (:foreground "pink"))
-            (t (:foreground "white"))))
- ;; Don't highlight lines in the terminal
- '(hl-line ((((min-colors 256)) (:inherit highlight))
-            (((min-colors 8)) (:inherit nil :background nil))))
- '(yas/field-highlight-face ((t (:background "gray30"))))
- '(erb-face ((t (:background "gray15"))))
- '(rcirc-server ((((min-colors 8)) (:foreground nil))
-                 (t (:foreground "gray40"))))
- '(mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
- '(textile-link-face ((t (:foreground "#398EE6"))))
- '(textile-ul-bullet-face ((t (:foreground "#398EE6"))))
- '(magit-item-highlight ((t (:background "#222222")))))
+  (custom-set-faces
+   '(default ((((min-colors 256)) (:foreground "pink"))
+              (t (:foreground "white"))))
+   ;; Don't highlight lines in the terminal
+   '(hl-line ((((min-colors 256)) (:inherit highlight))
+              (((min-colors 8)) (:inherit nil :background nil))))
+   '(yas/field-highlight-face ((t (:background "gray30"))))
+   '(erb-face ((t (:background "gray15"))))
+   '(rcirc-server ((((min-colors 8)) (:foreground nil))
+                   (t (:foreground "gray40"))))
+   '(mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
+   '(textile-link-face ((t (:foreground "#398EE6"))))
+   '(textile-ul-bullet-face ((t (:foreground "#398EE6"))))
+   '(magit-item-highlight ((t (:background "#222222"))))))
 
 (setq frame-title-format '("Emacs: %b [" (:eval (persp-name persp-curr)) "]"))
 
