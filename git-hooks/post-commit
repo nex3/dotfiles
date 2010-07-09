@@ -11,8 +11,7 @@ emacs --batch --eval '
       (byte-compile-warnings nil)
       (byte-compile-verbose nil)
       (noninteractive t)
-      (dirs '\''("~/.elisp/ocaml" "~/.elisp/fuel"
-                 "~/.elisp/auctex/preview" "~/.elisp/auctex"
+      (dirs '\''("~/.elisp/ocaml" "~/.elisp/auctex/preview" "~/.elisp/auctex"
                  "~/.elisp/haskell-mode" "~/.elisp")))
   (setq load-path (append dirs load-path))
   (dolist (dir dirs) (update-directory-autoloads dir))
