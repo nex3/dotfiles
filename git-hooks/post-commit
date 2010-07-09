@@ -5,6 +5,7 @@
 #
 # To enable this hook, make this file executable.
 
+echo 'Compiling Emacs autoloads and byte-compiling Elisp...'
 emacs --batch --eval '
 (let ((make-backup-files nil)
       (generated-autoload-file "~/.elisp/my-loaddefs.el")
@@ -16,4 +17,4 @@ emacs --batch --eval '
   (setq load-path (append dirs load-path))
   (dolist (dir dirs) (update-directory-autoloads dir))
   (byte-recompile-directory "~/.elisp" 0))
-'
+' &> /dev/stdout | grep -v '^\(Checking\|Compiling\|Saving\|Loading\|Wrote\|Warning: defvar ignored\|(No changes need to be saved)\)'
