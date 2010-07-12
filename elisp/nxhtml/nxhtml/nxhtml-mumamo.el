@@ -79,7 +79,6 @@
 ;; Fix-me: add chunk type attr string as last alternative. This will
 ;; allow things like myattr="<?php echo ?>".
 
-;;;###autoload
 (define-mumamo-multi-major-mode nxhtml-mumamo-mode
   "Turn on multiple major modes for (X)HTML with main mode `nxhtml-mode'.
 This covers inlined style and javascript and PHP.
@@ -96,7 +95,6 @@ See also `mumamo-alt-php-tags-mode'."
 (add-hook 'nxhtml-mumamo-mode-hook 'mumamo-define-html-file-wide-keys)
 ;;(define-fictive-validation-header-toggle nxhtml-mumamo-mode t)
 
-;;;###autoload
 (define-mumamo-multi-major-mode embperl-nxhtml-mumamo-mode
   "Turn on multiple major modes for Embperl files with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
@@ -111,7 +109,6 @@ This also covers inlined style and javascript."
     mumamo-chunk-onjs=
     )))
 
-;;;###autoload
 (define-mumamo-multi-major-mode django-nxhtml-mumamo-mode
   "Turn on multiple major modes for Django with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
@@ -126,7 +123,6 @@ This also covers inlined style and javascript."
     mumamo-chunk-onjs=
     )))
 
-;;;###autoload
 (define-mumamo-multi-major-mode mason-nxhtml-mumamo-mode
   "Turn on multiple major modes for Mason using main mode `nxhtml-mode'.
 This covers inlined style and javascript."
@@ -177,7 +173,6 @@ You should not use this! This is just a part of
         (rng-validate-mode -1)
         (rng-validate-mode 1)))))
 
-;;;###autoload
 (define-mumamo-multi-major-mode genshi-nxhtml-mumamo-mode
   "Turn on multiple major modes for Genshi with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
@@ -221,7 +216,6 @@ You should not use this! This is just a part of
         (rng-validate-mode -1)
         (rng-validate-mode 1)))))
 
-;;;###autoload
 (define-mumamo-multi-major-mode mjt-nxhtml-mumamo-mode
   "Turn on multiple major modes for MJT with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
@@ -238,7 +232,6 @@ This also covers inlined style and javascript."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Smarty
 
-;;;###autoload
 (define-mumamo-multi-major-mode smarty-nxhtml-mumamo-mode
   "Turn on multiple major modes for Smarty with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
@@ -257,7 +250,6 @@ This also covers inlined style and javascript."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; GSP
 
-;;;###autoload
 (define-mumamo-multi-major-mode gsp-nxhtml-mumamo-mode
   "Turn on multiple major modes for GSP with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
@@ -272,7 +264,6 @@ This also covers inlined style and javascript."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; JSP
 
-;;;###autoload
 (define-mumamo-multi-major-mode jsp-nxhtml-mumamo-mode
   "Turn on multiple major modes for JSP with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
@@ -287,7 +278,6 @@ This also covers inlined style and javascript."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; eRuby
 
-;;;###autoload
 (define-mumamo-multi-major-mode eruby-nxhtml-mumamo-mode
   "Turn on multiple major modes for eRuby with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
@@ -302,7 +292,6 @@ This also covers inlined style and javascript."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; ASP
 
-;;;###autoload
 (define-mumamo-multi-major-mode asp-nxhtml-mumamo-mode
   "Turn on multiple major modes for ASP with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
@@ -317,7 +306,6 @@ This also covers inlined style and javascript."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Mako
 
-;;;###autoload
 (define-mumamo-multi-major-mode mako-nxhtml-mumamo-mode
   "Turn on multiple major modes for Mako with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."

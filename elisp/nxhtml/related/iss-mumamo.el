@@ -54,7 +54,6 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX.
 Note that if this section is not the last"
   (mumamo-quick-static-chunk pos min max "[code]" "{*** End of CODE **}" t 'pascal-mode t))
 
-;;;###autoload
 (define-mumamo-multi-major-mode iss-mumamo-mode
   "Turn on multiple major modes Inno Setup .iss files.
 The main major mode will be `iss-mode'.
