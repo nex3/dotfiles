@@ -237,6 +237,9 @@ The -hook suffix is unnecessary."
 (my-after-load javascript-mode
   (setq javascript-auto-indent-flag nil))
 
+(my-after-load js-mode
+  (setq js-auto-indent-flag nil))
+
 (my-after-load fuel-mode
   (define-key fuel-mode-map "\M-." nil)
   (define-key fuel-mode-map "\M-," nil))
