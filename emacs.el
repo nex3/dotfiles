@@ -278,6 +278,9 @@ The -hook suffix is unnecessary."
   (define-key caml-mode-map (kbd "C-c C-b") 'caml-eval-buffer))
 
 (my-after-load nxhtml-mumamo
+  ;; Used by MuMaMo
+  (unless (fboundp 'foldit-mode)
+    (defun foldit-mode (&rest _)))
   (my-add-hook nxhtml-mumamo-mode mumamo-no-chunk-coloring))
 
 (my-add-hook text-mode flyspell-mode)
