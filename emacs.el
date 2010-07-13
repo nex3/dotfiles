@@ -81,6 +81,10 @@
 it's loaded for files matching REGEXP."
   (add-to-list 'auto-mode-alist (cons regexp (intern (format "%s-mode" name)))))
 
+;; This is here because it would require loading a bunch of MuMaMo macros
+;; to have the autoload defined in the file.
+(autoload 'nxhtml-mumamo-mode "nxhtml-mumamo.el")
+
 (load-mode 'javascript "\\.js$")
 (load-mode 'd "\\.d[i]?\\'$")
 (load-mode 'textile "\\.textile$")
@@ -98,6 +102,7 @@ it's loaded for files matching REGEXP."
 (load-mode 'csharp "\\.cs$")
 (load-mode 'factor "\\.factor$")
 (load-mode 'caml "\\.ml[iylp]?$")
+(load-mode 'nxhtml-mumamo "\\.x?html?$")
 
 (defmacro my-after-load (name &rest body)
   "Like `eval-after-load', but a macro."
@@ -120,10 +125,10 @@ The -hook suffix is unnecessary."
     `(add-hook ',(intern
                   (if (string-match "-hook$" name) name
                     (format "%s-hook" name)))
-             ,(if (and (eq (length body) 1)
-                       (symbolp (car body)))
-                  (list 'quote (car body))
-                `(lambda () ,@body)))))
+               ,(if (and (eq (length body) 1)
+                         (symbolp (car body)))
+                    (list 'quote (car body))
+                  `(lambda () ,@body)))))
 
 (my-after-load comint
   (define-key comint-mode-map (kbd "M-O") 'comint-previous-input)
@@ -271,6 +276,9 @@ The -hook suffix is unnecessary."
 (my-after-load caml
   (require 'caml-font)
   (define-key caml-mode-map (kbd "C-c C-b") 'caml-eval-buffer))
+
+(my-after-load nxhtml-mumamo
+  (my-add-hook nxhtml-mumamo-mode mumamo-no-chunk-coloring))
 
 (my-add-hook text-mode flyspell-mode)
 (my-add-hook lisp-mode pretty-lambdas)
