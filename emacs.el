@@ -53,7 +53,8 @@
  '(default ((((min-colors 256)) (:foreground "pink"))
             (t (:foreground "white"))))
  ;; Don't highlight lines in the terminal
- '(hl-line ((((min-colors 8)) (:inherit nil :background nil))))
+ '(hl-line ((((min-colors 256)) (:inherit highlight))
+            (((min-colors 8)) (:inherit nil :background nil))))
  '(yas/field-highlight-face ((t (:background "gray30"))))
  '(erb-face ((t (:background "gray15"))))
  '(rcirc-server ((((min-colors 8)) (:foreground nil))
@@ -87,7 +88,7 @@ it's loaded for files matching REGEXP."
 (load-mode 'sass "\\.sass$")
 (load-mode 'rhtml "\\.\\(rhtml\\|erb\\)$")
 (load-mode 'yaml "\\.ya?ml$")
-(load-mode 'ruby "\\(\\.\\(rb\\|rake\\|rjs\\|gemspec\\|thor\\)\\|Rakefile\\|Capfile\\|Thorfile\\)$")
+(load-mode 'ruby "\\(\\.\\(rb\\|rake\\|rjs\\|duby\\|gemspec\\|thor\\)\\|Rakefile\\|Capfile\\|Thorfile\\)$")
 (load-mode 'css "\\.css$")
 (load-mode 'haskell "\\.l?hs$")
 (load-mode 'arc "\\.arc$")
