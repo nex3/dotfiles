@@ -581,7 +581,7 @@ it doesn't prompt for a tag name."
 (my-key "C-M-SPC" yank)
 (my-key "C-M-S-SPC" yank-pop)
 
-(my-key "M-a" execute-extended-command)
+(my-key "M-'" execute-extended-command)
 (my-key "M-/" hippie-expand)
 
 (my-key "M-\"" back-to-indentation)
@@ -596,6 +596,7 @@ it doesn't prompt for a tag name."
 (my-unset "C-w")
 (my-unset "C-y")
 (my-unset "M-y")
+(my-unset "M-x")
 
 ;; My Keymap
 
