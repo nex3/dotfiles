@@ -583,6 +583,7 @@ it doesn't prompt for a tag name."
 
 (my-key "M-'" execute-extended-command)
 (my-key "M-/" hippie-expand)
+(my-key "M-?" undo)
 
 (my-key "M-\"" back-to-indentation)
 
@@ -595,6 +596,7 @@ it doesn't prompt for a tag name."
 
 (my-unset "C-w")
 (my-unset "C-y")
+(my-unset "C-_")
 (my-unset "M-y")
 (my-unset "M-x")
 
