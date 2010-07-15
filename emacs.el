@@ -534,9 +534,6 @@ it doesn't prompt for a tag name."
 
 ;; Ergonomic keybindings inspired by http://xahlee.org/emacs/ergonomic_emacs_keybinding.html
 
-(my-map "M-d" my-delete)
-(my-map "M-s" my-save)
-
 (my-key "M-j" backward-char)
 (my-key "M-;" forward-char)
 (my-key "M-k" next-line)
@@ -593,17 +590,14 @@ it doesn't prompt for a tag name."
 (my-key "C-v" x-clipboard-only-yank)
 (my-key "C-z" clipboard-kill-region)
 
-(my-key "M-w" kill-region)
-(my-key "M-e" kill-ring-save)
-(my-key "M-r" yank)
-(my-key "M-R" yank-pop)
-
-(my-key "M-S-SPC" mark-paragraph)
 (my-key "M-SPC" set-mark-command)
+(my-key "M-S-SPC" kill-region)
+(my-key "C-M-SPC" yank)
+(my-key "C-M-S-SPC" yank-pop)
 
-(my-key "M-'" repeat)
-(my-key "M-a" execute-extended-command)
+(my-key "M-'" execute-extended-command)
 (my-key "M-/" hippie-expand)
+(my-key "M-?" undo)
 
 (my-key "M-\"" back-to-indentation)
 
@@ -611,6 +605,14 @@ it doesn't prompt for a tag name."
 (my-key "M-A" my-tag-search)
 
 (my-key "<M-S-return>" my-magit-status)
+
+;; Cold Turkey
+
+(my-unset "C-w")
+(my-unset "C-y")
+(my-unset "C-_")
+(my-unset "M-y")
+(my-unset "M-x")
 
 ;; My Keymap
 
