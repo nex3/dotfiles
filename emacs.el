@@ -520,9 +520,6 @@ it doesn't prompt for a tag name."
 
 ;; Ergonomic keybindings inspired by http://xahlee.org/emacs/ergonomic_emacs_keybinding.html
 
-(my-map "M-d" my-delete)
-(my-map "M-s" my-save)
-
 (my-key "M-j" backward-char)
 (my-key "M-;" forward-char)
 (my-key "M-k" next-line)
