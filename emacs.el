@@ -576,13 +576,10 @@ it doesn't prompt for a tag name."
 (my-key "C-v" x-clipboard-only-yank)
 (my-key "C-z" clipboard-kill-region)
 
-(my-key "M-w" kill-region)
-(my-key "M-e" kill-ring-save)
-(my-key "M-r" yank)
-(my-key "M-R" yank-pop)
-
-(my-key "M-S-SPC" mark-paragraph)
 (my-key "M-SPC" set-mark-command)
+(my-key "M-S-SPC" kill-region)
+(my-key "C-M-SPC" yank)
+(my-key "C-M-S-SPC" yank-pop)
 
 (my-key "M-a" execute-extended-command)
 (my-key "M-/" hippie-expand)
@@ -593,6 +590,12 @@ it doesn't prompt for a tag name."
 (my-key "M-A" my-tag-search)
 
 (my-key "<M-S-return>" my-magit-status)
+
+;; Cold Turkey
+
+(my-unset "C-w")
+(my-unset "C-y")
+(my-unset "M-y")
 
 ;; My Keymap
 
