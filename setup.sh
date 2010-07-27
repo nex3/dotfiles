@@ -2,6 +2,7 @@
 
 if [ ! -e private ]; then
     scp -r nex3@nex-3.com:config-private private
+    chmod -R go-rwx private
 fi
 
 if [ -e private ]; then
@@ -19,7 +20,7 @@ cd ~
 # My desktop has lots of important stuff in .Xresources,
 # so back it up during the setup procedure just in case
 # until I get that merged in here
-cp .Xresources{,.bak}
+[-e .Xresources ] && cp .Xresources{,.bak}
 
 rm -rf .{emacs,elisp,bashrc,inputrc,irbrc,factor-rc,screenrc,Xresources,gitconfig,yasnippets}
 ln -s $conf/emacs.el .emacs
@@ -36,7 +37,7 @@ ln -s {$conf/,.}gitconfig
 $conf/git-hooks/post-commit
 ln -s $conf/elisp/yasnippet/snippets .yasnippets
 
-which xrdb &> /dev/null && [ ! -z "$DISPLAY" ] && xrdb -merge .Xresources
+if which xrdb &> /dev/null && [ ! -z "$DISPLAY" ] && xrdb -merge .Xresources
 
 mkdir -p ~/.config
 cd ~/.config

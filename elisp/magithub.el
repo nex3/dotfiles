@@ -12,9 +12,10 @@
 ;; Package-Requires: ((magit "0.8") (json "1.2"))
 
 ;;; Commentary:
+
 ;; This package does two things.  First, it extends Magit's UI with
 ;; assorted GitHub-related functionality, similar to the github-gem
-;; tool (http://github.com/defunkt/github-gem).  Second, Magithub uses
+;; tool (http://github.com/defunkt/github-gem).  Second, it uses
 ;; Magit's excellent Git library to build an Elisp library for
 ;; interfacing with GitHub's API.
 
@@ -76,6 +77,13 @@ Like `remove-if', but without the cl runtime dependency."
         if (not (funcall predicate el)) collect el into els
         finally return els))
 
+(defun -magithub-position (item seq)
+  "Return the index of ITEM in SEQ.
+Like `position', but without the cl runtime dependency.
+
+Comparison is done with `eq'."
+  (loop for el in seq until (eq el item) count t))
+
 (defun -magithub-cache-function (fn)
   "Return a lambda that will run FN but cache its return values.
 The cache is a very naive assoc from arguments to returns.
@@ -115,6 +123,103 @@ incorrect."
       (destructuring-bind (username repo) (split-string repo "/")
         (cons username repo))
     (wrong-number-of-arguments (error "Invalid GitHub repository %s" repo))))
+
+(defun magithub-repo-url (username repo &optional sshp)
+  "Return the repository URL for USERNAME/REPO.
+If SSHP is non-nil, return the SSH URL instead.  Otherwise,
+return the HTTP URL."
+  (format (if sshp "git@github.com:%s/%s.git" "http://github.com/%s/%s.git")
+          username repo))
+
+(defun magithub-remote-info (remote)
+  "Return (USERNAME REPONAME SSHP) for the given REMOTE.
+Return nil if REMOTE isn't a GitHub remote.
+
+USERNAME is the owner of the repo, REPONAME is the name of the
+repo, and SSH is non-nil if it's checked out via SSH."
+  (block nil
+    (let ((url (magit-get "remote" remote "url")))
+      (unless url (return))
+      (when (string-match "\\(?:git\\|http\\)://github\\.com/\\(.*?\\)/\\(.*\\)\.git" url)
+        (return (list (match-string 1 url) (match-string 2 url) nil)))
+      (when (string-match "git@github\\.com:\\(.*?\\)/\\(.*\\)\\.git" url)
+        (return (list (match-string 1 url) (match-string 2 url) t)))
+      (return))))
+
+(defun magithub-remote-for-commit (commit)
+  "Return the name of the remote that contains COMMIT.
+If no remote does, return nil.  COMMIT should be the full SHA1
+commit hash.
+
+If origin contains the commit, it takes precedence.  Otherwise
+the priority is nondeterministic."
+  (flet ((name-rev (remote commit)
+           (magit-git-string "name-rev" "--name-only" "--no-undefined" "--refs"
+                             ;; I'm not sure why the initial * is required,
+                             ;; but if it's not there this always returns nil
+                             (format "*remotes/%s/*" remote) commit)))
+    (let ((remote (or (name-rev "origin" commit) (name-rev "*" commit))))
+      (when (and remote (string-match "^remotes/\\(.*?\\)/" remote))
+        (match-string 1 remote)))))
+
+(defun magithub-remote-info-for-commit (commit)
+  "Return information about the GitHub repo for the remote that contains COMMIT.
+If no remote does, return nil.  COMMIT should be the full SHA1
+commit hash.
+
+The information is of the form returned by `magithub-remote-info'.
+
+If origin contains the commit, it takes precedence.  Otherwise
+the priority is nondeterministic."
+  (let ((remote (magithub-remote-for-commit commit)))
+    (when remote (magithub-remote-info remote))))
+
+(defun magithub-branches-for-remote (remote)
+  "Return a list of branches in REMOTE, as of the last fetch."
+  (let ((lines (magit-git-lines "remote" "show" "-n" remote)) branches)
+    (while (not (string-match-p "^  Remote branches:" (pop lines)))
+      (unless lines (error "Unknown output from `git remote show'")))
+    (while (string-match "^    \\(.*\\)" (car lines))
+      (push (match-string 1 (pop lines)) branches))
+    branches))
+
+(defun magithub-repo-relative-path ()
+  "Return the path to the current file relative to the repository root.
+Only works within `magithub-minor-mode'."
+  (let ((filename buffer-file-name))
+    (with-current-buffer magithub-status-buffer
+      (file-relative-name filename default-directory))))
+
+(defun magithub-name-rev-for-remote (rev remote)
+  "Return a human-readable name for REV that's valid in REMOTE.
+Like `magit-name-rev', but sanitizes things referring to remotes
+and errors out on local-only revs."
+  (setq rev (magit-name-rev rev))
+  (if (and (string-match "^\\(remotes/\\)?\\(.*?\\)/\\(.*\\)" rev)
+           (equal (match-string 2 rev) remote))
+      (match-string 3 rev)
+    (unless (magithub-remote-contains-p remote rev)
+      (error "Commiy %s hasn't been pushed"
+             (substring (magit-git-string "rev-parse" rev) 0 8)))
+    (cond
+     ;; Assume the GitHub repo will have all the same tags as we do,
+     ;; since we can't actually check without performing an HTTP request.
+     ((string-match "^tags/\\(.*\\)" rev) (match-string 1 rev))
+     ((and (not (string-match-p "^remotes/" rev))
+           (member rev (magithub-branches-for-remote remote))
+           (magithub-ref= rev (concat remote "/" rev)))
+      rev)
+     (t (magit-git-string "rev-parse" rev)))))
+
+(defun magithub-remote-contains-p (remote rev)
+  "Return whether REV exists in REMOTE, in any branch.
+This does not fetch origin before determining existence, so it's
+possible that its result is based on stale data."
+  (loop for line in (magit-git-lines "branch" "-r" "--contains" rev)
+        if (and (string-match "^ *\\(.*?\\)/" line)
+                (equal (match-string 1 line) remote))
+          return t
+        finally return nil))
 
 
 ;;; Reading Input
@@ -249,6 +354,8 @@ and return (USERNAME . REPONAME)."
 (define-key magithub-map (kbd "p") 'magithub-pull-request)
 (define-key magithub-map (kbd "t") 'magithub-track)
 (define-key magithub-map (kbd "g") 'magithub-gist-repo)
+(define-key magithub-map (kbd "S") 'magithub-toggle-ssh)
+(define-key magithub-map (kbd "b") 'magithub-browse-item)
 (define-key magit-mode-map (kbd "'") 'magithub-prefix)
 
 
@@ -496,25 +603,16 @@ Returned repos are decoded JSON objects (plists)."
      (lambda (repo) (member-ignore-case (plist-get repo :owner) remotes))
      (magithub-repo-network))))
 
+
 ;;; Local Repo Information
 
 (defun magithub-repo-info ()
   "Return information about this GitHub repo.
-This is of the form (USERNAME REPONAME SSH).  USERNAME is the
-owner of the repo, REPONAME is the name of the repo, and SSH
-is non-nil if it's checked out via SSH.
+This is of the form given by `magithub-remote-info'.
 
 Error out if this isn't a GitHub repo."
-  (or
-   (block nil
-     (let ((url (magit-get "remote" "origin" "url")))
-       (unless url (return))
-       (when (string-match "\\(?:git\\|http\\)://github\\.com/\\(.*?\\)/\\(.*\\)\.git" url)
-         (return (list (match-string 1 url) (match-string 2 url) nil)))
-       (when (string-match "git@github\\.com:\\(.*?\\)/\\(.*\\)\\.git" url)
-         (return (list (match-string 1 url) (match-string 2 url) t)))
-       (return)))
-   (error "Not in a GitHub repo")))
+  (or (magithub-remote-info "origin")
+      (error "Not in a GitHub repo")))
 
 (defun magithub-repo-owner ()
   "Return the name of the owner of this GitHub repo.
@@ -535,6 +633,40 @@ Error out if this isn't a GitHub repo."
   (caddr (magithub-repo-info)))
 
 
+;;; Diff Information
+
+(defun magithub-section-index (section)
+  "Return the index of SECTION as a child of its parent section."
+  (-magithub-position section (magit-section-children (magit-section-parent section))))
+
+(defun magithub-hunk-lines ()
+  "Return the two line numbers for the current line (which should be in a hunk).
+The first number is the line number in the original file, the
+second is the line number in the new file.  They're returned
+as (L1 L2).  If either doesn't exist, it will be nil.
+
+If something goes wrong (e.g. we're not in a hunk or it's in an
+unknown format), return nil."
+  (block nil
+    (let ((point (point)))
+      (save-excursion
+        (beginning-of-line)
+        (when (looking-at "@@") ;; Annotations don't have line numbers,
+          (forward-line)        ;; so we'll approximate with the next line.
+          (setq point (point)))
+        (goto-char (magit-section-beginning (magit-current-section)))
+        (unless (looking-at "@@ -\\([0-9]+\\)\\(?:,[0-9]+\\)? \\+\\([0-9]+\\)") (return))
+        (let ((l (- (string-to-number (match-string 1)) 1))
+              (r (- (string-to-number (match-string 2)) 1)))
+          (forward-line)
+          (while (<= (point) point)
+            (unless (looking-at "\\+") (incf l))
+            (unless (looking-at "-") (incf r))
+            (forward-line))
+          (forward-line -1)
+          (list (unless (looking-at "\\+") l) (unless (looking-at "-") r)))))))
+
+
 ;;; Network
 
 (defun magithub-track (username &optional repo fetch)
@@ -546,11 +678,155 @@ arg, fetches the remote."
   (interactive
    (destructuring-bind (username . repo) (magithub-read-untracked-fork)
      (list username repo current-prefix-arg)))
-  (magit-run-git "remote" "add" username
-                 (format "http://github.com/%s/%s.git" username repo))
+  (magit-run-git "remote" "add" username (magithub-repo-url username repo))
   (when fetch (magit-run-git-async "remote" "update" username))
   (message "Tracking %s/%s%s" username repo
            (if fetch ", fetching..." "")))
+
+
+;;; Browsing
+
+(defun magithub-browse (&rest path-and-anchor)
+  "Load http://github.com/PATH#ANCHOR in a web browser and add it to the kill ring.
+Any nil elements of PATH are ignored.
+
+\n(fn &rest PATH [:anchor ANCHOR])"
+  (destructuring-bind (path anchor)
+      (loop for el on path-and-anchor
+            if (car el)
+              unless (eq (car el) :anchor) collect (car el) into path
+              else return (list path (cadr el))
+            finally return (list path nil))
+    (let ((url (concat "http://github.com/" (mapconcat 'identity path "/"))))
+      (when anchor (setq url (concat url "#" anchor)))
+      (kill-new url)
+      (browse-url url))))
+
+(defun magithub-browse-current (&rest path-and-anchor)
+  "Load http://github.com/USER/REPO/PATH#ANCHOR in a web browser.
+With ANCHOR, loads the URL with that anchor.
+
+USER is `magithub-repo-owner' and REPO is `magithub-repo-name'.
+
+\n(fn &rest PATH [:anchor ANCHOR])"
+  (apply 'magithub-browse (magithub-repo-owner) (magithub-repo-name) path-and-anchor))
+
+(defun magithub-browse-repo ()
+  "Show the GitHub webpage for the current branch of this repository."
+  ;; Don't use name-rev-for-remote here because we want it to work
+  ;; even if the branches are out-of-sync.
+  (magithub-browse-current "tree" (magit-name-rev "HEAD")))
+
+(defun magithub-browse-commit (commit &optional anchor)
+  "Show the GitHub webpage for COMMIT.
+COMMIT should be the SHA of a commit.
+
+If ANCHOR is given, it's used as the anchor in the URL."
+  (let ((info (magithub-remote-info-for-commit commit)))
+    (if info (magithub-browse (car info) (cadr info) "commit" commit :anchor anchor)
+      (error "Commit %s hasn't been pushed" (substring commit 0 8)))))
+
+(defun magithub-browse-commit-diff (diff-section)
+  "Show the GitHub webpage for the diff displayed in DIFF-SECTION.
+This must be a diff for `magit-currently-shown-commit'."
+  (magithub-browse-commit
+   magit-currently-shown-commit
+   (format "diff-%d" (magithub-section-index diff-section))))
+
+(defun magithub-browse-commit-hunk-at-point ()
+  "Show the GitHub webpage for the hunk at point.
+This must be a hunk for `magit-currently-shown-commit'."
+  (destructuring-bind (l r) (magithub-hunk-lines)
+    (magithub-browse-commit
+     magit-currently-shown-commit
+     (format "L%d%s" (magithub-section-index (magit-section-parent
+                                              (magit-current-section)))
+             (if l (format "L%d" l) (format "R%d" r))))))
+
+(defun magithub-browse-compare (from to &optional anchor)
+  "Show the GitHub webpage comparing refs FROM and TO.
+
+If ANCHOR is given, it's used as the anchor in the URL."
+  (magithub-browse-current
+   "compare" (format "%s...%s"
+                     (magithub-name-rev-for-remote from "origin")
+                     (magithub-name-rev-for-remote to "origin"))
+   :anchor anchor))
+
+(defun magithub-browse-diffbuff (&optional anchor)
+  "Show the GitHub webpage comparing refs corresponding to the current diff buffer.
+
+If ANCHOR is given, it's used as the anchor in the URL."
+  (when (and (listp magit-current-range) (null (cdr magit-current-range)))
+    (setq magit-current-range (car magit-current-range)))
+  (if (stringp magit-current-range)
+      (progn
+        (unless (magit-everything-clean-p)
+          (error "Diff includes dirty working directory"))
+        (magithub-browse-compare magit-current-range
+                                 (magithub-name-rev-for-remote "HEAD" "origin")
+                                 anchor))
+    (magithub-browse-compare (car magit-current-range) (cdr magit-current-range) anchor)))
+
+(defun magithub-browse-diff (section)
+  "Show the GitHub webpage for the diff displayed in DIFF-SECTION.
+This must be a diff from a *magit-diff* buffer."
+  (magithub-browse-diffbuff (format "diff-%d" (magithub-section-index diff-section))))
+
+(defun magithub-browse-hunk-at-point ()
+  "Show the GitHub webpage for the hunk at point.
+This must be a hunk from a *magit-diff* buffer."
+  (destructuring-bind (l r) (magithub-hunk-lines)
+    (magithub-browse-diffbuff
+     (format "L%d%s" (magithub-section-index (magit-section-parent
+                                              (magit-current-section)))
+             (if l (format "L%d" l) (format "R%d" r))))))
+
+(defun magithub-browse-blob (path &optional anchor)
+  "Show the GitHub webpage for the blob at PATH.
+
+If ANCHOR is given, it's used as the anchor in the URL."
+  (magithub-browse-current "blob" (magithub-name-rev-for-remote "HEAD" "origin")
+                           path :anchor anchor))
+
+(defun magithub-browse-item ()
+  "Load a GitHub webpage describing the item at point.
+The URL of the webpage is added to the kill ring."
+  (interactive)
+  (or
+   (magit-section-action (item info "browse")
+     ((commit) (magithub-browse-commit info))
+     ((diff)
+      (case magit-submode
+        (commit (magithub-browse-commit-diff (magit-current-section)))
+        (diff (magithub-browse-diff (magit-current-section)))))
+     ((hunk)
+      (case magit-submode
+        (commit (magithub-browse-commit-hunk-at-point))
+        (diff (magithub-browse-hunk-at-point))))
+     (t
+      (case magit-submode
+        (commit (magithub-browse-commit magit-currently-shown-commit))
+        (diff (magithub-browse-diffbuff)))))
+   (magithub-browse-repo)))
+
+(defun magithub-browse-file ()
+  "Show the GitHub webpage for the current file.
+The URL for the webpage is added to the kill ring.  This only
+works within `magithub-minor-mode'.
+
+In Transient Mark mode, if the mark is active, highlight the
+contents of the region."
+  (interactive)
+  (let ((path (magithub-repo-relative-path))
+        (start (line-number-at-pos (region-beginning)))
+        (end (line-number-at-pos (region-end))))
+    (when (eq (char-before (region-end)) ?\n) (decf end))
+    (with-current-buffer magithub-status-buffer
+      (magithub-browse-blob
+       path (when (and transient-mark-mode mark-active)
+              (if (eq start end) (format "L%d" start)
+                (format "L%d-%d" start end)))))))
 
 
 ;;; Creating Repos
@@ -619,8 +895,7 @@ creates a private repo."
                        (lambda (data name)
                          (magit-git-string
                           "remote" "add" "origin"
-                          (concat "git@github.com:" (magithub-config "user")
-                                  "/" name ".git"))
+                          (magithub-repo-url (magithub-config "user") name 'ssh))
                          (magit-set "origin" "branch" "master" "remote")
                          (magit-set "refs/heads/master" "branch" "master" "merge")
                          (magit-run-git-async "push" "-v" "origin" "master")
@@ -628,18 +903,21 @@ creates a private repo."
                                   (plist-get (plist-get data :repository) :url)))
                        (list name))))
 
-(defun magithub-clone (username repo dir)
+;;;###autoload
+(defun magithub-clone (username repo dir &optional sshp)
   "Clone GitHub repo USERNAME/REPO into directory DIR.
-Once the repo is cloned, switch to a `magit-status' buffer for it.
+If SSHP is non-nil, clone it using the SSH URL.  Once the repo is
+cloned, switch to a `magit-status' buffer for it.
 
-Interactively, prompts for the repo name and directory."
+Interactively, prompts for the repo name and directory.  With a
+prefix arg, clone using SSH."
   (interactive
    (destructuring-bind (username . repo) (magithub-read-repo "Clone repo (user/repo): ")
-     (list username repo (read-directory-name "Parent directory: "))))
+     (list username repo (read-directory-name "Parent directory: ") current-prefix-arg)))
   ;; The trailing slash is necessary for Magit to be able to figure out
   ;; that this is actually a directory, not a file
   (let ((dir (concat (directory-file-name (expand-file-name dir)) "/" repo "/")))
-    (magit-run-git "clone" (concat "http://github.com/" username "/" repo ".git") dir)
+    (magit-run-git "clone" (magithub-repo-url username repo sshp) dir)
     (magit-status dir)))
 
 
@@ -651,12 +929,15 @@ Interactively, prompts for the repo name and directory."
   (destructuring-bind (owner repo _) (magithub-repo-info)
     (let ((url-request-method "POST"))
       (magithub-retrieve (list "repos" "fork" owner repo)
-                         (lambda (obj owner repo)
-                           (magit-with-refresh
-                             (magit-set (concat "git@github.com:" owner "/" repo ".git")
-                                        "remote" "origin" "url"))
+                         (lambda (obj repo buffer)
+                           (with-current-buffer buffer
+                             (magit-with-refresh
+                               (magit-set (magithub-repo-url
+                                           (car (magithub-auth-info))
+                                           repo 'ssh)
+                                          "remote" "origin" "url")))
                            (message "Forked %s/%s" owner repo))
-                         (list owner repo)))))
+                         (list repo (current-buffer))))))
 
 (defun magithub-send-pull-request (text recipients)
   "Send a pull request with text TEXT to RECIPIENTS.
@@ -670,7 +951,7 @@ RECIPIENTS should be a list of usernames."
         (url-max-redirections 0) ;; GitHub will try to redirect, but we don't care
         magithub-parse-response)
     (magithub-retrieve (list (magithub-repo-owner) (magithub-repo-name)
-                             "pull_request" (magit-name-rev "HEAD"))
+                             "pull_request" (magithub-name-rev-for-remote "HEAD" "origin"))
                        (lambda (_)
                          (kill-buffer)
                          (message "Your pull request was sent.")))))
@@ -686,6 +967,16 @@ For non-interactive pull requests, see `magithub-send-pull-request'."
     (magit-log-edit-set-field
      'recipients (mapconcat 'identity recipients crm-separator)))
   (magithub-pop-to-message "send pull request"))
+
+(defun magithub-toggle-ssh (&optional arg)
+  "Toggle whether the current repo is checked out via SSH.
+With ARG, use SSH if and only if ARG is positive."
+  (interactive "P")
+  (if (null arg) (setq arg (if (magithub-repo-ssh-p) -1 1))
+    (setq arg (prefix-numeric-value arg)))
+  (magit-set (magithub-repo-url (magithub-repo-owner) (magithub-repo-name) (> arg 0))
+             "remote" "origin" "url")
+  (magit-refresh-status))
 
 
 ;;; Message Mode
@@ -761,18 +1052,88 @@ printed as a message when the buffer is opened."
   (with-magithub-message-mode (magit-log-edit-cancel-log-message)))
 
 
-;;; Hooks into Magit
+;;; Minor Mode
+
+(defvar magithub-minor-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c ' b") 'magithub-browse-file)
+    map))
+
+(defvar magithub-status-buffer nil
+  "The Magit status buffer for the current buffer's Git repository.")
+(make-variable-buffer-local 'magithub-status-buffer)
+
+(define-minor-mode magithub-minor-mode
+  "Minor mode for files in a GitHub repository.
+
+\\{magithub-minor-mode-map}"
+  :keymap magithub-minor-mode-map)
+
+(defun magithub-try-enabling-minor-mode ()
+  "Activate `magithub-minor-mode' in this buffer if it's a Git buffer.
+This means it's visiting a Git-controlled file and a Magit buffer
+is open for that file's repo."
+  (block nil
+    (if magithub-minor-mode (return))
+    (unless buffer-file-name (return))
+    ;; Try to find the Magit status buffer for this file.
+    ;; If it doesn't exist, don't activate magithub-minor-mode.
+    (let* ((topdir (magit-get-top-dir (file-name-directory buffer-file-name)))
+           (status (magit-find-buffer 'status topdir)))
+      (unless status (return))
+      (magithub-minor-mode 1)
+      (setq magithub-status-buffer status))))
+
+(defun magithub-try-disabling-minor-mode ()
+  "Deactivate `magithub-minor-mode' in this buffer if it's no longer a Git buffer.
+See `magithub-try-enabling-minor-mode'."
+  (when (and magithub-minor-mode (buffer-live-p magithub-status-buffer))
+    (magithub-minor-mode -1)))
+
+(defun magithub-try-enabling-minor-mode-everywhere ()
+  "Run `magithub-try-enabling-minor-mode' on all buffers."
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf (magithub-try-enabling-minor-mode))))
+
+(defun magithub-try-disabling-minor-mode-everywhere ()
+  "Run `magithub-try-disabling-minor-mode' on all buffers."
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf (magithub-try-disabling-minor-mode))))
+
+(magithub-try-enabling-minor-mode-everywhere)
+
+
+;;; Hooks into Magit and Emacs
 
 (defadvice magit-init (after magithub-init-too (dir) activate)
   (when (y-or-n-p "Create GitHub repo? ")
     (let ((default-directory dir))
       (call-interactively 'magithub-create-from-local))))
 
+(defun magithub-magit-mode-hook ()
+  "Enable `magithub-minor-mode' in buffers that are now in a Magit repo.
+If the new `magit-mode' buffer is a status buffer, try enabling
+`magithub-minor-mode' in all buffers."
+  (when (eq magit-submode 'status)
+    (magithub-try-enabling-minor-mode-everywhere)))
+(add-hook 'magit-mode-hook 'magithub-magit-mode-hook)
+
+(defun magithub-kill-buffer-hook ()
+  "Clean up `magithub-minor-mode'.
+That is, if the buffer being killed is a Magit status buffer,
+deactivate `magithub-minor-mode' on all buffers in its repository."
+  (when (and (eq major-mode 'magit-mode) (eq magit-submode 'status))
+    (magithub-try-disabling-minor-mode-everywhere)))
+(add-hook 'kill-buffer-hook 'magithub-kill-buffer-hook)
+
+(add-hook 'find-file-hook 'magithub-try-enabling-minor-mode)
+
+
 (provide 'magithub)
 
 ;;;###autoload
 (eval-after-load 'magit
-  (unless (featurep 'magithub)
-    (require 'magithub)))
+  '(unless (featurep 'magithub)
+     (require 'magithub)))
 
 ;;; magithub.el ends here

@@ -13,10 +13,13 @@
 (add-to-list 'load-path "/usr/share/emacs/site-lisp")
 (add-to-list 'load-path "/usr/share/emacs-snapshot/site-lisp")
 (add-to-list 'load-path "~/.elisp/rcirc-notify-el")
-(add-to-list 'load-path "~/.elisp/fuel")
 (add-to-list 'load-path "~/.elisp/haskell-mode")
 (add-to-list 'load-path "~/.elisp/auctex")
 (add-to-list 'load-path "~/.elisp/auctex/preview")
+(add-to-list 'load-path "~/.elisp/nxhtml")
+(add-to-list 'load-path "~/.elisp/nxhtml/nxhtml")
+(add-to-list 'load-path "~/.elisp/nxhtml/util")
+(add-to-list 'load-path "~/.elisp/nxhtml/related")
 (add-to-list 'load-path "~/.elisp/ocaml")
 (add-to-list 'load-path "~/.elisp")
 (add-to-list 'load-path "~/share/emacs/site-lisp")
@@ -40,29 +43,27 @@
 (init-frame)
 (add-hook 'after-make-frame-functions 'init-frame)
 
-(setq byte-compile-verbose nil)
-(setq byte-compile-warnings nil)
-(require 'byte-code-cache)
-(require 'color-theme)
+(when (or window-system (and (fboundp 'daemonp) (daemonp)))
+  (require 'color-theme)
 
-(color-theme-initialize)
-(load "alexandres-theme")
-(my-color-theme-dark)
+  (color-theme-initialize)
+  (load "alexandres-theme")
+  (my-color-theme-dark)
 
-(custom-set-faces
- '(default ((((min-colors 256)) (:foreground "pink"))
-            (t (:foreground "white"))))
- ;; Don't highlight lines in the terminal
- '(hl-line ((((min-colors 256)) (:inherit highlight))
-            (((min-colors 8)) (:inherit nil :background nil))))
- '(yas/field-highlight-face ((t (:background "gray30"))))
- '(erb-face ((t (:background "gray15"))))
- '(rcirc-server ((((min-colors 8)) (:foreground nil))
-                 (t (:foreground "gray40"))))
- '(mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
- '(textile-link-face ((t (:foreground "#398EE6"))))
- '(textile-ul-bullet-face ((t (:foreground "#398EE6"))))
- '(magit-item-highlight ((t (:background "#222222")))))
+  (custom-set-faces
+   '(default ((((min-colors 256)) (:foreground "pink"))
+              (t (:foreground "white"))))
+   ;; Don't highlight lines in the terminal
+   '(hl-line ((((min-colors 256)) (:inherit highlight))
+              (((min-colors 8)) (:inherit nil :background nil))))
+   '(yas/field-highlight-face ((t (:background "gray30"))))
+   '(erb-face ((t (:background "gray15"))))
+   '(rcirc-server ((((min-colors 8)) (:foreground nil))
+                   (t (:foreground "gray40"))))
+   '(mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
+   '(textile-link-face ((t (:foreground "#398EE6"))))
+   '(textile-ul-bullet-face ((t (:foreground "#398EE6"))))
+   '(magit-item-highlight ((t (:background "#222222"))))))
 
 (setq frame-title-format '("Emacs: %b [" (:eval (persp-name persp-curr)) "]"))
 
@@ -79,6 +80,10 @@
   "Set up a language mode NAME-mode so that
 it's loaded for files matching REGEXP."
   (add-to-list 'auto-mode-alist (cons regexp (intern (format "%s-mode" name)))))
+
+;; This is here because it would require loading a bunch of MuMaMo macros
+;; to have the autoload defined in the file.
+(autoload 'nxhtml-mumamo-mode "nxhtml-mumamo.el")
 
 (load-mode 'javascript "\\.js$")
 (load-mode 'd "\\.d[i]?\\'$")
@@ -97,6 +102,7 @@ it's loaded for files matching REGEXP."
 (load-mode 'csharp "\\.cs$")
 (load-mode 'factor "\\.factor$")
 (load-mode 'caml "\\.ml[iylp]?$")
+(load-mode 'nxhtml-mumamo "\\.x?html?$")
 
 (defmacro my-after-load (name &rest body)
   "Like `eval-after-load', but a macro."
@@ -119,10 +125,10 @@ The -hook suffix is unnecessary."
     `(add-hook ',(intern
                   (if (string-match "-hook$" name) name
                     (format "%s-hook" name)))
-             ,(if (and (eq (length body) 1)
-                       (symbolp (car body)))
-                  (list 'quote (car body))
-                `(lambda () ,@body)))))
+               ,(if (and (eq (length body) 1)
+                         (symbolp (car body)))
+                    (list 'quote (car body))
+                  `(lambda () ,@body)))))
 
 (my-after-load comint
   (define-key comint-mode-map (kbd "M-O") 'comint-previous-input)
@@ -238,9 +244,10 @@ The -hook suffix is unnecessary."
     (set-variable (make-variable-buffer-local 'whitespace-tab-width) 2)))
 
 (my-after-load javascript-mode
-  (setq javascript-auto-indent-flag nil)
-  (my-add-hook javascript-mode
-    (pretty-lambdas "\\(function\\>\\)(")))
+  (setq javascript-auto-indent-flag nil))
+
+(my-after-load js-mode
+  (setq js-auto-indent-flag nil))
 
 (my-after-load fuel-mode
   (define-key fuel-mode-map "\M-." nil)
@@ -269,6 +276,12 @@ The -hook suffix is unnecessary."
 (my-after-load caml
   (require 'caml-font)
   (define-key caml-mode-map (kbd "C-c C-b") 'caml-eval-buffer))
+
+(my-after-load nxhtml-mumamo
+  ;; Used by MuMaMo
+  (unless (fboundp 'foldit-mode)
+    (defun foldit-mode (&rest _)))
+  (my-add-hook nxhtml-mumamo-mode mumamo-no-chunk-coloring))
 
 (my-add-hook text-mode flyspell-mode)
 (my-add-hook lisp-mode pretty-lambdas)
@@ -521,9 +534,6 @@ it doesn't prompt for a tag name."
 
 ;; Ergonomic keybindings inspired by http://xahlee.org/emacs/ergonomic_emacs_keybinding.html
 
-(my-map "M-d" my-delete)
-(my-map "M-s" my-save)
-
 (my-key "M-j" backward-char)
 (my-key "M-;" forward-char)
 (my-key "M-k" next-line)
@@ -580,17 +590,15 @@ it doesn't prompt for a tag name."
 (my-key "C-v" x-clipboard-only-yank)
 (my-key "C-z" clipboard-kill-region)
 
-(my-key "M-w" kill-region)
-(my-key "M-e" kill-ring-save)
-(my-key "M-r" yank)
-(my-key "M-R" yank-pop)
-
-(my-key "M-S-SPC" mark-paragraph)
 (my-key "M-SPC" set-mark-command)
+(my-key "C-M-SPC" kill-region)
+(my-key "C-M-@" kill-region)
+(my-key "M-S-SPC" yank)
+(my-key "C-M-S-SPC" yank-pop)
 
-(my-key "M-'" repeat)
-(my-key "M-a" execute-extended-command)
+(my-key "M-'" execute-extended-command)
 (my-key "M-/" hippie-expand)
+(my-key "M-?" undo)
 
 (my-key "M-\"" back-to-indentation)
 
@@ -598,6 +606,14 @@ it doesn't prompt for a tag name."
 (my-key "M-A" my-tag-search)
 
 (my-key "<M-S-return>" my-magit-status)
+
+;; Cold Turkey
+
+(my-unset "C-w")
+(my-unset "C-y")
+(my-unset "C-_")
+(my-unset "M-y")
+(my-unset "M-x")
 
 ;; My Keymap
 
