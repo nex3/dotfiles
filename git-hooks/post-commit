@@ -13,8 +13,10 @@ emacs --batch --eval '
       (byte-compile-verbose nil)
       (noninteractive t)
       (dirs '\''("~/.elisp/ocaml" "~/.elisp/auctex/preview" "~/.elisp/auctex"
-                 "~/.elisp/haskell-mode" "~/.elisp")))
-  (setq load-path (append dirs load-path))
+                 "~/.elisp/haskell-mode" "~/.elisp"))
+      (load-only-dirs '\''("~/.elisp/nxhtml" "~/.elisp/nxhtml/nxhtml"
+                           "~/.elisp/nxhtml/util" "~/.elisp/nxhtml/related")))
+  (setq load-path (append dirs load-only-dirs load-path))
   (dolist (dir dirs) (update-directory-autoloads dir))
   (byte-recompile-directory "~/.elisp" 0))
 ' &> /dev/stdout | grep -v '^\(Checking\|Compiling\|Saving\|Loading\|Wrote\|Warning: defvar ignored\|(No changes need to be saved)\)'
