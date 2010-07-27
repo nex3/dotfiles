@@ -591,8 +591,9 @@ it doesn't prompt for a tag name."
 (my-key "C-z" clipboard-kill-region)
 
 (my-key "M-SPC" set-mark-command)
-(my-key "M-S-SPC" kill-region)
-(my-key "C-M-SPC" yank)
+(my-key "C-M-SPC" kill-region)
+(my-key "C-M-@" kill-region)
+(my-key "M-S-SPC" yank)
 (my-key "C-M-S-SPC" yank-pop)
 
 (my-key "M-'" execute-extended-command)
