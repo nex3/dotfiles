@@ -22,6 +22,7 @@
 (require 'magit)
 (require 'url)
 (require 'json)
+(require 'crm)
 (eval-when-compile (require 'cl))
 
 
@@ -62,7 +63,7 @@ This should only ever be `let'-bound, not set outright.")
 (defvar magithub-repos-history nil
   "A list of repos selected via `magithub-read-repo'.")
 
-(defvar -magithub-repo-obj-cache (make-hash-table :test 'equal)
+(defvar magithub--repo-obj-cache (make-hash-table :test 'equal)
   "A hash from (USERNAME . REPONAME) to decoded JSON repo objects (plists).
 This caches the result of `magithub-repo-obj' and
 `magithub-cached-repo-obj'.")
@@ -70,33 +71,33 @@ This caches the result of `magithub-repo-obj' and
 
 ;;; Utilities
 
-(defun -magithub-remove-if (predicate seq)
+(defun magithub--remove-if (predicate seq)
   "Remove all items satisfying PREDICATE from SEQ.
 Like `remove-if', but without the cl runtime dependency."
   (loop for el being the elements of seq
         if (not (funcall predicate el)) collect el into els
         finally return els))
 
-(defun -magithub-position (item seq)
+(defun magithub--position (item seq)
   "Return the index of ITEM in SEQ.
 Like `position', but without the cl runtime dependency.
 
 Comparison is done with `eq'."
   (loop for el in seq until (eq el item) count t))
 
-(defun -magithub-cache-function (fn)
+(defun magithub--cache-function (fn)
   "Return a lambda that will run FN but cache its return values.
 The cache is a very naive assoc from arguments to returns.
 The cache will only last as long as the lambda does.
 
-FN may call -magithub-use-cache, which will use a pre-cached
+FN may call magithub--use-cache, which will use a pre-cached
 value if available or recursively call FN if not."
   (lexical-let ((fn fn) cache cache-fn)
     (setq cache-fn
           (lambda (&rest args)
             (let ((cached (assoc args cache)))
               (if cached (cdr cached)
-                (flet ((-magithub-use-cache (&rest args) (apply cache-fn args)))
+                (flet ((magithub--use-cache (&rest args) (apply cache-fn args)))
                   (let ((val (apply fn args)))
                     (push (cons args val) cache)
                     val))))))))
@@ -221,10 +222,14 @@ possible that its result is based on stale data."
           return t
         finally return nil))
 
+(defun magithub-ref= (ref1 ref2)
+  "Return whether REF1 refers to the same commit as REF2."
+  (string= (magit-rev-parse ref1) (magit-rev-parse ref2)))
+
 
 ;;; Reading Input
 
-(defun -magithub-lazy-completion-callback (fn &optional noarg)
+(defun magithub--lazy-completion-callback (fn &optional noarg)
   "Converts a simple string-listing FN into a lazy-loading completion callback.
 FN should take a string (the contents of the minibuffer) and
 return a list of strings (the candidates for completion).  This
@@ -232,7 +237,7 @@ method takes care of any caching and makes sure FN isn't called
 until completion needs to happen.
 
 If NOARG is non-nil, don't pass a string to FN."
-  (lexical-let ((fn (-magithub-cache-function fn)) (noarg noarg))
+  (lexical-let ((fn (magithub--cache-function fn)) (noarg noarg))
     (lambda (string predicate allp)
       (let ((strs (if noarg (funcall fn) (funcall fn string))))
         (if allp (all-completions string strs predicate)
@@ -252,7 +257,7 @@ GitHub's user search API only returns an apparently random subset
 of users."
   (setq hist (or hist 'magithub-users-history))
   (completing-read (or prompt "GitHub user: ")
-                   (-magithub-lazy-completion-callback
+                   (magithub--lazy-completion-callback
                     (lambda (s)
                       (mapcar (lambda (user) (plist-get user :name))
                               (magithub-user-search s))))
@@ -268,7 +273,7 @@ INHERIT-INPUT-METHOD work as in `completing-read'.  PROMPT
 defaults to \"GitHub repo: <user>/\"."
   (lexical-let ((user user))
     (completing-read (or prompt (concat "GitHub repo: " user "/"))
-                     (-magithub-lazy-completion-callback
+                     (magithub--lazy-completion-callback
                       (lambda ()
                         (mapcar (lambda (repo) (plist-get repo :name))
                                 (magithub-repos-for-user user)))
@@ -294,13 +299,13 @@ begin with certain characters."
   (setq hist (or hist 'magithub-repos-history))
   (let ((result (completing-read
                  (or prompt "GitHub repo (user/repo): ")
-                 (-magithub-lazy-completion-callback '-magithub-repo-completions)
+                 (magithub--lazy-completion-callback '-magithub-repo-completions)
                  predicate require-match initial-input hist def inherit-input-method)))
     (if (string= result "")
         (when require-match (error "No repository given"))
       (magithub-parse-repo result))))
 
-(defun -magithub-repo-completions (string)
+(defun magithub--repo-completions (string)
   "Try completing the given GitHub user/repository pair.
 STRING is the text already in the minibuffer, PREDICATE is a
 predicate that the string must satisfy."
@@ -309,7 +314,7 @@ predicate that the string must satisfy."
         (mapcar (lambda (user) (concat (plist-get user :name) "/"))
                 (magithub-user-search username))
       (if (not (string= (car rest) ""))
-          (-magithub-use-cache (concat username "/"))
+          (magithub--use-cache (concat username "/"))
         (mapcar (lambda (repo) (concat username "/" (plist-get repo :name)))
                 (magithub-repos-for-user username))))))
 
@@ -317,7 +322,7 @@ predicate that the string must satisfy."
   "Read a list of recipients for a GitHub pull request."
   (let ((collabs (magithub-repo-parent-collaborators))
         (network (magithub-repo-network)))
-    (-magithub-remove-if
+    (magithub--remove-if
      (lambda (s) (string= s ""))
      (completing-read-multiple
       "Send pull request to: "
@@ -332,7 +337,7 @@ and return (USERNAME . REPONAME)."
   (let ((fork
          (completing-read
           "Track fork (user or user/repo): "
-          (-magithub-lazy-completion-callback
+          (magithub--lazy-completion-callback
            (lambda ()
              (mapcar (lambda (repo) (concat (plist-get repo :owner) "/"
                                        (plist-get repo :name)))
@@ -533,7 +538,7 @@ Defaults to the current repo.
 The returned object is a decoded JSON object (plist)."
   (setq username (or username (magithub-repo-owner)))
   (setq repo (or repo (magithub-repo-name)))
-  (remhash (cons username repo) -magithub-repo-obj-cache)
+  (remhash (cons username repo) magithub--repo-obj-cache)
   (magithub-cached-repo-obj username repo))
 
 (defun magithub-cached-repo-obj (&optional username repo)
@@ -548,14 +553,14 @@ properties such as :parent and :fork that are highly unlikely to
 change."
   (setq username (or username (magithub-repo-owner)))
   (setq repo (or repo (magithub-repo-name)))
-  (let ((cached (gethash (cons username repo) -magithub-repo-obj-cache)))
+  (let ((cached (gethash (cons username repo) magithub--repo-obj-cache)))
     (or cached
         (let* ((url-request-method "GET")
                (obj (plist-get
                      (magithub-retrieve-synchronously
                       (list "repos" "show" username repo))
                      :repository)))
-          (puthash (cons username repo) obj -magithub-repo-obj-cache)
+          (puthash (cons username repo) obj magithub--repo-obj-cache)
           obj))))
 
 (defun magithub-repo-collaborators (&optional username repo)
@@ -599,7 +604,7 @@ Returned repos are decoded JSON objects (plists)."
   (lexical-let ((remotes (magit-git-lines "remote")))
     (delq "origin" remotes)
     (push (magithub-repo-owner) remotes)
-    (-magithub-remove-if
+    (magithub--remove-if
      (lambda (repo) (member-ignore-case (plist-get repo :owner) remotes))
      (magithub-repo-network))))
 
@@ -637,7 +642,7 @@ Error out if this isn't a GitHub repo."
 
 (defun magithub-section-index (section)
   "Return the index of SECTION as a child of its parent section."
-  (-magithub-position section (magit-section-children (magit-section-parent section))))
+  (magithub--position section (magit-section-children (magit-section-parent section))))
 
 (defun magithub-hunk-lines ()
   "Return the two line numbers for the current line (which should be in a hunk).
@@ -921,64 +926,6 @@ prefix arg, clone using SSH."
     (magit-status dir)))
 
 
-;;; Forking Repos
-
-(defun magithub-fork-current ()
-  "Fork the current repository in place."
-  (interactive)
-  (destructuring-bind (owner repo _) (magithub-repo-info)
-    (let ((url-request-method "POST"))
-      (magithub-retrieve (list "repos" "fork" owner repo)
-                         (lambda (obj repo buffer)
-                           (with-current-buffer buffer
-                             (magit-with-refresh
-                               (magit-set (magithub-repo-url
-                                           (car (magithub-auth-info))
-                                           repo 'ssh)
-                                          "remote" "origin" "url")))
-                           (message "Forked %s/%s" owner repo))
-                         (list repo (current-buffer))))))
-
-(defun magithub-send-pull-request (text recipients)
-  "Send a pull request with text TEXT to RECIPIENTS.
-RECIPIENTS should be a list of usernames."
-  (let ((url-request-method "POST")
-        (magithub-request-data (cons (cons "message[body]" text)
-                                     (mapcar (lambda (recipient)
-                                               (cons "message[to][]" recipient))
-                                             recipients)))
-        (magithub-api-base magithub-github-url)
-        (url-max-redirections 0) ;; GitHub will try to redirect, but we don't care
-        magithub-parse-response)
-    (magithub-retrieve (list (magithub-repo-owner) (magithub-repo-name)
-                             "pull_request" (magithub-name-rev-for-remote "HEAD" "origin"))
-                       (lambda (_)
-                         (kill-buffer)
-                         (message "Your pull request was sent.")))))
-
-(defun magithub-pull-request (recipients)
-  "Compose a pull request and send it to RECIPIENTS.
-RECIPIENTS should be a list of usernames.
-
-Interactively, reads RECIPIENTS via `magithub-read-pull-request-recipients'.
-For non-interactive pull requests, see `magithub-send-pull-request'."
-  (interactive (list (magithub-read-pull-request-recipients)))
-  (with-magithub-message-mode
-    (magit-log-edit-set-field
-     'recipients (mapconcat 'identity recipients crm-separator)))
-  (magithub-pop-to-message "send pull request"))
-
-(defun magithub-toggle-ssh (&optional arg)
-  "Toggle whether the current repo is checked out via SSH.
-With ARG, use SSH if and only if ARG is positive."
-  (interactive "P")
-  (if (null arg) (setq arg (if (magithub-repo-ssh-p) -1 1))
-    (setq arg (prefix-numeric-value arg)))
-  (magit-set (magithub-repo-url (magithub-repo-owner) (magithub-repo-name) (> arg 0))
-             "remote" "origin" "url")
-  (magit-refresh-status))
-
-
 ;;; Message Mode
 
 (defvar magithub-message-mode-hook nil "Hook run by `magithub-message-mode'.")
@@ -1050,6 +997,64 @@ printed as a message when the buffer is opened."
   "Abort and erase message being composed."
   (interactive)
   (with-magithub-message-mode (magit-log-edit-cancel-log-message)))
+
+
+;;; Forking Repos
+
+(defun magithub-fork-current ()
+  "Fork the current repository in place."
+  (interactive)
+  (destructuring-bind (owner repo _) (magithub-repo-info)
+    (let ((url-request-method "POST"))
+      (magithub-retrieve (list "repos" "fork" owner repo)
+                         (lambda (obj repo buffer)
+                           (with-current-buffer buffer
+                             (magit-with-refresh
+                               (magit-set (magithub-repo-url
+                                           (car (magithub-auth-info))
+                                           repo 'ssh)
+                                          "remote" "origin" "url")))
+                           (message "Forked %s/%s" owner repo))
+                         (list repo (current-buffer))))))
+
+(defun magithub-send-pull-request (text recipients)
+  "Send a pull request with text TEXT to RECIPIENTS.
+RECIPIENTS should be a list of usernames."
+  (let ((url-request-method "POST")
+        (magithub-request-data (cons (cons "message[body]" text)
+                                     (mapcar (lambda (recipient)
+                                               (cons "message[to][]" recipient))
+                                             recipients)))
+        (magithub-api-base magithub-github-url)
+        (url-max-redirections 0) ;; GitHub will try to redirect, but we don't care
+        magithub-parse-response)
+    (magithub-retrieve (list (magithub-repo-owner) (magithub-repo-name)
+                             "pull_request" (magithub-name-rev-for-remote "HEAD" "origin"))
+                       (lambda (_)
+                         (kill-buffer)
+                         (message "Your pull request was sent.")))))
+
+(defun magithub-pull-request (recipients)
+  "Compose a pull request and send it to RECIPIENTS.
+RECIPIENTS should be a list of usernames.
+
+Interactively, reads RECIPIENTS via `magithub-read-pull-request-recipients'.
+For non-interactive pull requests, see `magithub-send-pull-request'."
+  (interactive (list (magithub-read-pull-request-recipients)))
+  (with-magithub-message-mode
+    (magit-log-edit-set-field
+     'recipients (mapconcat 'identity recipients crm-separator)))
+  (magithub-pop-to-message "send pull request"))
+
+(defun magithub-toggle-ssh (&optional arg)
+  "Toggle whether the current repo is checked out via SSH.
+With ARG, use SSH if and only if ARG is positive."
+  (interactive "P")
+  (if (null arg) (setq arg (if (magithub-repo-ssh-p) -1 1))
+    (setq arg (prefix-numeric-value arg)))
+  (magit-set (magithub-repo-url (magithub-repo-owner) (magithub-repo-name) (> arg 0))
+             "remote" "origin" "url")
+  (magit-refresh-status))
 
 
 ;;; Minor Mode
