@@ -68,9 +68,7 @@ them in Emacs >= 23.2.  In older versions, this is identical to
                                `(if (boundp ',name) ,name nil))))
                      binding-syms)
          (unwind-protect
-             (progn
-               ,@(mapcar (lambda (binding) (list 'setq (car binding) (cadr binding))) bindings)
-               ,@body)
+             (let ,bindings ,@body)
            ,@(mapcar (lambda (binding)
                        (let ((name (car binding)))
                          `(when (boundp ',name) (setq ,name ,(cdr binding)))))
@@ -547,7 +545,7 @@ is non-nil or with prefix arg, don't switch to the new perspective."
 
 See also `persp-add-buffer'."
   ;; The relevant argument is named BUFFER in Emacs <23 and BUFFER-OR-NAME in Emacs >23
-  (persp-add-buffer (or (bound-and-true-p buffer) buffer-or-name)))
+  (persp-add-buffer (ad-get-arg 0)))
 
 (defadvice recursive-edit (around persp-preserve-for-recursive-edit)
   "Preserve the current perspective when entering a recursive edit."
