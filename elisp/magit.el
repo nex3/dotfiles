@@ -325,6 +325,11 @@ Many Magit faces inherit from this one by default."
 (defvar magit-omit-untracked-dir-contents nil
   "When non-nil magit will only list an untracked directory, not its contents.")
 
+(defvar magit-init-hook nil
+  "Run after `magit-init' creates a repository.
+`default-directory' will be bound to the directory containing the
+new repository.")
+
 (defface magit-log-head-label-local
   '((((class color) (background light))
      :box t
@@ -359,7 +364,7 @@ Many Magit faces inherit from this one by default."
 (make-variable-buffer-local 'magit-submode)
 (put 'magit-submode 'permanent-local t)
 
-(eval-when-compile
+(eval-and-compile
   (defun magit-dynamic-clauses-helper (clauses context)
     `(((magit-dynamic-clauses ,clauses ,context) t))))
 
@@ -2640,7 +2645,8 @@ insert a line to tell how to insert more of them"
 	(and (y-or-n-p (format "Directory %s does not exists.  Create it? " dir))
 	     (make-directory dir)))
       (let ((default-directory dir))
-	(magit-run* (list "git" "init"))))))
+	(magit-run* (list "git" "init"))
+        (run-hooks 'magit-init-hook)))))
 
 (define-minor-mode magit-status-mode
     "Minor mode for looking at git status"
