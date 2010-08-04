@@ -469,6 +469,25 @@ it doesn't prompt for a tag name."
   (setq my-last-tag-was-search t)
   (find-tag tagname nil t))
 
+(defun my-comment-indent-new-line ()
+  "Like `comment-indent-new-line', but adds a prefix for block comments as well."
+  (interactive)
+  (if (save-excursion
+        (and (re-search-backward comment-start-skip nil t)
+             (looking-at (comment-string-strip comment-start t t))))
+      ;; We're looking at a single-line comment,
+      ;; which comment-indent-new-line can handle.
+      (comment-indent-new-line)
+    ;; We're looking at a multiline comment,
+    ;; which confuses comment-indent-new-line.
+    (newline-and-indent)
+    (when (and comment-start
+               comment-multi-line
+               c-block-comment-prefix
+               (save-excursion (comment-beginning)))
+      (insert c-block-comment-prefix))
+    (indent-according-to-mode)))
+
 ;; ----------
 ;; -- Keybindings
 ;; ----------
@@ -587,7 +606,7 @@ it doesn't prompt for a tag name."
   (my-key "M-O" previous-history-element)
   (my-key "M-I" next-history-element))
 
-(my-key "M-RET" comment-indent-new-line)
+(my-key "M-RET" my-comment-indent-new-line)
 (my-key "C-v" x-clipboard-only-yank)
 (my-key "C-z" clipboard-kill-region)
 
