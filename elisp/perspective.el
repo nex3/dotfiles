@@ -61,20 +61,20 @@ them in Emacs >= 23.2.  In older versions, this is identical to
   (if (or (< emacs-major-version 23)
           (and (= emacs-major-version 23) (< emacs-minor-version 2)))
       `(let ,bindings ,@body)
-    (let ((binding-syms (mapcar (lambda (binding) (cons (car binding) (gensym))) bindings)))
-      `(let ,(mapcar (lambda (binding)
-                       (list (cdr binding)
-                             (let ((name (car binding)))
-                               `(if (boundp ',name) ,name nil))))
-                     binding-syms)
-         (unwind-protect
-             (progn
-               ,@(mapcar (lambda (binding) (list 'setq (car binding) (cadr binding))) bindings)
-               ,@body)
-           ,@(mapcar (lambda (binding)
-                       (let ((name (car binding)))
-                         `(when (boundp ',name) (setq ,name ,(cdr binding)))))
-                     binding-syms))))))
+    (let ((binding-syms (mapcar (lambda (binding) (list (car binding) (gensym))) bindings)))
+      (flet ((setmap (bdgs)
+                     (mapcar (lambda (binding)
+                               (let ((name (car binding)))
+                                 `(when (boundp ',name) (setq ,name ,(cadr binding)))))
+                             bdgs)))
+        `(let ,(mapcar (lambda (binding)
+                         (list (cadr binding)
+                               (let ((name (car binding)))
+                                 `(when (boundp ',name) ,name))))
+                       binding-syms)
+           (unwind-protect
+               (progn ,@(setmap bindings))
+             ,@(setmap binding-syms)))))))
 
 (defstruct (perspective
             (:conc-name persp-)
@@ -547,7 +547,7 @@ is non-nil or with prefix arg, don't switch to the new perspective."
 
 See also `persp-add-buffer'."
   ;; The relevant argument is named BUFFER in Emacs <23 and BUFFER-OR-NAME in Emacs >23
-  (persp-add-buffer (or (bound-and-true-p buffer) buffer-or-name)))
+  (persp-add-buffer (ad-get-arg 0)))
 
 (defadvice recursive-edit (around persp-preserve-for-recursive-edit)
   "Preserve the current perspective when entering a recursive edit."
