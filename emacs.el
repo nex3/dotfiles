@@ -247,6 +247,7 @@ The -hook suffix is unnecessary."
   (setq javascript-auto-indent-flag nil))
 
 (my-after-load js-mode
+  (set (make-local-variable 'comment-multi-line) t)
   (setq js-auto-indent-flag nil))
 
 (my-after-load fuel-mode
