@@ -121,14 +121,18 @@ it's loaded for files matching REGEXP."
   "Like `add-hook', but a macro.
 The -hook suffix is unnecessary."
   (declare (indent 1))
-  (let ((name (format "%s" name)))
+  (let ((name (format "%s" name))
+        (append (when (eq (car body) :append)
+                  (pop body)
+                  t)))
     `(add-hook ',(intern
                   (if (string-match "-hook$" name) name
                     (format "%s-hook" name)))
                ,(if (and (eq (length body) 1)
                          (symbolp (car body)))
                     (list 'quote (car body))
-                  `(lambda () ,@body)))))
+                  `(lambda () ,@body))
+               ,append)))
 
 (my-after-load comint
   (define-key comint-mode-map (kbd "M-O") 'comint-previous-input)
