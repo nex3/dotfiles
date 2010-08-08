@@ -121,14 +121,18 @@ it's loaded for files matching REGEXP."
   "Like `add-hook', but a macro.
 The -hook suffix is unnecessary."
   (declare (indent 1))
-  (let ((name (format "%s" name)))
+  (let ((name (format "%s" name))
+        (append (when (eq (car body) :append)
+                  (pop body)
+                  t)))
     `(add-hook ',(intern
                   (if (string-match "-hook$" name) name
                     (format "%s-hook" name)))
                ,(if (and (eq (length body) 1)
                          (symbolp (car body)))
                     (list 'quote (car body))
-                  `(lambda () ,@body)))))
+                  `(lambda () ,@body))
+               ,append)))
 
 (my-after-load comint
   (define-key comint-mode-map (kbd "M-O") 'comint-previous-input)
@@ -247,6 +251,7 @@ The -hook suffix is unnecessary."
   (setq javascript-auto-indent-flag nil))
 
 (my-after-load js-mode
+  (set (make-local-variable 'comment-multi-line) t)
   (setq js-auto-indent-flag nil))
 
 (my-after-load fuel-mode
@@ -315,6 +320,7 @@ The -hook suffix is unnecessary."
 (setq magit-save-some-buffers nil)
 (setq magit-commit-all-when-nothing-staged t)
 (setq magit-remote-ref-format 'remote-slash-branch)
+(setq sentence-end-double-space nil)
 (fset 'yes-or-no-p 'y-or-n-p)
 (global-font-lock-mode 1)
 (transient-mark-mode -1)
@@ -468,6 +474,25 @@ it doesn't prompt for a tag name."
   (setq my-last-tag-was-search t)
   (find-tag tagname nil t))
 
+(defun my-comment-indent-new-line ()
+  "Like `comment-indent-new-line', but adds a prefix for block comments as well."
+  (interactive)
+  (if (save-excursion
+        (and (re-search-backward comment-start-skip nil t)
+             (looking-at (comment-string-strip comment-start t t))))
+      ;; We're looking at a single-line comment,
+      ;; which comment-indent-new-line can handle.
+      (comment-indent-new-line)
+    ;; We're looking at a multiline comment,
+    ;; which confuses comment-indent-new-line.
+    (newline-and-indent)
+    (when (and comment-start
+               comment-multi-line
+               c-block-comment-prefix
+               (save-excursion (comment-beginning)))
+      (insert c-block-comment-prefix))
+    (indent-according-to-mode)))
+
 ;; ----------
 ;; -- Keybindings
 ;; ----------
@@ -586,7 +611,7 @@ it doesn't prompt for a tag name."
   (my-key "M-O" previous-history-element)
   (my-key "M-I" next-history-element))
 
-(my-key "M-RET" comment-indent-new-line)
+(my-key "M-RET" my-comment-indent-new-line)
 (my-key "C-v" x-clipboard-only-yank)
 (my-key "C-z" clipboard-kill-region)
 
