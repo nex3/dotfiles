@@ -5,7 +5,7 @@
 
 ;; Author: Nathan Weizenbaum
 ;; URL: http://github.com/nex3/perspective-el
-;; Version: 1.1
+;; Version: 1.3
 ;; Created: 2008-03-05
 ;; By: Nathan Weizenbaum
 ;; Keywords: workspace, convenience, frames
@@ -73,7 +73,8 @@ them in Emacs >= 23.2.  In older versions, this is identical to
                                  `(when (boundp ',name) ,name))))
                        binding-syms)
            (unwind-protect
-               (progn ,@(setmap bindings))
+               (progn ,@(setmap bindings)
+                      ,@body)
              ,@(setmap binding-syms)))))))
 
 (defstruct (perspective
@@ -352,7 +353,6 @@ perspective's local variables are set."
       (setq persp-last persp-curr)
       (when (null persp)
         (setq persp (persp-new name)))
-      (persp-save)
       (persp-activate persp)
       name)))
 
@@ -546,8 +546,9 @@ is non-nil or with prefix arg, don't switch to the new perspective."
   "Add BUFFER to the current perspective.
 
 See also `persp-add-buffer'."
-  ;; The relevant argument is named BUFFER in Emacs <23 and BUFFER-OR-NAME in Emacs >23
-  (persp-add-buffer (ad-get-arg 0)))
+  (let ((buf (ad-get-arg 0)))
+    (when buf
+      (persp-add-buffer buf))))
 
 (defadvice recursive-edit (around persp-preserve-for-recursive-edit)
   "Preserve the current perspective when entering a recursive edit."
