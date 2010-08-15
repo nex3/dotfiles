@@ -28,7 +28,8 @@ simply prompting the user."
   (interactive (list
                 (let ((buffer (my-magit-status-buffer)))
                   (or (if buffer (buffer-local-value 'default-directory buffer))
-                      (magit-get-top-dir default-directory)
+                      (unless (string-match "^\\*scratch\\*" (buffer-name))
+                        (magit-get-top-dir default-directory))
                       (magit-read-top-dir (and (consp current-prefix-arg)
                                                (> (car current-prefix-arg) 4)))))))
   (magit-status dir))
@@ -60,4 +61,3 @@ the repo in ~/code. With a prefix argument, creates the repo in
 (provide 'my-magit)
 
 ;;; my-magit.el ends here
-
