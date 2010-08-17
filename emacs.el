@@ -343,6 +343,21 @@ The -hook suffix is unnecessary."
                (not (funcall confirm-kill-emacs "Really kill terminal? ")))
     ad-do-it))
 
+(defvar my-confirm-before-deleting nil
+  "Confirm before deleting a frame. Meant to be let-bound by advice.")
+
+(defadvice delete-frame (around confirm-before-deleting activate)
+  "Confirm before deleting a frame if `my-confirm-before-deleting' is set."
+  (unless (and my-confirm-before-deleting
+               confirm-kill-emacs
+               (not (funcall confirm-kill-emacs "Really delete frame? ")))
+    ad-do-it))
+
+(defadvice handle-delete-frame (around confirm-before-deleting activate)
+  "Confirm before deleting a frame because of an X event."
+  (let ((my-confirm-before-deleting t))
+    ad-do-it))
+
 ;; ----------
 ;; -- Useful Functions
 ;; ----------
