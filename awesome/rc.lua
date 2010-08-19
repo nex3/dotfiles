@@ -306,18 +306,6 @@ for i, n in ipairs(tagnames) do
     tagkey(modkey2, n:sub(1, 1), function(screen) return namedtags[screen][n] end)
 end
 
-for i = 1, keynumber do
-    table.insert(globalkeys, key({ modkey, "Shift" }, "F" .. i,
-                 function ()
-                     local screen = mouse.screen
-                     if tags[screen][i] then
-                         for k, c in pairs(awful.client.getmarked()) do
-                             awful.client.movetotag(tags[screen][i], c)
-                         end
-                     end
-                 end))
-end
-
 clientbuttons = awful.util.table.join(
     awful.button({ }, 1, function (c) client.focus = c; c:raise() end),
     awful.button({ modkey }, 1, awful.mouse.client.move),
