@@ -343,6 +343,21 @@ The -hook suffix is unnecessary."
                (not (funcall confirm-kill-emacs "Really kill terminal? ")))
     ad-do-it))
 
+(defvar my-confirm-before-deleting nil
+  "Confirm before deleting a frame. Meant to be let-bound by advice.")
+
+(defadvice delete-frame (around confirm-before-deleting activate)
+  "Confirm before deleting a frame if `my-confirm-before-deleting' is set."
+  (unless (and my-confirm-before-deleting
+               confirm-kill-emacs
+               (not (funcall confirm-kill-emacs "Really delete frame? ")))
+    ad-do-it))
+
+(defadvice handle-delete-frame (around confirm-before-deleting activate)
+  "Confirm before deleting a frame because of an X event."
+  (let ((my-confirm-before-deleting t))
+    ad-do-it))
+
 ;; ----------
 ;; -- Useful Functions
 ;; ----------
@@ -527,10 +542,24 @@ it doesn't prompt for a tag name."
   `(my-key ,key keyboard-quit))
 
 ;; -- Terminal hacks
+;;
+;; The input standard for terminals, having evolved in a time before graphical
+;; interfaces, doesn't have nearly the same level of support for modifier keys
+;; as X does. Since I use all sorts of modifier keys, often in combination with
+;; one another, this presents a problem. How do I get bindings involving two or
+;; more of control, meta, and shift to work?
+;;
+;; Luckily, the X toolkit and xterm (which uses it) are vastly customizable.
+;; Through the Xresources config file, which is fed to xrdb, I can tell xterm
+;; that any key event (involving as many modifiers as I want) should produce
+;; any arbitrary string. In addition, Emacs has low-level but lisp-accessible
+;; facilities for saying that a particular string of characters should translate
+;; to a particular key sequence.
 
 (setf (cddr key-translation-map)
       (eval-when-compile
-        (let ((chars (string-to-list "qwertyuiop]\\asdfghjklzxcvbnm")))
+        (let ((chars (string-to-list "qwertyuiop]\\asdfghjklzxcvbnm"))
+              (meta (string-to-char (kbd "ESC"))))
           (flet ((add-prefix (prefix char)
                              (read-kbd-macro (concat prefix "-" (char-to-string char))))
                  (make-bindings (binding-prefix)
@@ -539,22 +568,48 @@ it doesn't prompt for a tag name."
                                    (cons (string-to-char (add-prefix "C" char))
                                          (add-prefix binding-prefix char)))
                                  chars)))
-            `((? keymap
-                   (?& keymap
-                       (?M keymap
-                           (?\; . ,(kbd "C-M-;"))
-                           (?. . ,(kbd "C-M-.")))
-                       (?S keymap
-                           (? keymap ,@(make-bindings "C-M-S")
-                                (?: . ,(kbd "C-M-:")))
-                           ,@(make-bindings "C-S")
-                           (? . ,(kbd "C-_"))))))))))
+            ;; C-M-S- bindings are a slightly weird case. None of them work by
+            ;; default, so we have to bind them en masse. In addition, they're
+            ;; actually included in two of the subdivisions below. The A keymap
+            ;; is the "correct" keymap for them, but they also appear in the S
+            ;; keymap. This is because, since we emit the S prefix for *all*
+            ;; C-S- characters, typing C-S-M (in that order) will generate the S
+            ;; prefix before generating the full prefix. Thus we have to process
+            ;; the A prefix *after* processing the S sequence.
+            (let ((cms-bindings
+                   `(,meta keymap ,@(make-bindings "C-M-S")
+                           (?: . ,(kbd "C-M-:"))
+                           (?\s . ,(kbd "C-M-S-SPC")))))
+              ;; I reserve the prefix M-& for my translation map, because it's a
+              ;; pain to reach anyway.
+              `((,meta keymap
+                       (?& keymap
+                           ;; The C keymap handles C-M- bindings. There are only
+                           ;; a couple of these, since C-M- works without issue
+                           ;; for alphabetic characters.
+                           (?C keymap
+                               (?\; . ,(kbd "C-M-;"))
+                               (?. . ,(kbd "C-M-.")))
+                           ;; The M keymap handles M-S- bindings. There's only
+                           ;; one of these, since M-S- works almost all the time.
+                           (?M keymap
+                               (?\s . ,(kbd "M-S-SPC")))
+                           ;; The S keymap handles C-S- and (sometimes) C-M-S
+                           ;; bindings. All C-S- bindings we care about don't
+                           ;; work, so we bind them en masse.
+                           (?S keymap
+                               (,meta keymap (?& keymap (?A keymap ,cms-bindings)))
+                               ,@(make-bindings "C-S"))
+                           ;; The A keymap (sometimes) handles C-M-S- bindings.
+                           (?A keymap
+                               ,cms-bindings)))))))))
 
 ;; -- Actual Bindings
 
 (my-unset "C-x C-z")
 (my-unset "C-x p")
 (my-unset "C-]")
+(my-unset "M-&") ;; Necessary for terminal hacks
 
 ;; Ergonomic keybindings inspired by http://xahlee.org/emacs/ergonomic_emacs_keybinding.html
 
