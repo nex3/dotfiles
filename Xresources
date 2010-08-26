@@ -3,6 +3,8 @@
 xterm*faceName: Monospace
 xterm*faceSize: 9
 xterm*metaSendsEscape: true
+xterm*foreground: white
+xterm*background: black
 
 Xft.hinting: 1
 Xft.dpi: 96
