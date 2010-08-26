@@ -17,11 +17,6 @@ ln -s ../git-hooks .git/hooks
 conf=`pwd`
 cd ~
 
-# My desktop has lots of important stuff in .Xresources,
-# so back it up during the setup procedure just in case
-# until I get that merged in here
-[-e .Xresources ] && cp .Xresources{,.bak}
-
 rm -rf .{emacs,elisp,bashrc,inputrc,irbrc,factor-rc,screenrc,Xresources,gitconfig,yasnippets}
 ln -s $conf/emacs.el .emacs
 ln -s $conf/bashrc.sh .bashrc
