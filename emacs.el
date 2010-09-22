@@ -85,7 +85,6 @@ it's loaded for files matching REGEXP."
 ;; to have the autoload defined in the file.
 (autoload 'nxhtml-mumamo-mode "nxhtml-mumamo.el")
 
-(load-mode 'javascript "\\.js$")
 (load-mode 'd "\\.d[i]?\\'$")
 (load-mode 'textile "\\.textile$")
 (load-mode 'markdown "\\.\\(markdown\\|md\\)$")
@@ -246,9 +245,6 @@ The -hook suffix is unnecessary."
   (my-add-hook ruby-mode
     (setq tab-width 2)
     (set-variable (make-variable-buffer-local 'whitespace-tab-width) 2)))
-
-(my-after-load javascript-mode
-  (setq javascript-auto-indent-flag nil))
 
 (my-after-load js-mode
   (setq js-auto-indent-flag nil))
