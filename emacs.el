@@ -67,6 +67,10 @@
 
 (setq frame-title-format '("Emacs: %b [" (:eval (persp-name persp-curr)) "]"))
 
+(when (and (functionp 'daemonp) (daemonp))
+  (setq edit-server-port 9293)
+  (edit-server-start))
+
 ;; ----------
 ;; -- Loading Modules
 ;; ----------
