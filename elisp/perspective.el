@@ -5,7 +5,7 @@
 
 ;; Author: Nathan Weizenbaum
 ;; URL: http://github.com/nex3/perspective-el
-;; Version: 1.3
+;; Version: 1.4
 ;; Created: 2008-03-05
 ;; By: Nathan Weizenbaum
 ;; Keywords: workspace, convenience, frames
@@ -250,8 +250,14 @@ REQUIRE-MATCH can take the same values as in `completing-read'."
 (defmacro with-perspective (name &rest body)
   "Switch to the perspective given by NAME while evaluating BODY."
   (declare (indent 1))
-  `(persp-frame-local-let ((persp-curr (gethash ,name perspectives-hash)))
-     ,@body))
+  (let ((old (gensym)))
+    `(progn
+       (let ((,old (persp-name persp-curr)))
+         (unwind-protect
+             (progn
+               (persp-switch ,name)
+               ,@body)
+           (persp-switch ,old))))))
 
 (defun persp-new (name)
   "Return a new perspective with name NAME.
@@ -550,6 +556,17 @@ See also `persp-add-buffer'."
     (when buf
       (persp-add-buffer buf))))
 
+(defadvice display-buffer (after persp-add-buffer-adv)
+  "Add BUFFER to the perspective for the frame on which it's displayed.
+
+See also `persp-add-buffer'."
+  (when ad-return-value
+    (let ((buf (ad-get-arg 0))
+          (frame (window-frame ad-return-value)))
+      (when (and buf frame)
+        (with-selected-frame frame
+          (persp-add-buffer buf))))))
+
 (defadvice recursive-edit (around persp-preserve-for-recursive-edit)
   "Preserve the current perspective when entering a recursive edit."
   (persp-save)
@@ -579,6 +596,7 @@ named collections of buffers and window configurations."
   (if persp-mode
       (progn
         (ad-activate 'switch-to-buffer)
+        (ad-activate 'display-buffer)
         (ad-activate 'recursive-edit)
         (ad-activate 'exit-recursive-edit)
         (add-hook 'after-make-frame-functions 'persp-init-frame)
@@ -633,6 +651,20 @@ from the current perspective at time of creation."
       (dolist (frame (frame-list))
         (loop for persp being the hash-values of (with-selected-frame frame perspectives-hash)
               do (push entry (persp-local-variables persp)))))))
+
+(defmacro persp-setup-for (name &rest body)
+  "Add code that should be run to set up the perspective named NAME.
+Whenever a new perspective named NAME is created, runs BODY in
+it. In addition, if one exists already, runs BODY in it immediately."
+  (declare (indent 1))
+  `(progn
+     (add-hook 'persp-created-hook
+               (lambda ()
+                 (when (string= (persp-name persp-curr) ,name)
+                   ,@body))
+               'append)
+     (when (gethash ,name perspectives-hash)
+       (with-perspective ,name ,@body))))
 
 (defun persp-set-ido-buffers ()
   (setq ido-temp-list
