@@ -67,10 +67,6 @@
 
 (setq frame-title-format '("Emacs: %b [" (:eval (persp-name persp-curr)) "]"))
 
-(when (and (functionp 'daemonp) (daemonp))
-  (setq edit-server-port 9293)
-  (edit-server-start))
-
 ;; ----------
 ;; -- Loading Modules
 ;; ----------
@@ -79,6 +75,10 @@
 (require 'pager)
 (require 'tex-site)
 (eval-when-compile (require 'cl))
+
+(when (and (functionp 'daemonp) (daemonp))
+  (setq edit-server-port 9293)
+  (edit-server-start))
 
 (defun load-mode (name regexp)
   "Set up a language mode NAME-mode so that
