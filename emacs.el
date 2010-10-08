@@ -65,12 +65,6 @@
    '(textile-ul-bullet-face ((t (:foreground "#398EE6"))))
    '(magit-item-highlight ((t (:background "#222222"))))))
 
-(setq frame-title-format '("Emacs: %b [" (:eval (persp-name persp-curr)) "]"))
-
-(when (and (functionp 'daemonp) (daemonp))
-  (setq edit-server-port 9293)
-  (edit-server-start))
-
 ;; ----------
 ;; -- Loading Modules
 ;; ----------
@@ -79,6 +73,14 @@
 (require 'pager)
 (require 'tex-site)
 (eval-when-compile (require 'cl))
+
+(when (and (functionp 'daemonp) (daemonp))
+  (setq edit-server-port 9293)
+  (edit-server-start))
+
+(persp-mode)
+
+(setq frame-title-format '("Emacs: %b [" (:eval (persp-name persp-curr)) "]"))
 
 (defun load-mode (name regexp)
   "Set up a language mode NAME-mode so that
@@ -273,9 +275,8 @@ The -hook suffix is unnecessary."
   (setq markdown-command "maruku -o /dev/stdout 2> /dev/null"))
 
 (my-after-load compile
-  (my-add-hook persp-mode
-    (persp-make-variable-persp-local 'compile-history)
-    (persp-make-variable-persp-local 'compile-command)))
+  (persp-make-variable-persp-local 'compile-history)
+  (persp-make-variable-persp-local 'compile-command))
 
 (my-after-load caml
   (require 'caml-font)
@@ -713,5 +714,4 @@ it doesn't prompt for a tag name."
 (my-key "C-n C-p b" gist-buffer)
 (my-key "C-n C-p g" gist-fetch)
 
-(persp-mode)
 (quick-perspective-keys)
