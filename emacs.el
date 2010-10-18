@@ -288,6 +288,11 @@ The -hook suffix is unnecessary."
     (defun foldit-mode (&rest _)))
   (my-add-hook nxhtml-mumamo-mode mumamo-no-chunk-coloring))
 
+(my-after-load markdown-mode
+  (my-add-hook markdown-mode
+    (toggle-word-wrap 1)
+    (toggle-truncate-lines -1)))
+
 (my-add-hook text-mode flyspell-mode)
 (my-add-hook lisp-mode pretty-lambdas)
 (my-add-hook emacs-lisp-mode pretty-lambdas)
