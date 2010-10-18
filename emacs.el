@@ -321,6 +321,7 @@ The -hook suffix is unnecessary."
 (setq magit-commit-all-when-nothing-staged t)
 (setq magit-remote-ref-format 'remote-slash-branch)
 (setq sentence-end-double-space nil)
+(setq x-select-enable-primary t)
 (fset 'yes-or-no-p 'y-or-n-p)
 (global-font-lock-mode 1)
 (transient-mark-mode -1)
