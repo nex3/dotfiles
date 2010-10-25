@@ -286,6 +286,9 @@ The -hook suffix is unnecessary."
   ;; Used by MuMaMo
   (unless (fboundp 'foldit-mode)
     (defun foldit-mode (&rest _)))
+  ;; By default, mumamo requires type attrs, which is stupid.
+  (setq mumamo-script-tag-start-regex "<script\\([[:space:]][^>]*\\)?>")
+  (setq mumamo-style-tag-start-regex "<style\\([[:space:]][^>]*\\)?>")
   (my-add-hook nxhtml-mumamo-mode mumamo-no-chunk-coloring))
 
 (my-after-load markdown-mode
