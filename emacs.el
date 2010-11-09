@@ -517,6 +517,20 @@ it doesn't prompt for a tag name."
       (insert c-block-comment-prefix))
     (indent-according-to-mode)))
 
+(defun my-info (file-or-node &optional buffer)
+  "Like `info', but with a better interactive interface.
+When called interactively, reads an info node rather than an info
+filename.
+
+Treats prefix args in the same way as `info'."
+  (interactive (list
+                (if (and current-prefix-arg (not (numberp current-prefix-arg)))
+                    (read-file-name "Info file name: " nil nil t)
+                  (read-string "Info node: "))
+                (if (numberp current-prefix-arg)
+                    (format "*info*<%s>" current-prefix-arg))))
+  (info file-or-node buffer))
+
 ;; ----------
 ;; -- Keybindings
 ;; ----------
@@ -708,7 +722,7 @@ it doesn't prompt for a tag name."
 
 (my-map "C-n" nex3)
 (my-key "C-n ." .emacs)
-(my-key "C-n i" nex3-irc)
+(my-key "C-n i" my-info)
 (my-key "C-n b" blog)
 (my-key "C-n c" comment-region)
 (my-key "C-n u" uncomment-region)
