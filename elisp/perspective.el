@@ -5,7 +5,7 @@
 
 ;; Author: Nathan Weizenbaum
 ;; URL: http://github.com/nex3/perspective-el
-;; Version: 1.5
+;; Version: 1.6
 ;; Created: 2008-03-05
 ;; By: Nathan Weizenbaum
 ;; Keywords: workspace, convenience, frames
@@ -206,11 +206,7 @@ for the perspective."
        (with-perspective (persp-name persp)
          ,(when args
             ;; Body form given
-            `(setf (persp-window-configuration persp-curr)
-                   (save-excursion
-                     (save-window-excursion
-                       ,@args
-                       (current-window-configuration)))))
+            `(save-excursion ,@args))
          (run-hooks 'persp-created-hook))
        persp)))
 

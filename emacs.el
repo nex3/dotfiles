@@ -65,8 +65,6 @@
    '(textile-ul-bullet-face ((t (:foreground "#398EE6"))))
    '(magit-item-highlight ((t (:background "#222222"))))))
 
-(setq frame-title-format '("Emacs: %b [" (:eval (persp-name persp-curr)) "]"))
-
 ;; ----------
 ;; -- Loading Modules
 ;; ----------
@@ -79,6 +77,10 @@
 (when (and (functionp 'daemonp) (daemonp))
   (setq edit-server-port 9293)
   (edit-server-start))
+
+(persp-mode)
+
+(setq frame-title-format '("Emacs: %b [" (:eval (persp-name persp-curr)) "]"))
 
 (defun load-mode (name regexp)
   "Set up a language mode NAME-mode so that
@@ -273,9 +275,8 @@ The -hook suffix is unnecessary."
   (setq markdown-command "maruku -o /dev/stdout 2> /dev/null"))
 
 (my-after-load compile
-  (my-add-hook persp-mode
-    (persp-make-variable-persp-local 'compile-history)
-    (persp-make-variable-persp-local 'compile-command)))
+  (persp-make-variable-persp-local 'compile-history)
+  (persp-make-variable-persp-local 'compile-command))
 
 (my-after-load caml
   (require 'caml-font)
@@ -285,7 +286,15 @@ The -hook suffix is unnecessary."
   ;; Used by MuMaMo
   (unless (fboundp 'foldit-mode)
     (defun foldit-mode (&rest _)))
+  ;; By default, mumamo requires type attrs, which is stupid.
+  (setq mumamo-script-tag-start-regex "<script\\([[:space:]][^>]*\\)?>")
+  (setq mumamo-style-tag-start-regex "<style\\([[:space:]][^>]*\\)?>")
   (my-add-hook nxhtml-mumamo-mode mumamo-no-chunk-coloring))
+
+(my-after-load markdown-mode
+  (my-add-hook markdown-mode
+    (toggle-word-wrap 1)
+    (toggle-truncate-lines -1)))
 
 (my-add-hook text-mode flyspell-mode)
 (my-add-hook lisp-mode pretty-lambdas)
@@ -320,6 +329,7 @@ The -hook suffix is unnecessary."
 (setq magit-commit-all-when-nothing-staged t)
 (setq magit-remote-ref-format 'remote-slash-branch)
 (setq sentence-end-double-space nil)
+(setq x-select-enable-primary t)
 (fset 'yes-or-no-p 'y-or-n-p)
 (global-font-lock-mode 1)
 (transient-mark-mode -1)
@@ -713,5 +723,4 @@ it doesn't prompt for a tag name."
 (my-key "C-n C-p b" gist-buffer)
 (my-key "C-n C-p g" gist-fetch)
 
-(persp-mode)
 (quick-perspective-keys)
