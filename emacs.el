@@ -526,10 +526,52 @@ Treats prefix args in the same way as `info'."
   (interactive (list
                 (if (and current-prefix-arg (not (numberp current-prefix-arg)))
                     (read-file-name "Info file name: " nil nil t)
-                  (read-string "Info node: "))
+                  (require 'magithub)
+                  (completing-read "Info node: " (my-complete-info-node-callback)))
                 (if (numberp current-prefix-arg)
                     (format "*info*<%s>" current-prefix-arg))))
   (info file-or-node buffer))
+
+(defun my-complete-info-node-callback ()
+  "Creates a callback that caches completions for info nodes."
+  (lexical-let ((cached-info-nodes-for-file
+                 (magithub--cache-function 'my-info-nodes-for-file))
+                (cached-info-get-files
+                 (magithub--cache-function 'my-info-get-files)))
+    (lambda (string predicate allp)
+      (let (new-string list)
+        (if (string-match "(\\([^)]+\\))\\(.*\\)" string)
+            (progn
+              (setq new-string string)
+              (setq list (funcall cached-info-nodes-for-file (match-string 1 string))))
+          (string-match "(\\([^)]*\\)" string)
+          (setq new-string (concat "(" (or (match-string 1 string) string)))
+          (setq list (funcall cached-info-get-files)))
+        (if allp (all-completions new-string list predicate)
+          (try-completion new-string list predicate))))))
+
+(defun my-info-nodes-for-file (filename)
+  "Return a list of info nodes in FILENAME.
+These are in the format (FILENAME)NODENAME."
+  (save-window-excursion
+    (with-temp-buffer
+      (info filename (current-buffer))
+      (mapcar (lambda (nodename) (concat "(" filename ")" (car nodename)))
+              (Info-build-node-completions)))))
+
+(defun my-info-get-files ()
+  "Return a list of all available top-level info files as strings."
+  (let ((ext-regexp "\\(\\.\\(info\\|gz\\|bz2\\|xz\\|lzma\\)\\)*"))
+    (loop for dir in Info-directory-list
+          append (loop for file in (directory-files dir 'full)
+                       unless (or (file-directory-p file)
+                                  (string-match (concat ext-regexp "-[0-9]+" ext-regexp  "$") file)
+                                  (string-match (concat "/dir$") file))
+                       collect (concat "("
+                                       (string-replace-match
+                                        (concat ext-regexp "$")
+                                        (file-name-nondirectory file)
+                                        "") ")")))))
 
 ;; ----------
 ;; -- Keybindings
