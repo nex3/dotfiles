@@ -544,8 +544,10 @@ Treats prefix args in the same way as `info'."
             (progn
               (setq new-string string)
               (setq list (funcall cached-info-nodes-for-file (match-string 1 string))))
-          (string-match "(\\([^)]*\\)" string)
-          (setq new-string (concat "(" (or (match-string 1 string) string)))
+          (setq new-string
+                (concat "(" (if (string-match "(\\([^)]*\\)" string)
+                                (match-string 1 string)
+                              string)))
           (setq list (funcall cached-info-get-files)))
         (if allp (all-completions new-string list predicate)
           (try-completion new-string list predicate))))))
