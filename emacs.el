@@ -13,10 +13,13 @@
 (add-to-list 'load-path "/usr/share/emacs/site-lisp")
 (add-to-list 'load-path "/usr/share/emacs-snapshot/site-lisp")
 (add-to-list 'load-path "~/.elisp/rcirc-notify-el")
-(add-to-list 'load-path "~/.elisp/fuel")
 (add-to-list 'load-path "~/.elisp/haskell-mode")
 (add-to-list 'load-path "~/.elisp/auctex")
 (add-to-list 'load-path "~/.elisp/auctex/preview")
+(add-to-list 'load-path "~/.elisp/nxhtml")
+(add-to-list 'load-path "~/.elisp/nxhtml/nxhtml")
+(add-to-list 'load-path "~/.elisp/nxhtml/util")
+(add-to-list 'load-path "~/.elisp/nxhtml/related")
 (add-to-list 'load-path "~/.elisp/ocaml")
 (add-to-list 'load-path "~/.elisp")
 (add-to-list 'load-path "~/share/emacs/site-lisp")
@@ -40,31 +43,27 @@
 (init-frame)
 (add-hook 'after-make-frame-functions 'init-frame)
 
-(setq byte-compile-verbose nil)
-(setq byte-compile-warnings nil)
-(require 'byte-code-cache)
-(require 'color-theme)
+(when (or window-system (and (fboundp 'daemonp) (daemonp)))
+  (require 'color-theme)
 
-(color-theme-initialize)
-(load "alexandres-theme")
-(my-color-theme-dark)
+  (color-theme-initialize)
+  (load "alexandres-theme")
+  (my-color-theme-dark)
 
-(custom-set-faces
- '(default ((((min-colors 256)) (:foreground "pink"))
-            (t (:foreground "white"))))
- ;; Don't highlight lines in the terminal
- '(hl-line ((((min-colors 256)) (:inherit highlight))
-            (((min-colors 8)) (:inherit nil :background nil))))
- '(yas/field-highlight-face ((t (:background "gray30"))))
- '(erb-face ((t (:background "gray15"))))
- '(rcirc-server ((((min-colors 8)) (:foreground nil))
-                 (t (:foreground "gray40"))))
- '(mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
- '(textile-link-face ((t (:foreground "#398EE6"))))
- '(textile-ul-bullet-face ((t (:foreground "#398EE6"))))
- '(magit-item-highlight ((t (:background "#222222")))))
-
-(setq frame-title-format '("Emacs: %b [" (:eval (persp-name persp-curr)) "]"))
+  (custom-set-faces
+   '(default ((((min-colors 256)) (:foreground "pink"))
+              (t (:foreground "white"))))
+   ;; Don't highlight lines in the terminal
+   '(hl-line ((((min-colors 256)) (:inherit highlight))
+              (((min-colors 8)) (:inherit nil :background nil))))
+   '(yas/field-highlight-face ((t (:background "gray30"))))
+   '(erb-face ((t (:background "gray15"))))
+   '(rcirc-server ((((min-colors 8)) (:foreground nil))
+                   (t (:foreground "gray40"))))
+   '(mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
+   '(textile-link-face ((t (:foreground "#398EE6"))))
+   '(textile-ul-bullet-face ((t (:foreground "#398EE6"))))
+   '(magit-item-highlight ((t (:background "#222222"))))))
 
 ;; ----------
 ;; -- Loading Modules
@@ -75,12 +74,23 @@
 (require 'tex-site)
 (eval-when-compile (require 'cl))
 
+(when (and (functionp 'daemonp) (daemonp))
+  (setq edit-server-port 9293)
+  (edit-server-start))
+
+(persp-mode)
+
+(setq frame-title-format '("Emacs: %b [" (:eval (persp-name persp-curr)) "]"))
+
 (defun load-mode (name regexp)
   "Set up a language mode NAME-mode so that
 it's loaded for files matching REGEXP."
   (add-to-list 'auto-mode-alist (cons regexp (intern (format "%s-mode" name)))))
 
-(load-mode 'javascript "\\.js$")
+;; This is here because it would require loading a bunch of MuMaMo macros
+;; to have the autoload defined in the file.
+(autoload 'nxhtml-mumamo-mode "nxhtml-mumamo.el")
+
 (load-mode 'd "\\.d[i]?\\'$")
 (load-mode 'textile "\\.textile$")
 (load-mode 'markdown "\\.\\(markdown\\|md\\)$")
@@ -97,6 +107,7 @@ it's loaded for files matching REGEXP."
 (load-mode 'csharp "\\.cs$")
 (load-mode 'factor "\\.factor$")
 (load-mode 'caml "\\.ml[iylp]?$")
+(load-mode 'nxhtml-mumamo "\\.x?html?$")
 
 (defmacro my-after-load (name &rest body)
   "Like `eval-after-load', but a macro."
@@ -115,14 +126,18 @@ it's loaded for files matching REGEXP."
   "Like `add-hook', but a macro.
 The -hook suffix is unnecessary."
   (declare (indent 1))
-  (let ((name (format "%s" name)))
+  (let ((name (format "%s" name))
+        (append (when (eq (car body) :append)
+                  (pop body)
+                  t)))
     `(add-hook ',(intern
                   (if (string-match "-hook$" name) name
                     (format "%s-hook" name)))
-             ,(if (and (eq (length body) 1)
-                       (symbolp (car body)))
-                  (list 'quote (car body))
-                `(lambda () ,@body)))))
+               ,(if (and (eq (length body) 1)
+                         (symbolp (car body)))
+                    (list 'quote (car body))
+                  `(lambda () ,@body))
+               ,append)))
 
 (my-after-load comint
   (define-key comint-mode-map (kbd "M-O") 'comint-previous-input)
@@ -237,10 +252,8 @@ The -hook suffix is unnecessary."
     (setq tab-width 2)
     (set-variable (make-variable-buffer-local 'whitespace-tab-width) 2)))
 
-(my-after-load javascript-mode
-  (setq javascript-auto-indent-flag nil)
-  (my-add-hook javascript-mode
-    (pretty-lambdas "\\(function\\>\\)(")))
+(my-after-load js-mode
+  (setq js-auto-indent-flag nil))
 
 (my-after-load fuel-mode
   (define-key fuel-mode-map "\M-." nil)
@@ -262,13 +275,26 @@ The -hook suffix is unnecessary."
   (setq markdown-command "maruku -o /dev/stdout 2> /dev/null"))
 
 (my-after-load compile
-  (my-add-hook persp-mode
-    (persp-make-variable-persp-local 'compile-history)
-    (persp-make-variable-persp-local 'compile-command)))
+  (persp-make-variable-persp-local 'compile-history)
+  (persp-make-variable-persp-local 'compile-command))
 
 (my-after-load caml
   (require 'caml-font)
   (define-key caml-mode-map (kbd "C-c C-b") 'caml-eval-buffer))
+
+(my-after-load nxhtml-mumamo
+  ;; Used by MuMaMo
+  (unless (fboundp 'foldit-mode)
+    (defun foldit-mode (&rest _)))
+  ;; By default, mumamo requires type attrs, which is stupid.
+  (setq mumamo-script-tag-start-regex "<script\\([[:space:]][^>]*\\)?>")
+  (setq mumamo-style-tag-start-regex "<style\\([[:space:]][^>]*\\)?>")
+  (my-add-hook nxhtml-mumamo-mode mumamo-no-chunk-coloring))
+
+(my-after-load markdown-mode
+  (my-add-hook markdown-mode
+    (toggle-word-wrap 1)
+    (toggle-truncate-lines -1)))
 
 (my-add-hook text-mode flyspell-mode)
 (my-add-hook lisp-mode pretty-lambdas)
@@ -302,6 +328,8 @@ The -hook suffix is unnecessary."
 (setq magit-save-some-buffers nil)
 (setq magit-commit-all-when-nothing-staged t)
 (setq magit-remote-ref-format 'remote-slash-branch)
+(setq sentence-end-double-space nil)
+(setq x-select-enable-primary t)
 (fset 'yes-or-no-p 'y-or-n-p)
 (global-font-lock-mode 1)
 (transient-mark-mode -1)
@@ -323,6 +351,21 @@ The -hook suffix is unnecessary."
                (eq this-command 'save-buffers-kill-terminal)
                confirm-kill-emacs
                (not (funcall confirm-kill-emacs "Really kill terminal? ")))
+    ad-do-it))
+
+(defvar my-confirm-before-deleting nil
+  "Confirm before deleting a frame. Meant to be let-bound by advice.")
+
+(defadvice delete-frame (around confirm-before-deleting activate)
+  "Confirm before deleting a frame if `my-confirm-before-deleting' is set."
+  (unless (and my-confirm-before-deleting
+               confirm-kill-emacs
+               (not (funcall confirm-kill-emacs "Really delete frame? ")))
+    ad-do-it))
+
+(defadvice handle-delete-frame (around confirm-before-deleting activate)
+  "Confirm before deleting a frame because of an X event."
+  (let ((my-confirm-before-deleting t))
     ad-do-it))
 
 ;; ----------
@@ -455,6 +498,83 @@ it doesn't prompt for a tag name."
   (setq my-last-tag-was-search t)
   (find-tag tagname nil t))
 
+(defun my-comment-indent-new-line ()
+  "Like `comment-indent-new-line', but adds a prefix for block comments as well."
+  (interactive)
+  (if (save-excursion
+        (and (re-search-backward comment-start-skip nil t)
+             (looking-at (comment-string-strip comment-start t t))))
+      ;; We're looking at a single-line comment,
+      ;; which comment-indent-new-line can handle.
+      (comment-indent-new-line)
+    ;; We're looking at a multiline comment,
+    ;; which confuses comment-indent-new-line.
+    (newline-and-indent)
+    (when (and comment-start
+               comment-multi-line
+               c-block-comment-prefix
+               (save-excursion (comment-beginning)))
+      (insert c-block-comment-prefix))
+    (indent-according-to-mode)))
+
+(defun my-info (file-or-node &optional buffer)
+  "Like `info', but with a better interactive interface.
+When called interactively, reads an info node rather than an info
+filename.
+
+Treats prefix args in the same way as `info'."
+  (interactive (list
+                (if (and current-prefix-arg (not (numberp current-prefix-arg)))
+                    (read-file-name "Info file name: " nil nil t)
+                  (require 'magithub)
+                  (completing-read "Info node: " (my-complete-info-node-callback)))
+                (if (numberp current-prefix-arg)
+                    (format "*info*<%s>" current-prefix-arg))))
+  (info file-or-node buffer))
+
+(defun my-complete-info-node-callback ()
+  "Creates a callback that caches completions for info nodes."
+  (lexical-let ((cached-info-nodes-for-file
+                 (magithub--cache-function 'my-info-nodes-for-file))
+                (cached-info-get-files
+                 (magithub--cache-function 'my-info-get-files)))
+    (lambda (string predicate allp)
+      (let (new-string list)
+        (if (string-match "(\\([^)]+\\))\\(.*\\)" string)
+            (progn
+              (setq new-string string)
+              (setq list (funcall cached-info-nodes-for-file (match-string 1 string))))
+          (setq new-string
+                (concat "(" (if (string-match "(\\([^)]*\\)" string)
+                                (match-string 1 string)
+                              string)))
+          (setq list (funcall cached-info-get-files)))
+        (if allp (all-completions new-string list predicate)
+          (try-completion new-string list predicate))))))
+
+(defun my-info-nodes-for-file (filename)
+  "Return a list of info nodes in FILENAME.
+These are in the format (FILENAME)NODENAME."
+  (save-window-excursion
+    (with-temp-buffer
+      (info filename (current-buffer))
+      (mapcar (lambda (nodename) (concat "(" filename ")" (car nodename)))
+              (Info-build-node-completions)))))
+
+(defun my-info-get-files ()
+  "Return a list of all available top-level info files as strings."
+  (let ((ext-regexp "\\(\\.\\(info\\|gz\\|bz2\\|xz\\|lzma\\)\\)*"))
+    (loop for dir in Info-directory-list
+          append (loop for file in (directory-files dir 'full)
+                       unless (or (file-directory-p file)
+                                  (string-match (concat ext-regexp "-[0-9]+" ext-regexp  "$") file)
+                                  (string-match (concat "/dir$") file))
+                       collect (concat "("
+                                       (string-replace-match
+                                        (concat ext-regexp "$")
+                                        (file-name-nondirectory file)
+                                        "") ")")))))
+
 ;; ----------
 ;; -- Keybindings
 ;; ----------
@@ -490,10 +610,24 @@ it doesn't prompt for a tag name."
   `(my-key ,key keyboard-quit))
 
 ;; -- Terminal hacks
+;;
+;; The input standard for terminals, having evolved in a time before graphical
+;; interfaces, doesn't have nearly the same level of support for modifier keys
+;; as X does. Since I use all sorts of modifier keys, often in combination with
+;; one another, this presents a problem. How do I get bindings involving two or
+;; more of control, meta, and shift to work?
+;;
+;; Luckily, the X toolkit and xterm (which uses it) are vastly customizable.
+;; Through the Xresources config file, which is fed to xrdb, I can tell xterm
+;; that any key event (involving as many modifiers as I want) should produce
+;; any arbitrary string. In addition, Emacs has low-level but lisp-accessible
+;; facilities for saying that a particular string of characters should translate
+;; to a particular key sequence.
 
 (setf (cddr key-translation-map)
       (eval-when-compile
-        (let ((chars (string-to-list "qwertyuiop]\\asdfghjklzxcvbnm")))
+        (let ((chars (string-to-list "qwertyuiop]\\asdfghjklzxcvbnm"))
+              (meta (string-to-char (kbd "ESC"))))
           (flet ((add-prefix (prefix char)
                              (read-kbd-macro (concat prefix "-" (char-to-string char))))
                  (make-bindings (binding-prefix)
@@ -502,27 +636,50 @@ it doesn't prompt for a tag name."
                                    (cons (string-to-char (add-prefix "C" char))
                                          (add-prefix binding-prefix char)))
                                  chars)))
-            `((? keymap
-                   (?& keymap
-                       (?M keymap
-                           (?\; . ,(kbd "C-M-;"))
-                           (?. . ,(kbd "C-M-.")))
-                       (?S keymap
-                           (? keymap ,@(make-bindings "C-M-S")
-                                (?: . ,(kbd "C-M-:")))
-                           ,@(make-bindings "C-S")
-                           (? . ,(kbd "C-_"))))))))))
+            ;; C-M-S- bindings are a slightly weird case. None of them work by
+            ;; default, so we have to bind them en masse. In addition, they're
+            ;; actually included in two of the subdivisions below. The A keymap
+            ;; is the "correct" keymap for them, but they also appear in the S
+            ;; keymap. This is because, since we emit the S prefix for *all*
+            ;; C-S- characters, typing C-S-M (in that order) will generate the S
+            ;; prefix before generating the full prefix. Thus we have to process
+            ;; the A prefix *after* processing the S sequence.
+            (let ((cms-bindings
+                   `(,meta keymap ,@(make-bindings "C-M-S")
+                           (?: . ,(kbd "C-M-:"))
+                           (?\s . ,(kbd "C-M-S-SPC")))))
+              ;; I reserve the prefix M-& for my translation map, because it's a
+              ;; pain to reach anyway.
+              `((,meta keymap
+                       (?& keymap
+                           ;; The C keymap handles C-M- bindings. There are only
+                           ;; a couple of these, since C-M- works without issue
+                           ;; for alphabetic characters.
+                           (?C keymap
+                               (?\; . ,(kbd "C-M-;"))
+                               (?. . ,(kbd "C-M-.")))
+                           ;; The M keymap handles M-S- bindings. There's only
+                           ;; one of these, since M-S- works almost all the time.
+                           (?M keymap
+                               (?\s . ,(kbd "M-S-SPC")))
+                           ;; The S keymap handles C-S- and (sometimes) C-M-S
+                           ;; bindings. All C-S- bindings we care about don't
+                           ;; work, so we bind them en masse.
+                           (?S keymap
+                               (,meta keymap (?& keymap (?A keymap ,cms-bindings)))
+                               ,@(make-bindings "C-S"))
+                           ;; The A keymap (sometimes) handles C-M-S- bindings.
+                           (?A keymap
+                               ,cms-bindings)))))))))
 
 ;; -- Actual Bindings
 
 (my-unset "C-x C-z")
 (my-unset "C-x p")
 (my-unset "C-]")
+(my-unset "M-&") ;; Necessary for terminal hacks
 
 ;; Ergonomic keybindings inspired by http://xahlee.org/emacs/ergonomic_emacs_keybinding.html
-
-(my-map "M-d" my-delete)
-(my-map "M-s" my-save)
 
 (my-key "M-j" backward-char)
 (my-key "M-;" forward-char)
@@ -576,21 +733,19 @@ it doesn't prompt for a tag name."
   (my-key "M-O" previous-history-element)
   (my-key "M-I" next-history-element))
 
-(my-key "M-RET" comment-indent-new-line)
+(my-key "M-RET" my-comment-indent-new-line)
 (my-key "C-v" x-clipboard-only-yank)
 (my-key "C-z" clipboard-kill-region)
 
-(my-key "M-w" kill-region)
-(my-key "M-e" kill-ring-save)
-(my-key "M-r" yank)
-(my-key "M-R" yank-pop)
-
-(my-key "M-S-SPC" mark-paragraph)
 (my-key "M-SPC" set-mark-command)
+(my-key "C-M-SPC" kill-region)
+(my-key "C-M-@" kill-region)
+(my-key "M-S-SPC" yank)
+(my-key "C-M-S-SPC" yank-pop)
 
-(my-key "M-'" repeat)
-(my-key "M-a" execute-extended-command)
+(my-key "M-'" execute-extended-command)
 (my-key "M-/" hippie-expand)
+(my-key "M-?" undo)
 
 (my-key "M-\"" back-to-indentation)
 
@@ -599,11 +754,19 @@ it doesn't prompt for a tag name."
 
 (my-key "<M-S-return>" my-magit-status)
 
+;; Cold Turkey
+
+(my-unset "C-w")
+(my-unset "C-y")
+(my-unset "C-_")
+(my-unset "M-y")
+(my-unset "M-x")
+
 ;; My Keymap
 
 (my-map "C-n" nex3)
 (my-key "C-n ." .emacs)
-(my-key "C-n i" nex3-irc)
+(my-key "C-n i" my-info)
 (my-key "C-n b" blog)
 (my-key "C-n c" comment-region)
 (my-key "C-n u" uncomment-region)
@@ -618,5 +781,4 @@ it doesn't prompt for a tag name."
 (my-key "C-n C-p b" gist-buffer)
 (my-key "C-n C-p g" gist-fetch)
 
-(persp-mode)
 (quick-perspective-keys)

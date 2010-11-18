@@ -115,8 +115,8 @@ function prompt_command {
         BRANCH='';
     fi
 
-    if [ "$rvm_tmp_path" -a -e "$rvm_tmp_path/$$/prompt" ]
-    then RVM_PROMPT=" ${START_YELLOW}(`cat "$rvm_tmp_path/$$/prompt"`)${END_COLOR}"
+    if [ "$rvm_path" -a -e "$rvm_path/tmp/$$/prompt" ]
+    then RVM_PROMPT=" ${START_YELLOW}(`cat "$rvm_path/tmp/$$/prompt"`)${END_COLOR}"
     else RVM_PROMPT=''
     fi
 
@@ -247,5 +247,7 @@ if [[ -s "$HOME/.rvm/scripts/rvm" ]]
 then
     source "$HOME/.rvm/scripts/rvm"
     advise cd with-ls-and-rvm 'super "$@" && ls'
-    mkdir -p "$rvm_tmp_path/$$"
+    if [ ! -z "$rvm_path" ]; then
+      mkdir -p "$rvm_path/tmp/$$"
+    fi
 fi
