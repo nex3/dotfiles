@@ -1,6 +1,18 @@
+! Run xrdb ~/.Xresources at startup to activate this config.
+
 xterm*faceName: Monospace
 xterm*faceSize: 9
 xterm*metaSendsEscape: true
+xterm*foreground: white
+xterm*background: black
 
 Xft.hinting: 1
 Xft.dpi: 96
+
+*VT100.Translations: #override \
+ 	!Ctrl Meta <Key>.: string("\033&C.")\n\
+        !Ctrl Meta <Key>;: string("\033&C;")\n\
+        !Meta Shift <Key>space: string("\033&M ")\n\
+        !Ctrl Shift Meta <Key>space: string("\033&A\033 ")\n\
+        !Ctrl Shift Meta <Key>: string("\033&A") insert-seven-bit()\n\
+        !Ctrl Shift <Key>: string("\033&S") insert-seven-bit()

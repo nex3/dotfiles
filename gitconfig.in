@@ -13,7 +13,8 @@
         push = push --tags
         slog = log --pretty=oneline --abbrev-commit
         from = !sh -c 'git slog --no-merges "$1.."' --
-        sdiff = diff --stat
+        sdiff = diff --stat=150,130
+        sshow = !sh -c 'git show "$1"; git sdiff "$1" "$1^"' --
         msg = commit --allow-empty -m
 [color]
         ui = auto
