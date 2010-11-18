@@ -503,7 +503,9 @@ it doesn't prompt for a tag name."
   (interactive)
   (if (save-excursion
         (and (re-search-backward comment-start-skip nil t)
-             (looking-at (comment-string-strip comment-start t t))))
+             (looking-at (if (functionp 'comment-string-strip)
+                             (comment-string-strip comment-start t t)
+                           comment-start))))
       ;; We're looking at a single-line comment,
       ;; which comment-indent-new-line can handle.
       (comment-indent-new-line)
