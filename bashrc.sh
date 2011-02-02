@@ -246,7 +246,9 @@ fi
 if [[ -s "$HOME/.rvm/scripts/rvm" ]]
 then
     source "$HOME/.rvm/scripts/rvm"
-    advise cd with-ls-and-rvm 'super "$@" && ls'
+    if type advise &> /dev/null; then
+      advise cd with-ls-and-rvm 'super "$@" && ls'
+    fi
     if [ ! -z "$rvm_path" ]; then
       mkdir -p "$rvm_path/tmp/$$"
     fi
