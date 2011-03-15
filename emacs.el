@@ -344,6 +344,9 @@ The -hook suffix is unnecessary."
         try-complete-lisp-symbol-partially
         try-complete-lisp-symbol))
 
+(when (boundp package-archives)
+  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/")))
+
 (defadvice server-save-buffers-kill-terminal (around confirm-before-killing activate)
   "Confirm before killing a windowed emacsclient."
   (unless (and window-system
