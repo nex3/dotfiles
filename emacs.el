@@ -295,6 +295,11 @@ The -hook suffix is unnecessary."
     (toggle-word-wrap 1)
     (toggle-truncate-lines -1)))
 
+(my-after-load package
+  (when (boundp 'package-archives)
+    (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))))
+
+
 (my-add-hook text-mode flyspell-mode)
 (my-add-hook lisp-mode pretty-lambdas)
 (my-add-hook emacs-lisp-mode pretty-lambdas)
@@ -343,9 +348,6 @@ The -hook suffix is unnecessary."
         try-expand-dabbrev-from-kill
         try-complete-lisp-symbol-partially
         try-complete-lisp-symbol))
-
-(when (boundp package-archives)
-  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/")))
 
 (defadvice server-save-buffers-kill-terminal (around confirm-before-killing activate)
   "Confirm before killing a windowed emacsclient."
