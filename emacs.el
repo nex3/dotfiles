@@ -313,7 +313,7 @@ The -hook suffix is unnecessary."
 
 (setq make-backup-files nil)
 (setq completion-ignored-extensions
-      '(".a" ".so" ".o" "~" ".bak" ".class" ".hi" ".beam"))
+      '(".a" ".so" ".o" "~" ".bak" ".class" ".hi" ".beam" ".rbc"))
 (setq default-truncate-lines t)
 (setq-default indent-tabs-mode nil)
 (setq column-number-mode t)
@@ -503,7 +503,9 @@ it doesn't prompt for a tag name."
   (interactive)
   (if (save-excursion
         (and (re-search-backward comment-start-skip nil t)
-             (looking-at (comment-string-strip comment-start t t))))
+             (looking-at (if (functionp 'comment-string-strip)
+                             (comment-string-strip comment-start t t)
+                           comment-start))))
       ;; We're looking at a single-line comment,
       ;; which comment-indent-new-line can handle.
       (comment-indent-new-line)
@@ -516,6 +518,64 @@ it doesn't prompt for a tag name."
                (save-excursion (comment-beginning)))
       (insert c-block-comment-prefix))
     (indent-according-to-mode)))
+
+(defun my-info (file-or-node &optional buffer)
+  "Like `info', but with a better interactive interface.
+When called interactively, reads an info node rather than an info
+filename.
+
+Treats prefix args in the same way as `info'."
+  (interactive (list
+                (if (and current-prefix-arg (not (numberp current-prefix-arg)))
+                    (read-file-name "Info file name: " nil nil t)
+                  (require 'magithub)
+                  (completing-read "Info node: " (my-complete-info-node-callback)))
+                (if (numberp current-prefix-arg)
+                    (format "*info*<%s>" current-prefix-arg))))
+  (info file-or-node buffer))
+
+(defun my-complete-info-node-callback ()
+  "Creates a callback that caches completions for info nodes."
+  (lexical-let ((cached-info-nodes-for-file
+                 (magithub--cache-function 'my-info-nodes-for-file))
+                (cached-info-get-files
+                 (magithub--cache-function 'my-info-get-files)))
+    (lambda (string predicate allp)
+      (let (new-string list)
+        (if (string-match "(\\([^)]+\\))\\(.*\\)" string)
+            (progn
+              (setq new-string string)
+              (setq list (funcall cached-info-nodes-for-file (match-string 1 string))))
+          (setq new-string
+                (concat "(" (if (string-match "(\\([^)]*\\)" string)
+                                (match-string 1 string)
+                              string)))
+          (setq list (funcall cached-info-get-files)))
+        (if allp (all-completions new-string list predicate)
+          (try-completion new-string list predicate))))))
+
+(defun my-info-nodes-for-file (filename)
+  "Return a list of info nodes in FILENAME.
+These are in the format (FILENAME)NODENAME."
+  (save-window-excursion
+    (with-temp-buffer
+      (info filename (current-buffer))
+      (mapcar (lambda (nodename) (concat "(" filename ")" (car nodename)))
+              (Info-build-node-completions)))))
+
+(defun my-info-get-files ()
+  "Return a list of all available top-level info files as strings."
+  (let ((ext-regexp "\\(\\.\\(info\\|gz\\|bz2\\|xz\\|lzma\\)\\)*"))
+    (loop for dir in Info-directory-list
+          append (loop for file in (directory-files dir 'full)
+                       unless (or (file-directory-p file)
+                                  (string-match (concat ext-regexp "-[0-9]+" ext-regexp  "$") file)
+                                  (string-match (concat "/dir$") file))
+                       collect (concat "("
+                                       (string-replace-match
+                                        (concat ext-regexp "$")
+                                        (file-name-nondirectory file)
+                                        "") ")")))))
 
 ;; ----------
 ;; -- Keybindings
@@ -708,7 +768,7 @@ it doesn't prompt for a tag name."
 
 (my-map "C-n" nex3)
 (my-key "C-n ." .emacs)
-(my-key "C-n i" nex3-irc)
+(my-key "C-n i" my-info)
 (my-key "C-n b" blog)
 (my-key "C-n c" comment-region)
 (my-key "C-n u" uncomment-region)
