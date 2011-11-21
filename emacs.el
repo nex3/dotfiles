@@ -305,11 +305,9 @@ The -hook suffix is unnecessary."
       (magit-status (file-name-directory (file-chase-links "~/.elisp")))
       (let* ((pkg-desc (assq name package-alist))
              (version (mapconcat #'number-to-string (aref (cdr pkg-desc) 0) ".")))
-        (magit-run-git "stash")
         (magit-run-git "add" "elisp/elpa")
         (magit-run-git "commit" "-m"
-                       (format "Add %s version %s." name version))
-        (magit-run-git "stash" "pop" "--index"))))
+                       (format "Add %s version %s." name version)))))
 
   (defadvice package-install (after my-commit-package-install (name) activate)
     (my-commit-package name))
