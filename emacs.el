@@ -298,7 +298,25 @@ The -hook suffix is unnecessary."
 (my-after-load package
   (when (boundp 'package-archives)
     (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/")))
-  (setq package-user-dir "~/.elisp/elpa"))
+  (setq package-user-dir "~/.elisp/elpa")
+
+  (defun my-commit-package (name)
+    (save-window-excursion
+      (magit-status (file-name-directory (file-chase-links "~/.elisp")))
+      (let* ((pkg-desc (assq name package-alist))
+             (version (mapconcat #'number-to-string (aref (cdr pkg-desc) 0) ".")))
+        (magit-run-git "stash")
+        (magit-run-git "add" "elisp/elpa")
+        (magit-run-git "commit" "-m"
+                       (format "Add %s version %s." name version))
+        (magit-run-git "stash" "pop" "--index"))))
+
+  (defadvice package-install (after my-commit-package-install (name) activate)
+    (my-commit-package name))
+
+  (defadvice package-install-from-buffer
+      (after my-commit-package-install-from-buffer (pkg-info type) activate)
+    (my-commit-package (aref pkg-info 0) name)))
 
 
 (my-add-hook text-mode flyspell-mode)
