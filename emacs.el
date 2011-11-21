@@ -316,7 +316,16 @@ The -hook suffix is unnecessary."
 
   (defadvice package-install-from-buffer
       (after my-commit-package-install-from-buffer (pkg-info type) activate)
-    (my-commit-package (aref pkg-info 0) name)))
+    (my-commit-package (aref pkg-info 0) name))
+
+  ;; Individual package initialization
+
+  (my-add-hook after-init
+    (require 'yasnippet)
+    (yas/global-mode 1)
+    (setq yas/root-directory "~/.elisp/snippets")
+    (yas/load-directory (car (file-expand-wildcards "~/.elisp/elpa/yasnippet-*/snippets")))
+    (yas/load-directory yas/root-directory)))
 
 
 (my-add-hook text-mode flyspell-mode)
@@ -441,15 +450,6 @@ which should be selected."
   (interactive)
   (make-directory (minibuffer-contents) t)
   (princ (concat "Created directory " (minibuffer-contents))))
-
-(defun load-yasnippet ()
-  "Load and (re)initialize yasnippet.el."
-  (interactive)
-  (unless (featurep 'yasnippet)
-    (load "yasnippet/yasnippet")
-    (add-to-list 'yas/extra-mode-hooks 'js2-mode)
-    (yas/initialize))
-  (yas/load-directory "~/.yasnippets"))
 
 (defun* pretty-lambdas (&optional (regexp "(?\\(lambda\\>\\)"))
   "Make NAME render as λ."
@@ -797,7 +797,6 @@ These are in the format (FILENAME)NODENAME."
 (my-key "C-n u" uncomment-region)
 (my-key "C-n m" make-directory-from-minibuffer)
 (my-key "C-n f" auto-fill-mode)
-(my-key "C-n y" load-yasnippet)
 (my-key "C-n =" my-calc-embedded)
 (my-key "C-n C" my-magithub-clone)
 
