@@ -297,7 +297,8 @@ The -hook suffix is unnecessary."
 
 (my-after-load package
   (when (boundp 'package-archives)
-    (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))))
+    (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/")))
+  (setq package-user-dir "~/.elisp/elpa"))
 
 
 (my-add-hook text-mode flyspell-mode)
