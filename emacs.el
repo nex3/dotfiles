@@ -80,10 +80,6 @@
 (setq package-user-dir "~/.elisp/elpa")
 (package-initialize)
 
-(when (and (functionp 'daemonp) (daemonp))
-  (setq edit-server-port 9293)
-  (edit-server-start))
-
 (persp-mode)
 
 (setq frame-title-format '("Emacs: %b [" (:eval (persp-name persp-curr)) "]"))
