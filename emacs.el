@@ -323,6 +323,11 @@ The -hook suffix is unnecessary."
     (yas/load-directory (car (file-expand-wildcards "~/.elisp/elpa/yasnippet-*/snippets")))
     (yas/load-directory yas/root-directory)))
 
+(my-after-load eshell
+  (persp-make-variable-persp-local 'eshell-buffer-name)
+  (my-add-hook persp-created
+    (setq eshell-buffer-name (format "*eshell* (%s)" (persp-name persp-curr)))))
+
 
 (my-add-hook text-mode flyspell-mode)
 (my-add-hook lisp-mode pretty-lambdas)
@@ -596,6 +601,11 @@ These are in the format (FILENAME)NODENAME."
                                         (file-name-nondirectory file)
                                         "") ")")))))
 
+(defun my-eshell-new-shell ()
+  "Create a new eshell."
+  (interactive)
+  (eshell 'new-shell))
+
 ;; ----------
 ;; -- Keybindings
 ;; ----------
@@ -774,6 +784,7 @@ These are in the format (FILENAME)NODENAME."
 (my-key "M-A" my-tag-search)
 
 (my-key "<M-S-return>" my-magit-status)
+(my-key "<C-S-return>" my-eshell-new-shell)
 
 ;; Cold Turkey
 
