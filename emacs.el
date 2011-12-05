@@ -72,7 +72,13 @@
 (load "my-loaddefs")
 (require 'pager)
 (require 'tex-site)
+(require 'package)
 (eval-when-compile (require 'cl))
+
+(when (boundp 'package-archives)
+  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/")))
+(setq package-user-dir "~/.elisp/elpa")
+(package-initialize)
 
 (when (and (functionp 'daemonp) (daemonp))
   (setq edit-server-port 9293)
@@ -296,10 +302,6 @@ The -hook suffix is unnecessary."
     (toggle-truncate-lines -1)))
 
 (my-after-load package
-  (when (boundp 'package-archives)
-    (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/")))
-  (setq package-user-dir "~/.elisp/elpa")
-
   (defun my-commit-package (name)
     (save-window-excursion
       (magit-status (file-name-directory (file-chase-links "~/.elisp")))
