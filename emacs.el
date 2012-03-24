@@ -600,6 +600,25 @@ These are in the format (FILENAME)NODENAME."
                                         (file-name-nondirectory file)
                                         "") ")")))))
 
+(defun my-count-words ()
+  "Count words, ignoring footnotes and links."
+  (interactive)
+  (save-excursion
+    (end-of-buffer)
+    (let ((last-real-line (save-excursion
+                            (re-search-backward "^[^0-9 \n]")
+                            (point))))
+      (re-search-backward "^1\. " last-real-line t)
+      (let ((contents-no-footnotes
+             (buffer-substring-no-properties
+              (save-excursion (beginning-of-buffer) (point))
+              (point))))
+        (with-temp-buffer
+          (insert contents-no-footnotes)
+          (beginning-of-buffer)
+          (replace-regexp "\\[[^\]]+\\]" "")
+          (count-words))))))
+
 ;; ----------
 ;; -- Keybindings
 ;; ----------
