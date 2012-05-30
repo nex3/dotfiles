@@ -345,8 +345,6 @@ The -hook suffix is unnecessary."
 (setq uniquify-buffer-name-style 'post-forward-angle-brackets)
 
 (setq make-backup-files nil)
-(setq completion-ignored-extensions
-      '(".a" ".so" ".o" "~" ".bak" ".class" ".hi" ".beam"))
 (setq default-truncate-lines t)
 (setq-default indent-tabs-mode nil)
 (setq column-number-mode t)
