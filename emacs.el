@@ -616,7 +616,8 @@ These are in the format (FILENAME)NODENAME."
         (with-temp-buffer
           (insert contents-no-footnotes)
           (beginning-of-buffer)
-          (replace-regexp "\\[[^\]]+\\]" "")
+          (replace-regexp "\\[[0-9]+\\]" "")
+          (replace-regexp "\\]([^)]+)" "")
           (count-words))))))
 
 ;; ----------
