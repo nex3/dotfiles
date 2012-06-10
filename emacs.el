@@ -301,6 +301,9 @@ The -hook suffix is unnecessary."
     (toggle-word-wrap 1)
     (toggle-truncate-lines -1)))
 
+(my-after-load coffee-mode
+  (setq coffee-tab-width 2))
+
 (my-after-load package
   (defun my-commit-package (name)
     (save-window-excursion
