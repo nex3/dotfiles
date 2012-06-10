@@ -302,7 +302,8 @@ The -hook suffix is unnecessary."
     (toggle-truncate-lines -1)))
 
 (my-after-load coffee-mode
-  (setq coffee-tab-width 2))
+  (setq coffee-tab-width 2)
+  (define-key coffee-mode-map "\C-m" 'newline))
 
 (my-after-load package
   (defun my-commit-package (name)
