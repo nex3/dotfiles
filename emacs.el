@@ -298,14 +298,17 @@ The -hook suffix is unnecessary."
     (toggle-truncate-lines -1)))
 
 (my-after-load package
-  (defun my-commit-package (name)
-    (save-window-excursion
-      (magit-status (file-name-directory (file-chase-links "~/.elisp")))
-      (let* ((pkg-desc (assq name package-alist))
-             (version (mapconcat #'number-to-string (aref (cdr pkg-desc) 0) ".")))
-        (magit-run-git "add" "elisp/elpa")
-        (magit-run-git "commit" "-m"
-                       (format "Add %s version %s." name version)))))
+  (defun my-package-latest-version (package)
+    "Return the latest version number of `package'."
+    (let ((pkg-desc (assq package package-alist)))
+      (mapconcat #'number-to-string (aref (cdr pkg-desc) 0) ".")))
+
+  (defun my-commit-package (package)
+    "Commit the latest version of `package'."
+    (my-commit-config
+     (format "Add %s version %s."
+             package
+             (my-package-latest-version package))))
 
   (defadvice package-install (after my-commit-package-install (name) activate)
     (my-commit-package name))
@@ -313,6 +316,10 @@ The -hook suffix is unnecessary."
   (defadvice package-install-from-buffer
       (after my-commit-package-install-from-buffer (pkg-info type) activate)
     (my-commit-package (aref pkg-info 0) name))
+
+  (defadvice package-delete (after my-commit-package-delete (name version) activate)
+    (my-commit-config
+     (format "Delete %s version %s." name version)))
 
   ;; Individual package initialization
 
@@ -603,6 +610,13 @@ These are in the format (FILENAME)NODENAME."
   "Create a new eshell."
   (interactive)
   (eshell 'new-shell))
+
+(defun my-commit-config (message)
+  "Commit a change to the config repo."
+  (save-window-excursion
+    (magit-status (file-name-directory (file-chase-links "~/.elisp")))
+    (magit-run-git "add" "-A" "elisp/elpa")
+    (magit-run-git "commit" "-m" message)))
 
 ;; ----------
 ;; -- Keybindings
