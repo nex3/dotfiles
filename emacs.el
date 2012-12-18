@@ -175,6 +175,11 @@ The -hook suffix is unnecessary."
       (setq indent-tabs-mode t)
       (setq tab-width 4))))
 
+(my-after-load dart-mode
+  (my-add-hook dart-mode
+    (c-set-style "dart")
+    (flymake-mode 1)))
+
 (my-after-load rcirc
   (require 'rcirc-color)
   (require 'rcirc-unambiguous-nick-completion)
@@ -338,6 +343,9 @@ The -hook suffix is unnecessary."
   (persp-make-variable-persp-local 'eshell-buffer-name)
   (my-add-hook persp-created
     (setq eshell-buffer-name (format "*eshell* (%s)" (persp-name persp-curr)))))
+
+(my-after-load flymake
+  (require 'flymake-cursor))
 
 
 (my-add-hook text-mode flyspell-mode)
