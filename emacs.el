@@ -297,6 +297,10 @@ The -hook suffix is unnecessary."
     (toggle-word-wrap 1)
     (toggle-truncate-lines -1)))
 
+(my-after-load coffee-mode
+  (setq coffee-tab-width 2)
+  (define-key coffee-mode-map "\C-m" 'newline))
+
 (my-after-load package
   (defun my-package-latest-version (package)
     "Return the latest version number of `package'."
@@ -617,6 +621,26 @@ These are in the format (FILENAME)NODENAME."
     (magit-status (file-name-directory (file-chase-links "~/.elisp")))
     (magit-run-git "add" "-A" "elisp/elpa")
     (magit-run-git "commit" "-m" message)))
+
+(defun my-count-words ()
+  "Count words, ignoring footnotes and links."
+  (interactive)
+  (save-excursion
+    (end-of-buffer)
+    (let ((last-real-line (save-excursion
+                            (re-search-backward "^[^0-9 \n]")
+                            (point))))
+      (re-search-backward "^1\. " last-real-line t)
+      (let ((contents-no-footnotes
+             (buffer-substring-no-properties
+              (save-excursion (beginning-of-buffer) (point))
+              (point))))
+        (with-temp-buffer
+          (insert contents-no-footnotes)
+          (beginning-of-buffer)
+          (replace-regexp "\\[[0-9]+\\]" "")
+          (replace-regexp "\\]([^)]+)" "")
+          (count-words))))))
 
 ;; ----------
 ;; -- Keybindings
