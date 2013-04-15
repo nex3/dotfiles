@@ -162,9 +162,6 @@ function $1 {
 "
 }
 
-ssh-fn dante 'nweiz@dante.u.washington.edu'
-ssh-fn attu  '"nex3@attu$1.cs.washington.edu"'
-
 advise ssh with-x 'super -X "$@"'
 alias home='ssh -p 2042 nex3@home.nex-3.com'
 alias svni='svn --ignore-externals'
@@ -246,7 +243,9 @@ fi
 if [[ -s "$HOME/.rvm/scripts/rvm" ]]
 then
     source "$HOME/.rvm/scripts/rvm"
-    advise cd with-ls-and-rvm 'super "$@" && ls'
+    if type advise &> /dev/null; then
+      advise cd with-ls-and-rvm 'super "$@" && ls'
+    fi
     if [ ! -z "$rvm_path" ]; then
       mkdir -p "$rvm_path/tmp/$$"
     fi

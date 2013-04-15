@@ -72,11 +72,13 @@
 (load "my-loaddefs")
 (require 'pager)
 (require 'tex-site)
+(require 'package)
 (eval-when-compile (require 'cl))
 
-(when (and (functionp 'daemonp) (daemonp))
-  (setq edit-server-port 9293)
-  (edit-server-start))
+(when (boundp 'package-archives)
+  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/")))
+(setq package-user-dir "~/.elisp/elpa")
+(package-initialize)
 
 (persp-mode)
 
@@ -173,6 +175,11 @@ The -hook suffix is unnecessary."
       (setq indent-tabs-mode t)
       (setq tab-width 4))))
 
+(my-after-load dart-mode
+  (my-add-hook dart-mode
+    (c-set-style "dart")
+    (flymake-mode 1)))
+
 (my-after-load rcirc
   (require 'rcirc-color)
   (require 'rcirc-unambiguous-nick-completion)
@@ -182,8 +189,7 @@ The -hook suffix is unnecessary."
                        "white" "LightSlateGrey" "RoyalBlue" "DeepSkyBlue" "LightSkyBlue"
                        "DarkOliveGreen" "PaleGreen" "ForestGreen" "LightGoldenrodYellow"
                        "sienna"))
-  (setq rcirc-server-alist '(("irc.freenode.net" :channels ("#haml" "#rubyfringe" "#freehackersunion"))
-                             ("irc.nex-3.com" :nick "Nathan" :channels ("#rc"))))
+  (setq rcirc-server-alist '(("irc.nex-3.com" :nick "Nathan" :channels ("#rc"))))
   (setq my-rcirc-notify-timeout 90)
   (setq rcirc-unambiguous-complete t)
   (setq rcirc-debug-flag t)
@@ -296,6 +302,52 @@ The -hook suffix is unnecessary."
     (toggle-word-wrap 1)
     (toggle-truncate-lines -1)))
 
+(my-after-load coffee-mode
+  (setq coffee-tab-width 2)
+  (define-key coffee-mode-map "\C-m" 'newline))
+
+(my-after-load package
+  (defun my-package-latest-version (package)
+    "Return the latest version number of `package'."
+    (let ((pkg-desc (assq package package-alist)))
+      (mapconcat #'number-to-string (aref (cdr pkg-desc) 0) ".")))
+
+  (defun my-commit-package (package)
+    "Commit the latest version of `package'."
+    (my-commit-config
+     (format "Add %s version %s."
+             package
+             (my-package-latest-version package))))
+
+  (defadvice package-install (after my-commit-package-install (name) activate)
+    (my-commit-package name))
+
+  (defadvice package-install-from-buffer
+      (after my-commit-package-install-from-buffer (pkg-info type) activate)
+    (my-commit-package (aref pkg-info 0) name))
+
+  (defadvice package-delete (after my-commit-package-delete (name version) activate)
+    (my-commit-config
+     (format "Delete %s version %s." name version)))
+
+  ;; Individual package initialization
+
+  (my-add-hook after-init
+    (require 'yasnippet)
+    (yas/global-mode 1)
+    (setq yas/root-directory "~/.elisp/snippets")
+    (yas/load-directory (car (file-expand-wildcards "~/.elisp/elpa/yasnippet-*/snippets")))
+    (yas/load-directory yas/root-directory)))
+
+(my-after-load eshell
+  (persp-make-variable-persp-local 'eshell-buffer-name)
+  (my-add-hook persp-created
+    (setq eshell-buffer-name (format "*eshell* (%s)" (persp-name persp-curr)))))
+
+(my-after-load flymake
+  (require 'flymake-cursor))
+
+
 (my-add-hook text-mode flyspell-mode)
 (my-add-hook lisp-mode pretty-lambdas)
 (my-add-hook emacs-lisp-mode pretty-lambdas)
@@ -312,8 +364,6 @@ The -hook suffix is unnecessary."
 (setq uniquify-buffer-name-style 'post-forward-angle-brackets)
 
 (setq make-backup-files nil)
-(setq completion-ignored-extensions
-      '(".a" ".so" ".o" "~" ".bak" ".class" ".hi" ".beam" ".rbc"))
 (setq default-truncate-lines t)
 (setq-default indent-tabs-mode nil)
 (setq column-number-mode t)
@@ -418,15 +468,6 @@ which should be selected."
   (interactive)
   (make-directory (minibuffer-contents) t)
   (princ (concat "Created directory " (minibuffer-contents))))
-
-(defun load-yasnippet ()
-  "Load and (re)initialize yasnippet.el."
-  (interactive)
-  (unless (featurep 'yasnippet)
-    (load "yasnippet/yasnippet")
-    (add-to-list 'yas/extra-mode-hooks 'js2-mode)
-    (yas/initialize))
-  (yas/load-directory "~/.yasnippets"))
 
 (defun* pretty-lambdas (&optional (regexp "(?\\(lambda\\>\\)"))
   "Make NAME render as λ."
@@ -576,6 +617,38 @@ These are in the format (FILENAME)NODENAME."
                                         (concat ext-regexp "$")
                                         (file-name-nondirectory file)
                                         "") ")")))))
+
+(defun my-eshell-new-shell ()
+  "Create a new eshell."
+  (interactive)
+  (eshell 'new-shell))
+
+(defun my-commit-config (message)
+  "Commit a change to the config repo."
+  (save-window-excursion
+    (magit-status (file-name-directory (file-chase-links "~/.elisp")))
+    (magit-run-git "add" "-A" "elisp/elpa")
+    (magit-run-git "commit" "-m" message)))
+
+(defun my-count-words ()
+  "Count words, ignoring footnotes and links."
+  (interactive)
+  (save-excursion
+    (end-of-buffer)
+    (let ((last-real-line (save-excursion
+                            (re-search-backward "^[^0-9 \n]")
+                            (point))))
+      (re-search-backward "^1\. " last-real-line t)
+      (let ((contents-no-footnotes
+             (buffer-substring-no-properties
+              (save-excursion (beginning-of-buffer) (point))
+              (point))))
+        (with-temp-buffer
+          (insert contents-no-footnotes)
+          (beginning-of-buffer)
+          (replace-regexp "\\[[0-9]+\\]" "")
+          (replace-regexp "\\]([^)]+)" "")
+          (count-words))))))
 
 ;; ----------
 ;; -- Keybindings
@@ -755,6 +828,7 @@ These are in the format (FILENAME)NODENAME."
 (my-key "M-A" my-tag-search)
 
 (my-key "<M-S-return>" my-magit-status)
+(my-key "<C-S-return>" my-eshell-new-shell)
 
 ;; Cold Turkey
 
@@ -774,7 +848,6 @@ These are in the format (FILENAME)NODENAME."
 (my-key "C-n u" uncomment-region)
 (my-key "C-n m" make-directory-from-minibuffer)
 (my-key "C-n f" auto-fill-mode)
-(my-key "C-n y" load-yasnippet)
 (my-key "C-n =" my-calc-embedded)
 (my-key "C-n C" my-magithub-clone)
 

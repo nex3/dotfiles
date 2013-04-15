@@ -1,6 +1,8 @@
 [user]
         name = Nathan Weizenbaum
         email = nex342@gmail.com
+[core]
+        excludesfile=~/.gitignore.global
 [alias]
         st = status
         co = checkout
