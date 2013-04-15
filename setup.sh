@@ -17,7 +17,7 @@ ln -s ../git-hooks .git/hooks
 conf=`pwd`
 cd ~
 
-rm -rf .{info,emacs,elisp,bashrc,inputrc,irbrc,factor-rc,screenrc,Xresources,gitconfig,gitignore.global,yasnippets}
+rm -rf .{info,emacs,elisp,bashrc,inputrc,irbrc,factor-rc,screenrc,Xresources,Xmodmap,gitconfig,gitignore.global,yasnippets}
 ln -s $conf/emacs.el .emacs
 ln -s $conf/bashrc.sh .bashrc
 ln -s $conf/irbrc.rb .irbrc
@@ -27,6 +27,7 @@ ln -s {$conf/,.}info
 ln -s {$conf/,.}inputrc
 ln -s {$conf/,.}screenrc
 ln -s {$conf/,.}Xresources
+ln -s {$conf/,.}Xmodmap
 ln -s {$conf/,.}gitconfig
 ln -s {$conf/,.}gitignore.global
 
