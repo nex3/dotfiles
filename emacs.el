@@ -647,7 +647,8 @@ These are in the format (FILENAME)NODENAME."
           (insert contents-no-footnotes)
           (beginning-of-buffer)
           (replace-regexp "\\[[0-9]+\\]" "")
-          (replace-regexp "\\]([^)]+)" "")
+          (replace-regexp "\\][(\\[][^)]+[)\\]]" "")
+          (replace-regexp "^\\[[^]]+\\]: .*$" "")
           (count-words))))))
 
 ;; ----------
