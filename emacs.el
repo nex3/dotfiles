@@ -265,7 +265,12 @@ The -hook suffix is unnecessary."
   (define-key fuel-mode-map "\M-." nil)
   (define-key fuel-mode-map "\M-," nil))
 
-(my-after-load magit (require 'my-magit))
+(my-after-load magit
+  (require 'my-magit)
+  (my-add-hook magit-log-edit-mode
+    (set (make-local-variable 'whitespace-style) '(lines-tail face))
+    (set (make-local-variable 'whitespace-line-column) 70)
+    (whitespace-mode)))
 
 (when window-system
   (my-after-load ruby-mode
