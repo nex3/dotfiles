@@ -272,6 +272,9 @@ The -hook suffix is unnecessary."
     (set (make-local-variable 'whitespace-line-column) 70)
     (whitespace-mode)))
 
+(my-after-load scss-mode
+  (setq scss-compile-at-save nil))
+
 (when window-system
   (my-after-load ruby-mode
     (define-key ruby-mode-map (kbd "C-M-;") 'ruby-forward-sexp)
