@@ -265,7 +265,16 @@ The -hook suffix is unnecessary."
   (define-key fuel-mode-map "\M-." nil)
   (define-key fuel-mode-map "\M-," nil))
 
-(my-after-load magit (require 'my-magit))
+(my-after-load magit
+  (require 'my-magit)
+  (my-add-hook magit-log-edit-mode
+    (set (make-local-variable 'whitespace-style) '(lines-tail face))
+    (set (make-local-variable 'whitespace-line-column) 70)
+    (set (make-local-variable 'fill-column) 70)
+    (whitespace-mode)))
+
+(my-after-load scss-mode
+  (setq scss-compile-at-save nil))
 
 (when window-system
   (my-after-load ruby-mode
@@ -647,7 +656,8 @@ These are in the format (FILENAME)NODENAME."
           (insert contents-no-footnotes)
           (beginning-of-buffer)
           (replace-regexp "\\[[0-9]+\\]" "")
-          (replace-regexp "\\]([^)]+)" "")
+          (replace-regexp "\\][(\\[][^)]+[)\\]]" "")
+          (replace-regexp "^\\[[^]]+\\]: .*$" "")
           (count-words))))))
 
 ;; ----------
