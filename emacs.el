@@ -270,6 +270,7 @@ The -hook suffix is unnecessary."
   (my-add-hook magit-log-edit-mode
     (set (make-local-variable 'whitespace-style) '(lines-tail face))
     (set (make-local-variable 'whitespace-line-column) 70)
+    (set (make-local-variable 'fill-column) 70)
     (whitespace-mode)))
 
 (my-after-load scss-mode
