@@ -186,6 +186,9 @@ function refresh-path {
     export PATH=$HOME/bin:$PATH
 }
 
+# For some reason this doesn't persist within screen.
+export LD_LIBRARY_PATH=/usr/local/lib:$HOME/lib:$LD_LIBRARY_PATH
+
 if [ ! "$STARTED_SCREEN" ]
 then
     export original_path=$PATH
@@ -201,7 +204,6 @@ then
     fi
 
     export PYTHONPATH=$HOME/lib/python:/usr/local/lib/python2.6/site-packages:/usr/local/lib/python2.6/dist-packages:$PYTHONPATH
-    export LD_LIBRARY_PATH=/usr/local/lib:$HOME/lib:$LD_LIBRARY_PATH
     export LIBRARY_PATH=$HOME/lib:$LIBRARY_PATH
     export C_INCLUDE_PATH=$HOME/include
     export INFOPATH=$HOME/.info:$INFOPATH
