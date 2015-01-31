@@ -176,7 +176,7 @@ function refresh-path {
     PATH=$original_path
 
     if [ -e $HOME/gems ]; then PATH=$HOME/gems/bin:$PATH; fi
-    PATH=/usr/local/heroku/bin:/var/lib/gems/1.8/bin/:/usr/local/bin:$PATH
+    PATH=/var/lib/gems/1.8/bin/:/usr/local/bin:/usr/local/heroku/bin:$PATH:$HOME/.rvm/bin:$HOME/.pub-cache/bin
 
     for bindir in $HOME/bin/*; do
         if [[ -d "$bindir" && ! ":$PATH" =~ ":$bindir" ]]; then
@@ -185,6 +185,9 @@ function refresh-path {
     done
     export PATH=$HOME/bin:$PATH
 }
+
+# For some reason this doesn't persist within screen.
+export LD_LIBRARY_PATH=/usr/local/lib:$HOME/lib:$LD_LIBRARY_PATH
 
 if [ ! "$STARTED_SCREEN" ]
 then
@@ -201,7 +204,6 @@ then
     fi
 
     export PYTHONPATH=$HOME/lib/python:/usr/local/lib/python2.6/site-packages:/usr/local/lib/python2.6/dist-packages:$PYTHONPATH
-    export LD_LIBRARY_PATH=/usr/local/lib:$HOME/lib:$LD_LIBRARY_PATH
     export LIBRARY_PATH=$HOME/lib:$LIBRARY_PATH
     export C_INCLUDE_PATH=$HOME/include
     export INFOPATH=$HOME/.info:$INFOPATH

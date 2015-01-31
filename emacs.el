@@ -373,6 +373,7 @@ The -hook suffix is unnecessary."
 (setq uniquify-buffer-name-style 'post-forward-angle-brackets)
 
 (setq make-backup-files nil)
+(setq auto-save-default nil)
 (setq default-truncate-lines t)
 (setq-default indent-tabs-mode nil)
 (setq column-number-mode t)
