@@ -54,6 +54,7 @@
    '(default ((((min-colors 256)) (:foreground "pink"))
               (t (:foreground "white"))))
    ;; Don't highlight lines in the terminal
+   '(font-lock-comment-face ((t (:italic t :bold t :foreground "#4B4BFF"))))
    '(hl-line ((((min-colors 256)) (:inherit highlight))
               (((min-colors 8)) (:inherit nil :background nil))))
    '(yas/field-highlight-face ((t (:background "gray30"))))
