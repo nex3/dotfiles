@@ -178,8 +178,7 @@ The -hook suffix is unnecessary."
 
 (my-after-load dart-mode
   (my-add-hook dart-mode
-    (c-set-style "dart")
-    (flymake-mode 1)))
+    (c-set-style "dart")))
 
 (my-after-load rcirc
   (require 'rcirc-color)
