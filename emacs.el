@@ -1,4 +1,4 @@
-;; Nathan Weizenbaum's .emacs file
+;; Natalie Weizenbaum's .emacs file
 
 ;; ----------
 ;; -- Do This First
