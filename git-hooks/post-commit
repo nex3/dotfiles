@@ -12,12 +12,9 @@ emacs --batch --eval '
       (byte-compile-warnings nil)
       (byte-compile-verbose nil)
       (noninteractive t)
-      (dirs '\''("~/.elisp" "~/.elisp/ocaml" "~/.elisp/auctex/preview"
-                 "~/.elisp/auctex" "~/.elisp/haskell-mode"))
-      (elpa-dirs (directory-files "~/.elisp/elpa" '\''full "-\\([0-9]\\.?\\)+"))
-      (load-only-dirs '\''("~/.elisp/nxhtml" "~/.elisp/nxhtml/nxhtml"
-                           "~/.elisp/nxhtml/util" "~/.elisp/nxhtml/related")))
-  (setq load-path (append dirs elpa-dirs load-only-dirs load-path))
+      (dirs '\''("~/.elisp" "~/.elisp/auctex/preview" "~/.elisp/auctex"))
+      (elpa-dirs (directory-files "~/.elisp/elpa" '\''full "-\\([0-9]\\.?\\)+")))
+  (setq load-path (append dirs elpa-dirs load-path))
   (dolist (dir dirs) (update-directory-autoloads dir))
   (byte-recompile-directory "~/.elisp" 0))
 ' &> /dev/stdout | grep -v '^\(Checking\|Compiling\|Saving\|Loading\|Wrote\|Warning: defvar ignored\|(No changes need to be saved)\)'
