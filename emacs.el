@@ -215,28 +215,31 @@ The -hook suffix is unnecessary."
     (toggle-truncate-lines -1)))
 
 (my-after-load package
+  (defun my-package-get-desc (package)
+    "Return the description of PACKAGE.
+PACKAGE may be a desc or a package name."
+    (if (package-desc-p package) package
+      (assq (if (symbolp package) package (intern package)) package-alist)))
+
   (defun my-package-latest-version (package)
     "Return the latest version number of `package'."
-    (let ((pkg-desc (assq (intern package) package-alist)))
-      (mapconcat #'number-to-string (aref (cadr pkg-desc) 2) ".")))
+    (mapconcat #'number-to-string
+               (aref (cadr (my-package-get-desc package)) 2)
+               "."))
 
   (defun my-commit-package (package)
     "Commit the latest version of `package'."
     (my-commit-config
-     (format "Add %s version %s."
+     (format "[Emacs] Add %s version %s."
              package
              (my-package-latest-version package))))
 
   (defadvice package-install (after my-commit-package-install (name) activate)
     (my-commit-package name))
 
-  (defadvice package-install-from-buffer
-      (after my-commit-package-install-from-buffer (pkg-info type) activate)
-    (my-commit-package (aref pkg-info 0) name))
-
   (defadvice package-delete (after my-commit-package-delete (name version) activate)
     (my-commit-config
-     (format "Delete %s version %s." name version))))
+     (format "[Emacs] Delete %s version %s." name version))))
 
 (my-after-load eshell
   (persp-make-variable-persp-local 'eshell-buffer-name)
