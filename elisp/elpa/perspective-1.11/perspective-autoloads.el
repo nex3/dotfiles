@@ -1,10 +1,10 @@
 ;;; perspective-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (persp-mode) "perspective" "perspective.el" (20170
-;;;;;;  54548))
+;;;### (autoloads nil "perspective" "perspective.el" (21837 23011
+;;;;;;  976781 179000))
 ;;; Generated autoloads from perspective.el
 
 (defvar persp-mode nil "\
@@ -25,15 +25,9 @@ named collections of buffers and window configurations.
 
 ;;;***
 
-;;;### (autoloads nil nil ("perspective-pkg.el") (20170 54548 154484))
-
-;;;***
-
-(provide 'perspective-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; perspective-autoloads.el ends here
