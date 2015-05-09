@@ -1,4 +1,5 @@
 /private
 /gitconfig
 /elisp/my-loaddefs.el
+/elisp/elpa/archives
 *.elc
