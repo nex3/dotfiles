@@ -12,7 +12,7 @@ emacs --batch --eval '
       (byte-compile-warnings nil)
       (byte-compile-verbose nil)
       (noninteractive t)
-      (dirs '\''("~/.elisp" "~/.elisp/auctex/preview" "~/.elisp/auctex"))
+      (dirs '\''("~/.elisp"))
       (elpa-dirs (directory-files "~/.elisp/elpa" '\''full "-\\([0-9]\\.?\\)+")))
   (setq load-path (append dirs elpa-dirs load-path))
   (dolist (dir dirs) (update-directory-autoloads dir))

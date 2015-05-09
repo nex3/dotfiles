@@ -12,10 +12,13 @@
 
 (add-to-list 'load-path "/usr/share/emacs/site-lisp")
 (add-to-list 'load-path "/usr/share/emacs-snapshot/site-lisp")
-(add-to-list 'load-path "~/.elisp/auctex")
-(add-to-list 'load-path "~/.elisp/auctex/preview")
 (add-to-list 'load-path "~/.elisp")
 (add-to-list 'load-path "~/share/emacs/site-lisp")
+
+;; Add this to the load path explicitly so we can get the color theme up and
+;; running as soon as possible. Loading packages the normal way can take time.
+(add-to-list 'load-path "~/.elisp/elpa/color-theme-6.6.1")
+
 
 (when (< emacs-major-version 23) (require 'old-emacs))
 
@@ -40,7 +43,6 @@
   (setq color-theme-load-all-themes nil)
   (require 'color-theme)
 
-  (color-theme-initialize)
   (load "alexandres-theme")
   (my-color-theme-dark)
 
@@ -59,15 +61,16 @@
 ;; ----------
 
 (load "my-loaddefs")
-(require 'pager)
-(require 'tex-site)
 (require 'package)
-(eval-when-compile (require 'cl))
 
 (when (boundp 'package-archives)
   (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/")))
 (setq package-user-dir "~/.elisp/elpa")
 (package-initialize)
+
+(require 'pager)
+(require 'tex-site)
+(eval-when-compile (require 'cl))
 
 (persp-mode)
 
@@ -214,8 +217,8 @@ The -hook suffix is unnecessary."
 (my-after-load package
   (defun my-package-latest-version (package)
     "Return the latest version number of `package'."
-    (let ((pkg-desc (assq package package-alist)))
-      (mapconcat #'number-to-string (aref (cdr pkg-desc) 0) ".")))
+    (let ((pkg-desc (assq (intern package) package-alist)))
+      (mapconcat #'number-to-string (aref (cadr pkg-desc) 2) ".")))
 
   (defun my-commit-package (package)
     "Commit the latest version of `package'."
