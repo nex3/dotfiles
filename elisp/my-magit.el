@@ -34,6 +34,10 @@ simply prompting the user."
                                                (> (car current-prefix-arg) 4)))))))
   (magit-status dir))
 
+(advice-add 'magit-key-mode-popup-committing :after (lambda ()
+  (when (not (magit-anything-staged-p))
+    (magit-key-mode-toggle-option 'committing "--all"))))
+
 (define-key magit-mode-map (kbd "M-I") 'magit-goto-next-section)
 (define-key magit-mode-map (kbd "M-O") 'magit-goto-previous-section)
 
