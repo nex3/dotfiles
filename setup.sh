@@ -17,7 +17,7 @@ ln -s ../git-hooks .git/hooks
 conf=`pwd`
 cd ~
 
-rm -rf .{info,emacs,elisp,bashrc,inputrc,irbrc,factor-rc,screenrc,Xresources,Xmodmap,gitconfig,gitignore.global,yasnippets}
+rm -rf .{info,emacs,elisp,bashrc,inputrc,irbrc,factor-rc,screenrc,Xresources,Xmodmap,gitconfig,gitignore.global}
 ln -s $conf/emacs.el .emacs
 ln -s $conf/bashrc.sh .bashrc
 ln -s $conf/irbrc.rb .irbrc
@@ -32,7 +32,6 @@ ln -s {$conf/,.}gitconfig
 ln -s {$conf/,.}gitignore.global
 
 $conf/git-hooks/post-commit
-ln -s $conf/elisp/yasnippet/snippets .yasnippets
 
 which xrdb &> /dev/null && [ ! -z "$DISPLAY" ] && xrdb -merge .Xresources
 

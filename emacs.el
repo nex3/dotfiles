@@ -1,4 +1,4 @@
-;; Nathan Weizenbaum's .emacs file
+;; Natalie Weizenbaum's .emacs file
 
 ;; ----------
 ;; -- Do This First
@@ -12,17 +12,13 @@
 
 (add-to-list 'load-path "/usr/share/emacs/site-lisp")
 (add-to-list 'load-path "/usr/share/emacs-snapshot/site-lisp")
-(add-to-list 'load-path "~/.elisp/rcirc-notify-el")
-(add-to-list 'load-path "~/.elisp/haskell-mode")
-(add-to-list 'load-path "~/.elisp/auctex")
-(add-to-list 'load-path "~/.elisp/auctex/preview")
-(add-to-list 'load-path "~/.elisp/nxhtml")
-(add-to-list 'load-path "~/.elisp/nxhtml/nxhtml")
-(add-to-list 'load-path "~/.elisp/nxhtml/util")
-(add-to-list 'load-path "~/.elisp/nxhtml/related")
-(add-to-list 'load-path "~/.elisp/ocaml")
 (add-to-list 'load-path "~/.elisp")
 (add-to-list 'load-path "~/share/emacs/site-lisp")
+
+;; Add this to the load path explicitly so we can get the color theme up and
+;; running as soon as possible. Loading packages the normal way can take time.
+(add-to-list 'load-path "~/.elisp/elpa/color-theme-6.6.1")
+
 
 (when (< emacs-major-version 23) (require 'old-emacs))
 
@@ -44,9 +40,9 @@
 (add-hook 'after-make-frame-functions 'init-frame)
 
 (when (or window-system (and (fboundp 'daemonp) (daemonp)))
+  (setq color-theme-load-all-themes nil)
   (require 'color-theme)
 
-  (color-theme-initialize)
   (load "alexandres-theme")
   (my-color-theme-dark)
 
@@ -57,13 +53,7 @@
    '(font-lock-comment-face ((t (:italic t :bold t :foreground "#4B4BFF"))))
    '(hl-line ((((min-colors 256)) (:inherit highlight))
               (((min-colors 8)) (:inherit nil :background nil))))
-   '(yas/field-highlight-face ((t (:background "gray30"))))
-   '(erb-face ((t (:background "gray15"))))
-   '(rcirc-server ((((min-colors 8)) (:foreground nil))
-                   (t (:foreground "gray40"))))
    '(mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
-   '(textile-link-face ((t (:foreground "#398EE6"))))
-   '(textile-ul-bullet-face ((t (:foreground "#398EE6"))))
    '(magit-item-highlight ((t (:background "#222222"))))))
 
 ;; ----------
@@ -71,15 +61,16 @@
 ;; ----------
 
 (load "my-loaddefs")
-(require 'pager)
-(require 'tex-site)
 (require 'package)
-(eval-when-compile (require 'cl))
 
 (when (boundp 'package-archives)
   (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/")))
 (setq package-user-dir "~/.elisp/elpa")
 (package-initialize)
+
+(require 'pager)
+(require 'tex-site)
+(eval-when-compile (require 'cl))
 
 (persp-mode)
 
@@ -94,23 +85,11 @@ it's loaded for files matching REGEXP."
 ;; to have the autoload defined in the file.
 (autoload 'nxhtml-mumamo-mode "nxhtml-mumamo.el")
 
-(load-mode 'd "\\.d[i]?\\'$")
-(load-mode 'textile "\\.textile$")
 (load-mode 'markdown "\\.\\(markdown\\|md\\)$")
-(load-mode 'haml "\\.haml$")
 (load-mode 'sass "\\.sass$")
-(load-mode 'rhtml "\\.\\(rhtml\\|erb\\)$")
 (load-mode 'yaml "\\.ya?ml$")
 (load-mode 'ruby "\\(\\.\\(rb\\|rake\\|rjs\\|duby\\|gemspec\\|thor\\)\\|Rakefile\\|Capfile\\|Thorfile\\)$")
 (load-mode 'css "\\.css$")
-(load-mode 'haskell "\\.l?hs$")
-(load-mode 'arc "\\.arc$")
-(load-mode 'treetop "\\.treetop$")
-(load-mode 'lua "\\.lua$")
-(load-mode 'csharp "\\.cs$")
-(load-mode 'factor "\\.factor$")
-(load-mode 'caml "\\.ml[iylp]?$")
-(load-mode 'nxhtml-mumamo "\\.x?html?$")
 
 (defmacro my-after-load (name &rest body)
   "Like `eval-after-load', but a macro."
@@ -180,70 +159,11 @@ The -hook suffix is unnecessary."
   (my-add-hook dart-mode
     (c-set-style "dart")))
 
-(my-after-load rcirc
-  (require 'rcirc-color)
-  (require 'rcirc-unambiguous-nick-completion)
-  (require 'rcirc-notify)
-
-  (setq rcirc-colors '("darkviolet" "magenta" "deeppink" "red" "yellow" "lawngreen"
-                       "white" "LightSlateGrey" "RoyalBlue" "DeepSkyBlue" "LightSkyBlue"
-                       "DarkOliveGreen" "PaleGreen" "ForestGreen" "LightGoldenrodYellow"
-                       "sienna"))
-  (setq rcirc-server-alist '(("irc.nex-3.com" :nick "Nathan" :channels ("#rc"))))
-  (setq my-rcirc-notify-timeout 90)
-  (setq rcirc-unambiguous-complete t)
-  (setq rcirc-debug-flag t)
-  (setq fill-column 80)
-  (setq rcirc-default-nick "nex3")
-  (setq rcirc-default-user-name "nex3")
-  (setq rcirc-default-user-full-name "Nathan Weizenbaum")
-  (setq rcirc-time-format "[%l:%M] ")
-  (setq rcirc-prompt "%t> ")
-  (set-face-foreground 'rcirc-server "gray40")
-  (set-face-foreground 'rcirc-timestamp "gray60")
-  (rcirc-track-minor-mode 1)
- 
-  (my-add-hook rcirc-mode
-    (flyspell-mode 1)
-    (rcirc-omit-mode))
-  (define-key rcirc-mode-map (kbd "M-O") 'rcirc-insert-prev-input)
-  (define-key rcirc-mode-map (kbd "M-I") 'rcirc-insert-next-input)
- 
-  (defun-rcirc-command raw (arg)
-    "Send a raw string to the IRC server."
-    (rcirc-send-string process arg)))
-
 (my-after-load tex
   (with-temp-buffer (LaTeX-mode))
   (TeX-global-PDF-mode)
   (setcdr (assoc "^pdf$" TeX-output-view-style)
           '("." "evince %o")))
-
-(my-after-load haskell-mode
-  (my-add-hook haskell-mode turn-on-haskell-doc-mode)
-  (my-add-hook haskell-mode turn-on-haskell-indent))
-
-(my-after-load erlang
-  (my-add-hook erlang-mode
-    (setq inferior-erlang-machine-options '("-sname" "emacs")))
-  (condition-case nil
-      (progn
-        (require 'distel)
-        (distel-setup)
-        (define-key erlang-extended-mode-map (kbd "C-M-i") 'backward-up-list)
-        (defconst distel-shell-keys
-          '(("\C-\M-i" erl-complete)
-            ("\M-?"    erl-complete)	
-            ("\M-."    erl-find-source-under-point)
-            ("\M-,"    erl-find-source-unwind) 
-            ("\M-*"    erl-find-source-unwind)))
-        (my-add-hook erlang-shell-mode
-          (dolist (spec distel-shell-keys)
-            (define-key erlang-shell-mode-map (car spec) (cadr spec)))))
-    (file-error nil)))
-
-(my-after-load gist
-  (setq gist-view-gist t))
 
 (my-after-load ruby-mode
   (defface ruby-tab-face
@@ -260,10 +180,6 @@ The -hook suffix is unnecessary."
 
 (my-after-load js-mode
   (setq js-auto-indent-flag nil))
-
-(my-after-load fuel-mode
-  (define-key fuel-mode-map "\M-." nil)
-  (define-key fuel-mode-map "\M-," nil))
 
 (my-after-load magit
   (require 'my-magit)
@@ -293,60 +209,37 @@ The -hook suffix is unnecessary."
   (persp-make-variable-persp-local 'compile-history)
   (persp-make-variable-persp-local 'compile-command))
 
-(my-after-load caml
-  (require 'caml-font)
-  (define-key caml-mode-map (kbd "C-c C-b") 'caml-eval-buffer))
-
-(my-after-load nxhtml-mumamo
-  ;; Used by MuMaMo
-  (unless (fboundp 'foldit-mode)
-    (defun foldit-mode (&rest _)))
-  ;; By default, mumamo requires type attrs, which is stupid.
-  (setq mumamo-script-tag-start-regex "<script\\([[:space:]][^>]*\\)?>")
-  (setq mumamo-style-tag-start-regex "<style\\([[:space:]][^>]*\\)?>")
-  (my-add-hook nxhtml-mumamo-mode mumamo-no-chunk-coloring))
-
 (my-after-load markdown-mode
   (my-add-hook markdown-mode
     (toggle-word-wrap 1)
     (toggle-truncate-lines -1)))
 
-(my-after-load coffee-mode
-  (setq coffee-tab-width 2)
-  (define-key coffee-mode-map "\C-m" 'newline))
-
 (my-after-load package
+  (defun my-package-get-desc (package)
+    "Return the description of PACKAGE.
+PACKAGE may be a desc or a package name."
+    (if (package-desc-p package) package
+      (assq (if (symbolp package) package (intern package)) package-alist)))
+
   (defun my-package-latest-version (package)
     "Return the latest version number of `package'."
-    (let ((pkg-desc (assq package package-alist)))
-      (mapconcat #'number-to-string (aref (cdr pkg-desc) 0) ".")))
+    (mapconcat #'number-to-string
+               (aref (cadr (my-package-get-desc package)) 2)
+               "."))
 
   (defun my-commit-package (package)
     "Commit the latest version of `package'."
     (my-commit-config
-     (format "Add %s version %s."
+     (format "[Emacs] Add %s version %s."
              package
              (my-package-latest-version package))))
 
   (defadvice package-install (after my-commit-package-install (name) activate)
     (my-commit-package name))
 
-  (defadvice package-install-from-buffer
-      (after my-commit-package-install-from-buffer (pkg-info type) activate)
-    (my-commit-package (aref pkg-info 0) name))
-
   (defadvice package-delete (after my-commit-package-delete (name version) activate)
     (my-commit-config
-     (format "Delete %s version %s." name version)))
-
-  ;; Individual package initialization
-
-  (my-add-hook after-init
-    (require 'yasnippet)
-    (yas/global-mode 1)
-    (setq yas/root-directory "~/.elisp/snippets")
-    (yas/load-directory (car (file-expand-wildcards "~/.elisp/elpa/yasnippet-*/snippets")))
-    (yas/load-directory yas/root-directory)))
+     (format "[Emacs] Delete %s version %s." name version))))
 
 (my-after-load eshell
   (persp-make-variable-persp-local 'eshell-buffer-name)
@@ -384,10 +277,14 @@ The -hook suffix is unnecessary."
 (setq windmove-wrap-around t)
 (setq disabled-command-function nil)
 (setq repeat-message-function 'ignore)
-(setq fuel-factor-root-dir "~/src/factor")
 (setq magit-save-some-buffers nil)
-(setq magit-commit-all-when-nothing-staged t)
-(setq magit-remote-ref-format 'remote-slash-branch)
+(setq magit-stage-all-confirm nil)
+(setq magit-ask-to-stage nil)
+(setq magit-unstage-all-confirm nil)
+(setq magit-last-seen-setup-instructions "1.4.0")
+(setq magit-status-buffer-switch-function 'switch-to-buffer)
+(setq electric-indent-mode nil)
+(set-default 'fill-column 80)
 (setq sentence-end-double-space nil)
 (setq x-select-enable-primary t)
 (fset 'yes-or-no-p 'y-or-n-p)
