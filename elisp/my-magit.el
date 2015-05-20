@@ -64,6 +64,29 @@ simply prompting the user."
                      (vc-find-file-hook)
                      (run-hooks 'magit-revert-buffer-hook))))))))))
 
+(defun my-magit-grep (regexp &optional dir)
+  "Like `vc-git-grep', but doesn't prompt for files."
+  (interactive
+   (progn
+     (grep-compute-defaults)
+     (cond
+      ((equal current-prefix-arg '(16))
+       (list (read-from-minibuffer "Run: " "git grep"
+				   nil nil 'grep-history)
+	     nil))
+      (t (let* ((regexp (grep-read-regexp))
+                (buffer (my-magit-status-buffer))
+                (default-dir
+                  (if buffer
+                      (buffer-local-value 'default-directory buffer)
+                    default-directory))
+		(dir (read-directory-name "In directory: "
+					  nil default-dir t)))
+	   (list regexp dir))))))
+  (vc-git-grep regexp "" dir))
+
+(magit-key-mode-insert-action 'dispatch "G" "Grep" #'my-magit-grep)
+(define-key magit-mode-map (kbd "G") 'my-magit-grep)
 
 (provide 'my-magit)
 
