@@ -249,6 +249,11 @@ PACKAGE may be a desc or a package name."
 (my-after-load flymake
   (require 'flymake-cursor))
 
+(my-after-load grep
+  (my-add-hook grep-mode
+    (make-variable-buffer-local 'compilation-save-buffers-predicate)
+    (setq compilation-save-buffers-predicate (lambda () nil))))
+
 
 (my-add-hook text-mode flyspell-mode)
 (my-add-hook lisp-mode pretty-lambdas)
