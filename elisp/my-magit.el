@@ -41,6 +41,46 @@ simply prompting the user."
 (define-key magit-mode-map (kbd "M-I") 'magit-goto-next-section)
 (define-key magit-mode-map (kbd "M-O") 'magit-goto-previous-section)
 
+;; This is copied from the Magit 1.4.x branch prior to release. Once 1.4.2 is
+;; released, it should be fine to remove it.
+(defun magit-revert-buffers ()
+  (let ((topdir (magit-get-top-dir)))
+    (when topdir
+      (let ((gitdir  (magit-git-dir))
+            (tracked (magit-git-lines "ls-tree" "-r" "--name-only" "HEAD")))
+        (dolist (buf (buffer-list))
+          (with-current-buffer buf
+            (let ((file (buffer-file-name)))
+              (and file (string-prefix-p topdir file)
+                   (not (string-prefix-p gitdir file))
+                   (member (file-relative-name file topdir) tracked)
+                   (let ((remote-file-name-inhibit-cache t))
+                     (when (buffer-stale--default-function)
+                       (setq auto-revert-notify-modified-p nil)
+                       (when auto-revert-verbose
+                         (message "Reverting buffer `%s'." (buffer-name)))
+                       (let ((buffer-read-only buffer-read-only))
+                         (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)))
+                     (vc-find-file-hook)
+                     (run-hooks 'magit-revert-buffer-hook))))))))))
+
+(defun my-magit-grep (regexp)
+  "Like `vc-git-grep', but doesn't prompt for files or dirs."
+  (interactive
+   (progn
+     (grep-compute-defaults)
+     (if (equal current-prefix-arg '(16))
+         (list (read-from-minibuffer "Run: " "git grep"
+                                     nil nil 'grep-history))
+       (list (grep-read-regexp)))))
+  (vc-git-grep regexp ""
+               (let ((buffer (my-magit-status-buffer)))
+                 (if buffer
+                     (buffer-local-value 'default-directory buffer)
+                   default-directory))))
+
+(magit-key-mode-insert-action 'dispatch "G" "Grep" #'my-magit-grep)
+(define-key magit-mode-map (kbd "G") 'my-magit-grep)
 
 (provide 'my-magit)
 
