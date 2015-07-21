@@ -156,8 +156,11 @@ The -hook suffix is unnecessary."
       (setq tab-width 4))))
 
 (my-after-load dart-mode
+  (setq dart-enable-analysis-server t)
+  (dart-start-analysis-server)
   (my-add-hook dart-mode
-    (c-set-style "dart")))
+    (c-set-style "dart")
+    (flycheck-mode)))
 
 (my-after-load tex
   (with-temp-buffer (LaTeX-mode))
