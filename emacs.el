@@ -696,9 +696,7 @@ These are in the format (FILENAME)NODENAME."
   (my-key "C-M-k" down-list)
   (my-key "C-M-l" backward-up-list)
   (my-key "C-M-o" beginning-of-defun)
-  (my-key "M-TAB" end-of-defun)
-  (my-key "M-s-;" subword-forward)
-  (my-key "M-s-j" subword-backward))
+  (my-key "M-TAB" end-of-defun))
 
 (my-with-keymap emacs-lisp-mode-map
   (my-key "M-TAB" end-of-defun)
@@ -716,6 +714,11 @@ These are in the format (FILENAME)NODENAME."
 
 (my-key "C-M-n" backward-kill-sexp)
 (my-key "C-M-." kill-sexp)
+
+(my-key "M-s-;" subword-forward)
+(my-key "M-s-j" subword-backward)
+(my-key "M-s->" subword-kill)
+(my-key "M-s-N" subword-backward-kill)
 
 (my-key "C-M-S-j" windmove-left)
 (my-key "C-M-:" windmove-right)
