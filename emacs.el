@@ -717,8 +717,8 @@ These are in the format (FILENAME)NODENAME."
 
 (my-key "M-s-;" subword-forward)
 (my-key "M-s-j" subword-backward)
-(my-key "M-s->" subword-kill)
-(my-key "M-s-N" subword-backward-kill)
+(my-key "M-s-." subword-kill)
+(my-key "M-s-n" subword-backward-kill)
 
 (my-key "C-M-S-j" windmove-left)
 (my-key "C-M-:" windmove-right)
