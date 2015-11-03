@@ -85,6 +85,9 @@ it's loaded for files matching REGEXP."
 ;; to have the autoload defined in the file.
 (autoload 'nxhtml-mumamo-mode "nxhtml-mumamo.el")
 
+(autoload 'subword-forward "subword.el")
+(autoload 'subword-backward "subword.el")
+
 (load-mode 'markdown "\\.\\(markdown\\|md\\)$")
 (load-mode 'sass "\\.sass$")
 (load-mode 'yaml "\\.ya?ml$")
@@ -693,7 +696,9 @@ These are in the format (FILENAME)NODENAME."
   (my-key "C-M-k" down-list)
   (my-key "C-M-l" backward-up-list)
   (my-key "C-M-o" beginning-of-defun)
-  (my-key "M-TAB" end-of-defun))
+  (my-key "M-TAB" end-of-defun)
+  (my-key "M-s-;" subword-forward)
+  (my-key "M-s-j" subword-backward))
 
 (my-with-keymap emacs-lisp-mode-map
   (my-key "M-TAB" end-of-defun)
