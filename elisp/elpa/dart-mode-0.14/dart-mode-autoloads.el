@@ -1,9 +1,10 @@
 ;;; dart-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (dart-mode) "dart-mode" "dart-mode.el" (20689 4157))
+;;;### (autoloads nil "dart-mode" "dart-mode.el" (21934 55539 526287
+;;;;;;  163000))
 ;;; Generated autoloads from dart-mode.el
  (add-to-list 'auto-mode-alist '("\\.dart\\'" . dart-mode))
 
@@ -20,15 +21,9 @@ Key bindings:
 
 ;;;***
 
-;;;### (autoloads nil nil ("dart-mode-pkg.el") (20689 4157 715027))
-
-;;;***
-
-(provide 'dart-mode-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; dart-mode-autoloads.el ends here

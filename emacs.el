@@ -85,6 +85,9 @@ it's loaded for files matching REGEXP."
 ;; to have the autoload defined in the file.
 (autoload 'nxhtml-mumamo-mode "nxhtml-mumamo.el")
 
+(autoload 'subword-forward "subword.el")
+(autoload 'subword-backward "subword.el")
+
 (load-mode 'markdown "\\.\\(markdown\\|md\\)$")
 (load-mode 'sass "\\.sass$")
 (load-mode 'yaml "\\.ya?ml$")
@@ -156,8 +159,11 @@ The -hook suffix is unnecessary."
       (setq tab-width 4))))
 
 (my-after-load dart-mode
+  (setq dart-enable-analysis-server t)
+  (dart-start-analysis-server)
   (my-add-hook dart-mode
-    (c-set-style "dart")))
+    (c-set-style "dart")
+    (flycheck-mode)))
 
 (my-after-load tex
   (with-temp-buffer (LaTeX-mode))
@@ -708,6 +714,11 @@ These are in the format (FILENAME)NODENAME."
 
 (my-key "C-M-n" backward-kill-sexp)
 (my-key "C-M-." kill-sexp)
+
+(my-key "M-s-;" subword-forward)
+(my-key "M-s-j" subword-backward)
+(my-key "M-s-." subword-kill)
+(my-key "M-s-n" subword-backward-kill)
 
 (my-key "C-M-S-j" windmove-left)
 (my-key "C-M-:" windmove-right)
