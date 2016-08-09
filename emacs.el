@@ -192,6 +192,11 @@ The -hook suffix is unnecessary."
   (require 'my-magit))
 
 (my-after-load git-commit
+  ;; Unbind next-message and prev-message bindings that conflict with my custom
+  ;; bindings.
+  (define-key git-commit-mode-map (kbd "M-p") nil)
+  (define-key git-commit-mode-map (kbd "M-n") nil)
+
   (my-add-hook git-commit-mode
     (set (make-local-variable 'whitespace-style) '(lines-tail face))
     (set (make-local-variable 'whitespace-line-column) 70)
