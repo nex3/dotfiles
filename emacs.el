@@ -64,7 +64,8 @@
 (require 'package)
 
 (when (boundp 'package-archives)
-  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/")))
+  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
+  (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/")))
 (setq package-user-dir "~/.elisp/elpa")
 (package-initialize)
 
