@@ -189,12 +189,18 @@ The -hook suffix is unnecessary."
   (setq js-auto-indent-flag nil))
 
 (my-after-load magit
-  (require 'my-magit)
-  (my-add-hook magit-log-edit-mode
+  (require 'my-magit))
+
+(my-after-load git-commit
+  (my-add-hook git-commit-mode
     (set (make-local-variable 'whitespace-style) '(lines-tail face))
     (set (make-local-variable 'whitespace-line-column) 70)
     (set (make-local-variable 'fill-column) 70)
     (whitespace-mode)))
+
+(my-after-load git-rebase
+  (define-key git-rebase-mode-map (kbd "M-L") 'git-rebase-move-line-up)
+  (define-key git-rebase-mode-map (kbd "M-K") 'git-rebase-move-line-up))
 
 (my-after-load scss-mode
   (setq scss-compile-at-save nil))
