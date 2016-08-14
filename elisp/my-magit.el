@@ -29,40 +29,26 @@ simply prompting the user."
                 (let ((buffer (my-magit-status-buffer)))
                   (or (if buffer (buffer-local-value 'default-directory buffer))
                       (unless (string-match "^\\*scratch\\*" (buffer-name))
-                        (magit-get-top-dir default-directory))
-                      (magit-read-top-dir (and (consp current-prefix-arg)
-                                               (> (car current-prefix-arg) 4)))))))
-  (magit-status dir))
+                        (magit-toplevel default-directory))
+                      (magit-read-repository (and (consp current-prefix-arg)
+                                                  (> (car current-prefix-arg) 4)))))))
+  (switch-to-buffer
+   (save-window-excursion
+     (magit-status dir)
+     (current-buffer))))
 
-(advice-add 'magit-key-mode-popup-committing :after (lambda ()
-  (when (not (magit-anything-staged-p))
-    (magit-key-mode-toggle-option 'committing "--all"))))
+;; Automatically enable --all when no files are staged.
+(defvar-local my-magit-staged-all nil
+  "Whether the hook to auto-stage has been run.")
+(add-hook 'magit-refresh-popup-buffer-hook (lambda ()
+  (when (and (eq magit-this-popup 'magit-commit-popup)
+             (not (magit-anything-staged-p))
+             (not my-magit-staged-all))
+    (setq my-magit-staged-all t)
+    (magit-invoke-popup-switch ?a))))
 
-(define-key magit-mode-map (kbd "M-I") 'magit-goto-next-section)
-(define-key magit-mode-map (kbd "M-O") 'magit-goto-previous-section)
-
-;; This is copied from the Magit 1.4.x branch prior to release. Once 1.4.2 is
-;; released, it should be fine to remove it.
-(defun magit-revert-buffers ()
-  (let ((topdir (magit-get-top-dir)))
-    (when topdir
-      (let ((gitdir  (magit-git-dir))
-            (tracked (magit-git-lines "ls-tree" "-r" "--name-only" "HEAD")))
-        (dolist (buf (buffer-list))
-          (with-current-buffer buf
-            (let ((file (buffer-file-name)))
-              (and file (string-prefix-p topdir file)
-                   (not (string-prefix-p gitdir file))
-                   (member (file-relative-name file topdir) tracked)
-                   (let ((remote-file-name-inhibit-cache t))
-                     (when (buffer-stale--default-function)
-                       (setq auto-revert-notify-modified-p nil)
-                       (when auto-revert-verbose
-                         (message "Reverting buffer `%s'." (buffer-name)))
-                       (let ((buffer-read-only buffer-read-only))
-                         (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)))
-                     (vc-find-file-hook)
-                     (run-hooks 'magit-revert-buffer-hook))))))))))
+;; Don't prompt to save buffers.
+(setq magit-save-repository-buffers nil)
 
 (defun my-magit-grep (regexp)
   "Like `vc-git-grep', but doesn't prompt for files or dirs."
@@ -79,7 +65,6 @@ simply prompting the user."
                      (buffer-local-value 'default-directory buffer)
                    default-directory))))
 
-(magit-key-mode-insert-action 'dispatch "G" "Grep" #'my-magit-grep)
 (define-key magit-mode-map (kbd "G") 'my-magit-grep)
 
 (provide 'my-magit)
