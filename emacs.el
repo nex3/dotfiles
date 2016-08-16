@@ -581,6 +581,28 @@ These are in the format (FILENAME)NODENAME."
           (replace-regexp "^\\[[^]]+\\]: .*$" "")
           (count-words))))))
 
+(defconst my-git-commit-filename-regexp "/\\(\
+\\(\\(COMMIT\\|NOTES\\|PULLREQ\\|TAG\\)_EDIT\\|MERGE_\\|\\)MSG\
+\\|BRANCH_DESCRIPTION\\|cl_description[a-zA-Z0-9_]+\\)\\'")
+
+(defun my-load-git-commit ()
+  "Load git-commit and replace its setup function."
+  (require 'git-commit)
+  (remove-hook 'find-file-hook 'my-load-git-commit)
+
+  (defun git-commit-setup-check-buffer ()
+    (and buffer-file-name
+       (string-match-p my-git-commit-filename-regexp buffer-file-name)
+       (git-commit-setup)))
+
+  (defun git-commit-setup-font-lock-in-buffer ()
+    (and buffer-file-name
+         (string-match-p my-git-commit-filename-regexp buffer-file-name)
+         (git-commit-setup-font-lock)))
+
+  (git-commit-setup-check-buffer))
+(add-hook 'find-file-hook 'my-load-git-commit)
+
 ;; ----------
 ;; -- Keybindings
 ;; ----------
