@@ -64,7 +64,8 @@
 (require 'package)
 
 (when (boundp 'package-archives)
-  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/")))
+  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
+  (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/")))
 (setq package-user-dir "~/.elisp/elpa")
 (package-initialize)
 
@@ -84,6 +85,9 @@ it's loaded for files matching REGEXP."
 ;; This is here because it would require loading a bunch of MuMaMo macros
 ;; to have the autoload defined in the file.
 (autoload 'nxhtml-mumamo-mode "nxhtml-mumamo.el")
+
+(autoload 'subword-forward "subword.el")
+(autoload 'subword-backward "subword.el")
 
 (load-mode 'markdown "\\.\\(markdown\\|md\\)$")
 (load-mode 'sass "\\.sass$")
@@ -148,16 +152,14 @@ The -hook suffix is unnecessary."
     (when (and (stringp (buffer-file-name))
                (string-match "^/home/nex3/code/awesome/" (buffer-file-name)))
       (let ((c-buffer-is-cc-mode t))
-        (c-set-style "awesome"))))
-
-  (my-add-hook java-mode
-    (when (string-match "^/home/nex3/hw/cse/473/slotcar/" (buffer-file-name))
-      (setq indent-tabs-mode t)
-      (setq tab-width 4))))
+        (c-set-style "awesome")))))
 
 (my-after-load dart-mode
+  (setq dart-enable-analysis-server t)
+  (dart-start-analysis-server)
   (my-add-hook dart-mode
-    (c-set-style "dart")))
+    (c-set-style "dart")
+    (flycheck-mode)))
 
 (my-after-load tex
   (with-temp-buffer (LaTeX-mode))
@@ -182,12 +184,23 @@ The -hook suffix is unnecessary."
   (setq js-auto-indent-flag nil))
 
 (my-after-load magit
-  (require 'my-magit)
-  (my-add-hook magit-log-edit-mode
+  (require 'my-magit))
+
+(my-after-load git-commit
+  ;; Unbind next-message and prev-message bindings that conflict with my custom
+  ;; bindings.
+  (define-key git-commit-mode-map (kbd "M-p") nil)
+  (define-key git-commit-mode-map (kbd "M-n") nil)
+
+  (my-add-hook git-commit-mode
     (set (make-local-variable 'whitespace-style) '(lines-tail face))
     (set (make-local-variable 'whitespace-line-column) 70)
     (set (make-local-variable 'fill-column) 70)
     (whitespace-mode)))
+
+(my-after-load git-rebase
+  (define-key git-rebase-mode-map (kbd "M-L") 'git-rebase-move-line-up)
+  (define-key git-rebase-mode-map (kbd "M-K") 'git-rebase-move-line-up))
 
 (my-after-load scss-mode
   (setq scss-compile-at-save nil))
@@ -340,18 +353,6 @@ See also `kill-whole-line'."
   (interactive "P")
   (kill-whole-line (- (or n 1))))
 
-;; Created by Akkana.
-(defun kill-all-buffers ()
-  "Kill all buffers without prompting."
-  (interactive)
-  (let ((list (buffer-list)))
-    (while list
-      (let* ((buffer (car list))
-             (name (buffer-name buffer)))
-             (kill-buffer buffer))
-      (setq list (cdr list))))
-  (delete-other-windows))
-
 (defun .emacs ()
   "Open up the .emacs configuration file."
   (interactive)
@@ -363,16 +364,6 @@ See also `kill-whole-line'."
   "Insert the clipboard contents (but never killed text) at the mark"
   (interactive)
   (insert (x-get-clipboard)))
-
-(defun nex3-irc ()
-  "Open an IRC client with my credentials"
-  (interactive)
-  (condition-case nil
-      (persp-rename "irc")
-    (error nil))
-  (let ((passwd (read-passwd "Password: ")))
-    (setq rcirc-authinfo `(("freenode" nickserv "nex3" ,passwd)))
-    (rcirc nil)))
 
 (defun make-directory-from-minibuffer ()
   "Create a directory at the location given by the minibuffer,
@@ -388,29 +379,6 @@ which should be selected."
           (0 (progn (compose-region (match-beginning 1) (match-end 1)
                                     ,(make-char 'greek-iso8859-7 107))
                     nil))))))
-
-(defun my-calc-embedded ()
-  "Similar to `calc-embedded', but runs on the region and exits immediately."
-  (interactive)
-  (let ((text (buffer-substring (point) (mark))))
-    (with-current-buffer (generate-new-buffer "thing")
-      (LaTeX-mode)
-      (insert "\\begin{document}\n$")
-      (insert text)
-      (insert "$\n\\end{document}")
-      (forward-line -1)
-      (end-of-line)
-      (backward-char 1)
-      (save-excursion
-        (beginning-of-line)
-        (replace-string "\\cdot" "*"))
-      (calc-embedded nil)
-      (calc-embedded nil)
-      (let ((bol (save-excursion (beginning-of-line) (point)))
-            (eol (save-excursion (end-of-line) (point))))
-        (setq text (buffer-substring (+ bol 1) (- eol 1)))))
-    (delete-region (point) (mark))
-    (insert text)))
 
 (defvar my-last-tag-was-search nil
   "Non-nil if the last tag lookup was a regexp search.")
@@ -472,64 +440,6 @@ it doesn't prompt for a tag name."
       (insert c-block-comment-prefix))
     (indent-according-to-mode)))
 
-(defun my-info (file-or-node &optional buffer)
-  "Like `info', but with a better interactive interface.
-When called interactively, reads an info node rather than an info
-filename.
-
-Treats prefix args in the same way as `info'."
-  (interactive (list
-                (if (and current-prefix-arg (not (numberp current-prefix-arg)))
-                    (read-file-name "Info file name: " nil nil t)
-                  (require 'magithub)
-                  (completing-read "Info node: " (my-complete-info-node-callback)))
-                (if (numberp current-prefix-arg)
-                    (format "*info*<%s>" current-prefix-arg))))
-  (info file-or-node buffer))
-
-(defun my-complete-info-node-callback ()
-  "Creates a callback that caches completions for info nodes."
-  (lexical-let ((cached-info-nodes-for-file
-                 (magithub--cache-function 'my-info-nodes-for-file))
-                (cached-info-get-files
-                 (magithub--cache-function 'my-info-get-files)))
-    (lambda (string predicate allp)
-      (let (new-string list)
-        (if (string-match "(\\([^)]+\\))\\(.*\\)" string)
-            (progn
-              (setq new-string string)
-              (setq list (funcall cached-info-nodes-for-file (match-string 1 string))))
-          (setq new-string
-                (concat "(" (if (string-match "(\\([^)]*\\)" string)
-                                (match-string 1 string)
-                              string)))
-          (setq list (funcall cached-info-get-files)))
-        (if allp (all-completions new-string list predicate)
-          (try-completion new-string list predicate))))))
-
-(defun my-info-nodes-for-file (filename)
-  "Return a list of info nodes in FILENAME.
-These are in the format (FILENAME)NODENAME."
-  (save-window-excursion
-    (with-temp-buffer
-      (info filename (current-buffer))
-      (mapcar (lambda (nodename) (concat "(" filename ")" (car nodename)))
-              (Info-build-node-completions)))))
-
-(defun my-info-get-files ()
-  "Return a list of all available top-level info files as strings."
-  (let ((ext-regexp "\\(\\.\\(info\\|gz\\|bz2\\|xz\\|lzma\\)\\)*"))
-    (loop for dir in Info-directory-list
-          append (loop for file in (directory-files dir 'full)
-                       unless (or (file-directory-p file)
-                                  (string-match (concat ext-regexp "-[0-9]+" ext-regexp  "$") file)
-                                  (string-match (concat "/dir$") file))
-                       collect (concat "("
-                                       (string-replace-match
-                                        (concat ext-regexp "$")
-                                        (file-name-nondirectory file)
-                                        "") ")")))))
-
 (defun my-eshell-new-shell ()
   "Create a new eshell."
   (interactive)
@@ -542,26 +452,27 @@ These are in the format (FILENAME)NODENAME."
     (magit-run-git "add" "-A" "elisp/elpa")
     (magit-run-git "commit" "-m" message)))
 
-(defun my-count-words ()
-  "Count words, ignoring footnotes and links."
-  (interactive)
-  (save-excursion
-    (end-of-buffer)
-    (let ((last-real-line (save-excursion
-                            (re-search-backward "^[^0-9 \n]")
-                            (point))))
-      (re-search-backward "^1\. " last-real-line t)
-      (let ((contents-no-footnotes
-             (buffer-substring-no-properties
-              (save-excursion (beginning-of-buffer) (point))
-              (point))))
-        (with-temp-buffer
-          (insert contents-no-footnotes)
-          (beginning-of-buffer)
-          (replace-regexp "\\[[0-9]+\\]" "")
-          (replace-regexp "\\][(\\[][^)]+[)\\]]" "")
-          (replace-regexp "^\\[[^]]+\\]: .*$" "")
-          (count-words))))))
+(defconst my-git-commit-filename-regexp "/\\(\
+\\(\\(COMMIT\\|NOTES\\|PULLREQ\\|TAG\\)_EDIT\\|MERGE_\\|\\)MSG\
+\\|BRANCH_DESCRIPTION\\|cl_description[a-zA-Z0-9_]+\\)\\'")
+
+(defun my-load-git-commit ()
+  "Load git-commit and replace its setup function."
+  (require 'git-commit)
+  (remove-hook 'find-file-hook 'my-load-git-commit)
+
+  (defun git-commit-setup-check-buffer ()
+    (and buffer-file-name
+       (string-match-p my-git-commit-filename-regexp buffer-file-name)
+       (git-commit-setup)))
+
+  (defun git-commit-setup-font-lock-in-buffer ()
+    (and buffer-file-name
+         (string-match-p my-git-commit-filename-regexp buffer-file-name)
+         (git-commit-setup-font-lock)))
+
+  (git-commit-setup-check-buffer))
+(add-hook 'find-file-hook 'my-load-git-commit)
 
 ;; ----------
 ;; -- Keybindings
@@ -709,6 +620,11 @@ These are in the format (FILENAME)NODENAME."
 (my-key "C-M-n" backward-kill-sexp)
 (my-key "C-M-." kill-sexp)
 
+(my-key "M-s-;" subword-forward)
+(my-key "M-s-j" subword-backward)
+(my-key "M-s-." subword-kill)
+(my-key "M-s-n" subword-backward-kill)
+
 (my-key "C-M-S-j" windmove-left)
 (my-key "C-M-:" windmove-right)
 (my-key "C-M-S-k" windmove-down)
@@ -755,18 +671,9 @@ These are in the format (FILENAME)NODENAME."
 
 (my-map "C-n" nex3)
 (my-key "C-n ." .emacs)
-(my-key "C-n i" my-info)
-(my-key "C-n b" blog)
 (my-key "C-n c" comment-region)
 (my-key "C-n u" uncomment-region)
 (my-key "C-n m" make-directory-from-minibuffer)
 (my-key "C-n f" auto-fill-mode)
-(my-key "C-n =" my-calc-embedded)
-(my-key "C-n C" my-magithub-clone)
-
-(my-map "C-n C-p" nex3-paste)
-(my-key "C-n C-p p" gist-region)
-(my-key "C-n C-p b" gist-buffer)
-(my-key "C-n C-p g" gist-fetch)
 
 (quick-perspective-keys)
