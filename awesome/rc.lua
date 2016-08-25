@@ -73,8 +73,6 @@ tagnames =
 {
     "check",
     "prog",
-    "hw",
-    "im",
     "music",
 }
 
