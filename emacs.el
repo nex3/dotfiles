@@ -237,14 +237,14 @@ PACKAGE may be a desc or a package name."
   (defun my-package-latest-version (package)
     "Return the latest version number of `package'."
     (mapconcat #'number-to-string
-               (aref (cadr (my-package-get-desc package)) 2)
+               (package-desc-version (my-package-get-desc package))
                "."))
 
   (defun my-commit-package (package)
     "Commit the latest version of `package'."
     (my-commit-config
      (format "[Emacs] Add %s version %s."
-             package
+             (package-desc-name package)
              (my-package-latest-version package))))
 
   (defadvice package-install (after my-commit-package-install (name) activate)
