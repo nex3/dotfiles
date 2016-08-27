@@ -28,12 +28,9 @@
   (with-selected-frame frame
     ;; Set my font
     (when window-system
-      (cond ((>= emacs-major-version 23) (set-frame-font "Monospace-8.5"))
-            ((and (eq window-system 'mac)
-                  (x-list-fonts "-apple-bitstream vera sans mono-medium-r-normal--0-0-0-0-m-0-mac-roman"))
-             (set-default-font "-apple-bitstream vera sans mono-medium-r-normal--0-0-0-0-m-0-mac-roman"))
-            ((x-list-fonts "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")
-             (set-frame-font "-Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1")))
+      (set-frame-font
+       (if (and (>= (/ (+ (display-pixel-width) 0.0) (display-mm-width)) 3))
+           "Monospace-9.5" "Monospace-8.5"))
       (toggle-scroll-bar -1))))
 
 (init-frame)
