@@ -155,11 +155,8 @@ The -hook suffix is unnecessary."
         (c-set-style "awesome")))))
 
 (my-after-load dart-mode
-  (setq dart-enable-analysis-server t)
-  (dart-start-analysis-server)
   (my-add-hook dart-mode
-    (c-set-style "dart")
-    (flycheck-mode)))
+    (c-set-style "dart")))
 
 (my-after-load tex
   (with-temp-buffer (LaTeX-mode))
