@@ -85,6 +85,8 @@ it's loaded for files matching REGEXP."
 
 (autoload 'subword-forward "subword.el")
 (autoload 'subword-backward "subword.el")
+(autoload 'subword-kill "subword.el")
+(autoload 'subword-backward-kill "subword.el")
 
 (load-mode 'markdown "\\.\\(markdown\\|md\\)$")
 (load-mode 'sass "\\.sass$")
