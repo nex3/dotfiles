@@ -149,24 +149,6 @@ alias $1=$name
 
 advise cd with-ls 'super "$@" && ls'
 
-function ssh-fn {
-    eval "
-function $1 {
-   if isatty out
-   then
-       ssh \`$1 \$@\`
-   else
-       echo $2
-   fi
-}
-"
-}
-
-advise ssh with-x 'super -X "$@"'
-alias home='ssh -p 2042 nex3@home.nex-3.com'
-alias svni='svn --ignore-externals'
-alias pager='less'
-alias rl='rlwrap'
 if which hub; do
     alias git=hub
 done
