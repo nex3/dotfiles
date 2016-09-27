@@ -151,6 +151,7 @@ advise cd with-ls 'super "$@" && ls'
 
 if which hub; do
     alias git=hub
+    . `readlink -f \`which hub\``/etc/hub.bash_completion.sh
 done
 
 ## ----------
