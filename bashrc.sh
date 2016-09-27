@@ -167,6 +167,9 @@ alias home='ssh -p 2042 nex3@home.nex-3.com'
 alias svni='svn --ignore-externals'
 alias pager='less'
 alias rl='rlwrap'
+if which hub; do
+    alias git=hub
+done
 
 ## ----------
 ## -- New Lookup Paths
