@@ -149,10 +149,11 @@ alias $1=$name
 
 advise cd with-ls 'super "$@" && ls'
 
-if which hub; do
+if which hub > /dev/null; then
     alias git=hub
-    . `readlink -f \`which hub\``/etc/hub.bash_completion.sh
-done
+    completion=`readlink -f \`which hub\``/etc/hub.bash_completion.sh
+    if [ -e "$completion" ]; then . "$completion"; fi
+fi
 
 ## ----------
 ## -- New Lookup Paths
