@@ -29,7 +29,8 @@
     ;; Set my font
     (when window-system
       (set-frame-font
-       (if (and (>= (/ (+ (display-pixel-width) 0.0) (display-mm-width)) 3))
+       (if (and (>= (/ (+ (display-pixel-width) 0.0) (display-mm-width)) 3)
+                (< (display-mm-width) 500))
            "Monospace-9.5" "Monospace-8.5"))
       (toggle-scroll-bar -1))))
 
