@@ -298,6 +298,7 @@ PACKAGE may be a desc or a package name."
 (setq magit-unstage-all-confirm nil)
 (setq magit-last-seen-setup-instructions "1.4.0")
 (setq magit-status-buffer-switch-function 'switch-to-buffer)
+(setq magit-bury-buffer-function 'quit-window)
 (setq electric-indent-mode nil)
 (set-default 'fill-column 80)
 (setq sentence-end-double-space nil)
