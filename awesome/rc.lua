@@ -240,7 +240,6 @@ globalkeys =
     -- Standard program
     key({ modkey, "Shift"   }, "Return", function () awful.util.spawn(terminal) end),
     key({ modkey, "Control" }, "r", awesome.restart),
-    key({ modkey, "Shift"   }, "q", awesome.quit),
 
     key({ modkey,           }, ";",     function () awful.tag.incmwfact( 0.05)    end),
     key({ modkey,           }, "j",     function () awful.tag.incmwfact(-0.05)    end),
