@@ -253,11 +253,6 @@ globalkeys = awful.util.table.join(
     -- Standard program
     awful.key({ modkey, "Shift"   }, "Return", function () awful.util.spawn(terminal) end),
     awful.key({ modkey, "Control" }, "r", awesome.restart),
-    awful.key({ modkey, "Shift"   }, "q", function()
-                                              awful.util.spawn("pkill -u 96759")
-                                              awesome.quit()
-                                          end),
-
     awful.key({ modkey,           }, ";",     function () awful.tag.incmwfact( 0.05)    end),
     awful.key({ modkey,           }, "j",     function () awful.tag.incmwfact(-0.05)    end),
     awful.key({ modkey, "Shift"   }, "j",     function () awful.tag.incnmaster( 1)      end),
