@@ -225,6 +225,12 @@ fi
 
 fi
 
+# The next line updates PATH for the Google Cloud SDK.
+if [ -d ~/src/google-cloud-sdk ]; then
+  source ~/src/google-cloud-sdk/path.bash.inc
+  source ~/src/google-cloud-sdk/completion.bash.inc
+fi
+
 # This should be required outside of the interactive-only
 # and top-level-of-screen-only blocks,
 # because we need the rvm command to be a function
