@@ -21,3 +21,5 @@
         pr = !hub pull-request
 [color]
         ui = auto
+[push]
+	default = upstream
