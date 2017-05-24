@@ -658,6 +658,9 @@ it doesn't prompt for a tag name."
 (my-key "<M-S-return>" my-magit-status)
 (my-key "<C-S-return>" my-eshell-new-shell)
 
+(define-key my-keymap (kbd "M-S-s-SPC")
+  (lambda () (interactive) (insert-register ?\s t)))
+
 ;; Cold Turkey
 
 (my-unset "C-w")
