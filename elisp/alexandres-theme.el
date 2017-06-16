@@ -22,10 +22,10 @@
      (italic ((t (:italic t))))
      ;; orange: #E67321
      ;; green: #00b200
-     ;; dark blue: #2B2BFF
+     ;; dark blue: #5555FF
      ;; light blue: #398EE6
      (font-lock-builtin-face ((t (:bold t :foreground "#E67321"))))
-     (font-lock-comment-face ((t (:italic t :bold t :foreground "#2B2BFF"))))
+     (font-lock-comment-face ((t (:italic t :bold t :foreground "#5555FF"))))
      (font-lock-constant-face ((t (:bold t :foreground "#398EE6"))))
      (font-lock-doc-string-face ((t (:bold t :foreground "#00b200"))))
      (font-lock-function-name-face ((t (:foreground "LightSkyBlue"))))

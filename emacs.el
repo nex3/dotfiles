@@ -64,7 +64,8 @@
 (require 'package)
 
 (when (boundp 'package-archives)
-  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/")))
+  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
+  (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/")))
 (setq package-user-dir "~/.elisp/elpa")
 (package-initialize)
 
@@ -84,6 +85,9 @@ it's loaded for files matching REGEXP."
 ;; This is here because it would require loading a bunch of MuMaMo macros
 ;; to have the autoload defined in the file.
 (autoload 'nxhtml-mumamo-mode "nxhtml-mumamo.el")
+
+(autoload 'subword-forward "subword.el")
+(autoload 'subword-backward "subword.el")
 
 (load-mode 'markdown "\\.\\(markdown\\|md\\)$")
 (load-mode 'sass "\\.sass$")
@@ -156,8 +160,11 @@ The -hook suffix is unnecessary."
       (setq tab-width 4))))
 
 (my-after-load dart-mode
+  (setq dart-enable-analysis-server t)
+  (dart-start-analysis-server)
   (my-add-hook dart-mode
-    (c-set-style "dart")))
+    (c-set-style "dart")
+    (flycheck-mode)))
 
 (my-after-load tex
   (with-temp-buffer (LaTeX-mode))
@@ -182,12 +189,23 @@ The -hook suffix is unnecessary."
   (setq js-auto-indent-flag nil))
 
 (my-after-load magit
-  (require 'my-magit)
-  (my-add-hook magit-log-edit-mode
+  (require 'my-magit))
+
+(my-after-load git-commit
+  ;; Unbind next-message and prev-message bindings that conflict with my custom
+  ;; bindings.
+  (define-key git-commit-mode-map (kbd "M-p") nil)
+  (define-key git-commit-mode-map (kbd "M-n") nil)
+
+  (my-add-hook git-commit-mode
     (set (make-local-variable 'whitespace-style) '(lines-tail face))
     (set (make-local-variable 'whitespace-line-column) 70)
     (set (make-local-variable 'fill-column) 70)
     (whitespace-mode)))
+
+(my-after-load git-rebase
+  (define-key git-rebase-mode-map (kbd "M-L") 'git-rebase-move-line-up)
+  (define-key git-rebase-mode-map (kbd "M-K") 'git-rebase-move-line-up))
 
 (my-after-load scss-mode
   (setq scss-compile-at-save nil))
@@ -708,6 +726,11 @@ These are in the format (FILENAME)NODENAME."
 
 (my-key "C-M-n" backward-kill-sexp)
 (my-key "C-M-." kill-sexp)
+
+(my-key "M-s-;" subword-forward)
+(my-key "M-s-j" subword-backward)
+(my-key "M-s-." subword-kill)
+(my-key "M-s-n" subword-backward-kill)
 
 (my-key "C-M-S-j" windmove-left)
 (my-key "C-M-:" windmove-right)
