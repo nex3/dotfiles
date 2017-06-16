@@ -75,9 +75,9 @@ tagnames =
 {
     "check",
     "prog",
-    "hw",
     "im",
-    "music",
+    "media",
+    "edit"
 }
 
 -- Define if we want to use titlebar on all applications.
