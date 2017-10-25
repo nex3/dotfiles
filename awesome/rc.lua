@@ -73,7 +73,9 @@ tagnames =
 {
     "check",
     "prog",
-    "music",
+    "im",
+    "media",
+    "edit"
 }
 
 -- }}}

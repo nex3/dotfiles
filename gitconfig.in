@@ -18,7 +18,7 @@
         sdiff = diff --stat=150,130
         sshow = !sh -c 'git show "$1"; git sdiff "$1" "$1^"' --
         msg = commit --allow-empty -m
-        pr = !hub pull-request
+        prp = !hub pull-request --push
 [color]
         ui = auto
 [push]

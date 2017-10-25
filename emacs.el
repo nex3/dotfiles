@@ -244,12 +244,14 @@ PACKAGE may be a desc or a package name."
              (package-desc-name package)
              (my-package-latest-version package))))
 
-  (defadvice package-install (after my-commit-package-install (name) activate)
-    (my-commit-package name))
+  (defadvice package-install (after my-commit-package-install (pkg &optional dont-select) activate)
+    (my-commit-package pkg))
 
-  (defadvice package-delete (after my-commit-package-delete (name version) activate)
+  (defadvice package-delete (after my-commit-package-delete (pkg-desc &optional force nosave) activate)
     (my-commit-config
-     (format "[Emacs] Delete %s version %s." name version))))
+     (format "[Emacs] Delete %s version %s."
+             (package-desc-name pkg)
+             (package-desc-version pkg-desc)))))
 
 (my-after-load eshell
   (persp-make-variable-persp-local 'eshell-buffer-name)
