@@ -183,6 +183,9 @@ The -hook suffix is unnecessary."
 (my-after-load magit
   (require 'my-magit))
 
+(my-after-load term
+  (require 'my-term))
+
 (my-after-load git-commit
   ;; Unbind next-message and prev-message bindings that conflict with my custom
   ;; bindings.
@@ -441,11 +444,6 @@ it doesn't prompt for a tag name."
       (insert c-block-comment-prefix))
     (indent-according-to-mode)))
 
-(defun my-eshell-new-shell ()
-  "Create a new eshell."
-  (interactive)
-  (eshell 'new-shell))
-
 (defun my-commit-config (message)
   "Commit a change to the config repo."
   (save-window-excursion
@@ -508,6 +506,10 @@ it doesn't prompt for a tag name."
 
 (defmacro my-strong-unset (key)
   `(my-key ,key keyboard-quit))
+
+(defvar my-default-keymap
+  (make-composed-keymap (list my-keymap (current-global-map)))
+  "A keymap that combines `my-keymap' and `current-global-map'.")
 
 ;; -- Terminal hacks
 ;;
@@ -658,7 +660,7 @@ it doesn't prompt for a tag name."
 (my-key "M-A" my-tag-search)
 
 (my-key "<M-S-return>" my-magit-status)
-(my-key "<C-S-return>" my-eshell-new-shell)
+(my-key "<C-S-return>" my-term)
 
 (define-key my-keymap (kbd "M-S-s-SPC")
   (lambda () (interactive) (insert-register ?\s t)))
