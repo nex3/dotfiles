@@ -190,6 +190,10 @@ Otherwise, bind key to FALLBACK or its default binding."
 (define-key my-term-keymap (kbd "M-?") (lambda () (interactive) (term-send-raw-string "\C-_")))
 (define-key my-term-keymap (kbd "M-S-SPC") 'term-yank)
 (define-key my-term-keymap (kbd "M-C-S-SPC") 'term-yank-pop)
+(define-key my-term-keymap (kbd "M-R") (lambda () (interactive) (term-send-raw-string "\C-r")))
+
+(custom-set-faces
+ '(term-color-black ((t (:background "black" :foreground "dim gray")))))
 
 (provide 'my-term)
 
