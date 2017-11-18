@@ -8,6 +8,7 @@
 (require 'magit)
 (require 'cl)
 
+;;;###autoload
 (defun my-magit-status-buffer ()
   "Return the Magit status buffer for this perspective.
 Return nil if there is no such buffer.  If there are more than
