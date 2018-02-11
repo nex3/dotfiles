@@ -1,6 +1,6 @@
 [user]
         name = Natalie Weizenbaum
-        email = nex342@gmail.com
+        email = nweiz@google.com
 [core]
         excludesfile=~/.gitignore.global
 [alias]
