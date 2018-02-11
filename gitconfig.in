@@ -23,3 +23,5 @@
         ui = auto
 [push]
 	default = upstream
+[http]
+	cookiefile = /home/nweiz/.gitcookies
