@@ -43,6 +43,13 @@ end
 -- Themes define colours, icons, and wallpapers
 beautiful.init(awful.util.get_themes_dir() .. "default/theme.lua")
 
+wallpapers = {"horizontal.jpg", "vertical.jpg"}
+
+beautiful.wallpaper = function(s)
+    file = wallpapers[s.index] or "wallpaper1.jpg"
+    return os.getenv("HOME") .. "/.config/awesome/img/" .. file
+end
+
 -- My own little tweaks
 naughty.config.presets.normal.border_color = beautiful.border_focus
 
@@ -205,7 +212,7 @@ local function set_wallpaper(s)
         if type(wallpaper) == "function" then
             wallpaper = wallpaper(s)
         end
-        gears.wallpaper.maximized(wallpaper, s, true)
+        gears.wallpaper.maximized(wallpaper, s, false)
     end
 end
 
