@@ -77,22 +77,25 @@ awful.layout.layouts = {
 
 -- {{{ Tags
 
--- Names of tags
-tagnames =
-{
-    "check",
-    "prog",
-    "im",
-    "media",
-    "edit"
-}
+-- Names of tags by which screen they appear on
+tags_by_screen = nil
+if screen.count() == 1 then
+    tags_by_screen = {
+        {"check", "prog", "im", "media", "edit"}
+    }
+else
+    tags_by_screen = {
+        {"check", "media"},
+        {"prog", "im", "edit"}
+    }
+end
 
 --  tag table which hold all screen tags.
 tags = {}
 for s = 1, screen.count() do
     tags_names = {}
     for i = 1, 9 do
-        tags_names[i] = tagnames[i] or i
+        tags_names[i] = (tags_by_screen[s] or {})[i] or i
     end
     -- Each screen has its own tag table.
     tags[s] = awful.tag(tags_names, s, awful.layout.layouts[1])
@@ -101,7 +104,7 @@ end
 namedtags = {}
 for s = 1, screen.count() do
     namedtags[s] = {}
-    for i, n in ipairs(tagnames) do
+    for i, n in ipairs(tags_by_screen[s] or {}) do
         namedtags[s][n] = tags[s][i]
     end
 end
@@ -445,8 +448,13 @@ for i = 1, keynumber do
     tagkey(modkey, "#" .. i + 9, function(screen) return tags[screen.index][i] end)
 end
 
-for i, n in ipairs(tagnames) do
-    tagkey(modkey2, n:sub(1, 1), function(screen) return namedtags[screen.index][n] end)
+for screen, names in ipairs(tags_by_screen) do
+    for i, n in ipairs(names) do
+       tagkey(modkey2, n:sub(1, 1), function(_)
+                                           awful.screen.focus(screen)
+                                           return namedtags[screen][n]
+                                       end)
+    end
 end
 
 clientbuttons = awful.util.table.join(
