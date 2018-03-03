@@ -365,6 +365,13 @@ globalkeys = awful.util.table.join(
     -- Menubar
     awful.key({ modkey }, "p", function() menubar.show() end,
               {description = "show the menubar", group = "launcher"})
+
+    -- Custom
+    awful.key({ modkey, modkey2 }, "space",
+              function()
+                  awful.util.spawn("gnome-screensaver-command --lock")
+              end,
+              {description = "lock the screen", group = "launcher"})
 )
 
 clientkeys = awful.util.table.join(
