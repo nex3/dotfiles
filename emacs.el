@@ -48,7 +48,7 @@
    '(default ((((min-colors 256)) (:foreground "pink"))
               (t (:foreground "white"))))
    ;; Don't highlight lines in the terminal
-   '(font-lock-comment-face ((t (:italic t :bold t :foreground "#4B4BFF"))))
+   '(font-lock-comment-face ((t (:italic t :bold t :foreground "#7B7BFF"))))
    '(hl-line ((((min-colors 256)) (:inherit highlight))
               (((min-colors 8)) (:inherit nil :background nil))))
    '(mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
