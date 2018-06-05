@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ ${#@} -eq 0 ]; then
+if [ "$1" = "-" ]; then
     tempfile=$(mktemp emacs-stdin-$USER.XXXXXXX --tmpdir)
     cat - > "$tempfile"
     args="$tempfile"
@@ -9,11 +9,11 @@ else
 fi
 
 if [ "$TERM" = screen ]; then
-    emacsclient -t -a 'temacs' "$args"
+    emacsclient -t -a 'temacs' $args
 elif [ ! -z "$INSIDE_EMACS" ]; then
-    emacsclient -a 'emacs' "$args"
+    emacsclient -a 'emacs' $args
 else
-    emacsclient -c -a 'emacs' "$args"
+    emacsclient -c -a 'emacs' $args
 fi
 
 code=$?
