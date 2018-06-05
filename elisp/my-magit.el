@@ -13,7 +13,7 @@
   "Return the Magit status buffer for this perspective.
 Return nil if there is no such buffer.  If there are more than
 one Magit status buffers active, this returns an arbitrary one."
-  (dolist (buffer (persp-buffers persp-curr))
+  (dolist (buffer (persp-buffers (persp-curr)))
     (when (and (buffer-name buffer)
                (string-match "^\*magit: " (buffer-name buffer)))
       (return-from nil buffer))))

@@ -73,7 +73,7 @@
 
 (persp-mode)
 
-(setq frame-title-format '("Emacs: %b [" (:eval (persp-name persp-curr)) "]"))
+(setq frame-title-format '("Emacs: %b [" (:eval (persp-name (persp-curr))) "]"))
 
 (defun load-mode (name regexp)
   "Set up a language mode NAME-mode so that
@@ -259,7 +259,7 @@ PACKAGE may be a desc or a package name."
 (my-after-load eshell
   (persp-make-variable-persp-local 'eshell-buffer-name)
   (my-add-hook persp-created
-    (setq eshell-buffer-name (format "*eshell* (%s)" (persp-name persp-curr)))))
+    (setq eshell-buffer-name (format "*eshell* (%s)" (persp-name (persp-curr))))))
 
 (my-after-load flymake
   (require 'flymake-cursor))
