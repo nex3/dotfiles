@@ -43,6 +43,13 @@ end
 -- Themes define colours, icons, and wallpapers
 beautiful.init(awful.util.get_themes_dir() .. "default/theme.lua")
 
+wallpapers = {"horizontal.jpg", "vertical.jpg"}
+
+beautiful.wallpaper = function(s)
+    file = wallpapers[s.index] or "wallpaper1.jpg"
+    return os.getenv("HOME") .. "/.config/awesome/img/" .. file
+end
+
 -- My own little tweaks
 naughty.config.presets.normal.border_color = beautiful.border_focus
 
@@ -77,22 +84,25 @@ awful.layout.layouts = {
 
 -- {{{ Tags
 
--- Names of tags
-tagnames =
-{
-    "check",
-    "prog",
-    "im",
-    "media",
-    "edit"
-}
+-- Names of tags by which screen they appear on
+tags_by_screen = nil
+if screen.count() == 1 then
+    tags_by_screen = {
+        {"check", "prog", "media", "edit"}
+    }
+else
+    tags_by_screen = {
+        {"check", "media"},
+        {"prog", "edit"}
+    }
+end
 
 --  tag table which hold all screen tags.
 tags = {}
 for s = 1, screen.count() do
     tags_names = {}
     for i = 1, 9 do
-        tags_names[i] = tagnames[i] or i
+        tags_names[i] = (tags_by_screen[s] or {})[i] or i
     end
     -- Each screen has its own tag table.
     tags[s] = awful.tag(tags_names, s, awful.layout.layouts[1])
@@ -101,7 +111,7 @@ end
 namedtags = {}
 for s = 1, screen.count() do
     namedtags[s] = {}
-    for i, n in ipairs(tagnames) do
+    for i, n in ipairs(tags_by_screen[s] or {}) do
         namedtags[s][n] = tags[s][i]
     end
 end
@@ -202,7 +212,7 @@ local function set_wallpaper(s)
         if type(wallpaper) == "function" then
             wallpaper = wallpaper(s)
         end
-        gears.wallpaper.maximized(wallpaper, s, true)
+        gears.wallpaper.maximized(wallpaper, s, false)
     end
 end
 
@@ -355,6 +365,13 @@ globalkeys = awful.util.table.join(
     -- Menubar
     awful.key({ modkey }, "p", function() menubar.show() end,
               {description = "show the menubar", group = "launcher"})
+
+    -- Custom
+    awful.key({ modkey, modkey2 }, "space",
+              function()
+                  awful.util.spawn("gnome-screensaver-command --lock")
+              end,
+              {description = "lock the screen", group = "launcher"})
 )
 
 clientkeys = awful.util.table.join(
@@ -445,8 +462,13 @@ for i = 1, keynumber do
     tagkey(modkey, "#" .. i + 9, function(screen) return tags[screen.index][i] end)
 end
 
-for i, n in ipairs(tagnames) do
-    tagkey(modkey2, n:sub(1, 1), function(screen) return namedtags[screen.index][n] end)
+for screen, names in ipairs(tags_by_screen) do
+    for i, n in ipairs(names) do
+       tagkey(modkey2, n:sub(1, 1), function(_)
+                                           awful.screen.focus(screen)
+                                           return namedtags[screen][n]
+                                       end)
+    end
 end
 
 clientbuttons = awful.util.table.join(

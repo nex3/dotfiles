@@ -18,7 +18,7 @@ nonnumeric prefix arg means to create a new session.
 When ARG isn't passed and this is invoked multiple times, cycles
 through shells."
   (interactive "P")
-  (let* ((term-buffer-base (concat "shell: " (persp-name persp-curr)))
+  (let* ((term-buffer-base (concat "shell: " (persp-name (persp-curr))))
          (term-buffer-name (concat "*" term-buffer-base "*"))
          (magit-buffer (my-magit-status-buffer))
          (default-directory (or (and magit-buffer
@@ -44,7 +44,7 @@ through shells."
      ((eq last-command this-command)
       (let ((term-buffer-re (concat "^" (regexp-quote term-buffer-name)))
             first found-current)
-        (dolist (buffer (reverse (persp-buffers persp-curr)))
+        (dolist (buffer (reverse (persp-buffers (persp-curr))))
           (when (buffer-name buffer)
             (cond
              (found-current
