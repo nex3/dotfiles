@@ -665,6 +665,8 @@ it doesn't prompt for a tag name."
 (define-key my-keymap (kbd "M-S-s-SPC")
   (lambda () (interactive) (insert-register ?\s t)))
 
+(ffap-bindings)
+
 ;; Cold Turkey
 
 (my-unset "C-w")
