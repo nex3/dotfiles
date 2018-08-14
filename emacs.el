@@ -473,6 +473,25 @@ it doesn't prompt for a tag name."
   (git-commit-setup-check-buffer))
 (add-hook 'find-file-hook 'my-load-git-commit)
 
+(defun my-shell-command (command &optional output-buffer)
+  "Like `shell-command', but automatically inserts the current file name."
+  (interactive
+   (list
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (beginning-of-line)
+          (insert " ")
+          (beginning-of-line))
+      (read-shell-command "Shell command: "
+                          (let ((filename
+                                 (cond
+                                  (buffer-file-name)
+                                  ((eq major-mode 'dired-mode)
+                                   (dired-get-filename nil t)))))
+                            (and filename (file-relative-name filename)))))
+    current-prefix-arg))
+  (shell-command command output-buffer))
+
 ;; ----------
 ;; -- Keybindings
 ;; ----------
@@ -661,6 +680,8 @@ it doesn't prompt for a tag name."
 
 (my-key "<M-S-return>" my-magit-status)
 (my-key "<C-S-return>" my-term)
+
+(my-key "C-M-!" my-shell-command)
 
 (define-key my-keymap (kbd "M-S-s-SPC")
   (lambda () (interactive) (insert-register ?\s t)))
