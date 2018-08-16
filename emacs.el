@@ -89,7 +89,7 @@ it's loaded for files matching REGEXP."
 (autoload 'subword-kill "subword.el")
 (autoload 'subword-backward-kill "subword.el")
 
-(load-mode 'markdown "\\.\\(markdown\\|md\\)$")
+(load-mode 'markdown "\\.\\(markdown\\|md\\)\\(\\.erb\\)?$")
 (load-mode 'sass "\\.sass$")
 (load-mode 'yaml "\\.ya?ml$")
 (load-mode 'ruby "\\(\\.\\(rb\\|rake\\|rjs\\|duby\\|gemspec\\|thor\\)\\|Rakefile\\|Capfile\\|Thorfile\\)$")
