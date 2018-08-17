@@ -88,7 +88,7 @@ it's loaded for files matching REGEXP."
 (autoload 'subword-kill "subword.el")
 (autoload 'subword-backward-kill "subword.el")
 
-(load-mode 'markdown "\\.\\(markdown\\|md\\)\\(\\.erb\\)?$")
+(load-mode 'gfm "\\.\\(markdown\\|md\\)\\(\\.erb\\)?$")
 (load-mode 'sass "\\.sass$")
 (load-mode 'yaml "\\.ya?ml$")
 (load-mode 'ruby "\\(\\.\\(rb\\|rake\\|rjs\\|duby\\|gemspec\\|thor\\)\\|Rakefile\\|Capfile\\|Thorfile\\)$")
@@ -213,9 +213,6 @@ The -hook suffix is unnecessary."
 (my-after-load tramp
   (add-to-list 'tramp-default-proxies-alist
                '("\\`nex-3.com\\'" "\\`root\\'" "/ssh:%h:")))
-
-(my-after-load markdown-mode
-  (setq markdown-command "maruku -o /dev/stdout 2> /dev/null"))
 
 (my-after-load compile
   (persp-make-variable-persp-local 'compile-history)
