@@ -62,7 +62,6 @@
 (require 'package)
 
 (when (boundp 'package-archives)
-  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
   (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/")))
 (setq package-user-dir "~/.elisp/elpa")
 (package-initialize)
@@ -89,7 +88,7 @@ it's loaded for files matching REGEXP."
 (autoload 'subword-kill "subword.el")
 (autoload 'subword-backward-kill "subword.el")
 
-(load-mode 'markdown "\\.\\(markdown\\|md\\)$")
+(load-mode 'gfm "\\.\\(markdown\\|md\\)\\(\\.erb\\)?$")
 (load-mode 'sass "\\.sass$")
 (load-mode 'yaml "\\.ya?ml$")
 (load-mode 'ruby "\\(\\.\\(rb\\|rake\\|rjs\\|duby\\|gemspec\\|thor\\)\\|Rakefile\\|Capfile\\|Thorfile\\)$")
@@ -214,9 +213,6 @@ The -hook suffix is unnecessary."
 (my-after-load tramp
   (add-to-list 'tramp-default-proxies-alist
                '("\\`nex-3.com\\'" "\\`root\\'" "/ssh:%h:")))
-
-(my-after-load markdown-mode
-  (setq markdown-command "maruku -o /dev/stdout 2> /dev/null"))
 
 (my-after-load compile
   (persp-make-variable-persp-local 'compile-history)
@@ -473,6 +469,25 @@ it doesn't prompt for a tag name."
   (git-commit-setup-check-buffer))
 (add-hook 'find-file-hook 'my-load-git-commit)
 
+(defun my-shell-command (command &optional output-buffer)
+  "Like `shell-command', but automatically inserts the current file name."
+  (interactive
+   (list
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (beginning-of-line)
+          (insert " ")
+          (beginning-of-line))
+      (read-shell-command "Shell command: "
+                          (let ((filename
+                                 (cond
+                                  (buffer-file-name)
+                                  ((eq major-mode 'dired-mode)
+                                   (dired-get-filename nil t)))))
+                            (and filename (file-relative-name filename)))))
+    current-prefix-arg))
+  (shell-command command output-buffer))
+
 ;; ----------
 ;; -- Keybindings
 ;; ----------
@@ -662,8 +677,12 @@ it doesn't prompt for a tag name."
 (my-key "<M-S-return>" my-magit-status)
 (my-key "<C-S-return>" my-term)
 
+(my-key "C-M-!" my-shell-command)
+
 (define-key my-keymap (kbd "M-S-s-SPC")
   (lambda () (interactive) (insert-register ?\s t)))
+
+(ffap-bindings)
 
 ;; Cold Turkey
 
