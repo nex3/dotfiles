@@ -219,6 +219,7 @@ The -hook suffix is unnecessary."
   (persp-make-variable-persp-local 'compile-command))
 
 (my-after-load markdown-mode
+  (setq markdown-spaces-after-code-fence 0)
   (my-add-hook markdown-mode
     (toggle-word-wrap 1)
     (toggle-truncate-lines -1)))
