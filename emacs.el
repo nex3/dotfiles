@@ -49,10 +49,14 @@
               (t (:foreground "white"))))
    ;; Don't highlight lines in the terminal
    '(font-lock-comment-face ((t (:italic t :bold t :foreground "#7B7BFF"))))
+   '(highlight ((t (:background "gray10"))))
    '(hl-line ((((min-colors 256)) (:inherit highlight))
               (((min-colors 8)) (:inherit nil :background nil))))
    '(mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
-   '(magit-item-highlight ((t (:background "#222222"))))))
+   '(magit-item-highlight ((t (:background "#222222"))))
+   '(markdown-inline-code-face ((t (:foreground "cyan3"))))
+   '(markdown-markup-face ((t (:foreground "pink3"))))
+   '(markdown-reference-face ((t (:inherit markdown-markup-face))))))
 
 ;; ----------
 ;; -- Loading Modules
