@@ -703,3 +703,5 @@ it doesn't prompt for a tag name."
 (my-key "C-n f" auto-fill-mode)
 
 (quick-perspective-keys)
+(my-key "C-S-SPC" persp-switch-last)
+
