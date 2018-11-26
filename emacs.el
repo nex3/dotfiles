@@ -307,6 +307,7 @@ PACKAGE may be a desc or a package name."
 (setq magit-status-buffer-switch-function 'switch-to-buffer)
 (setq magit-bury-buffer-function 'quit-window)
 (setq electric-indent-mode nil)
+(setq ring-bell-function 'ignore)
 (set-default 'fill-column 80)
 (setq sentence-end-double-space nil)
 (setq x-select-enable-primary t)
