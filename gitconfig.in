@@ -5,7 +5,7 @@
         excludesfile=~/.gitignore.global
 [alias]
         st = status
-        co = checkout
+        co = !hub checkout
         ci = commit
         cp = cherry-pick
         fp = format-patch
