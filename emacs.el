@@ -47,8 +47,9 @@
   (custom-set-faces
    '(default ((((min-colors 256)) (:foreground "pink"))
               (t (:foreground "white"))))
-   ;; Don't highlight lines in the terminal
    '(font-lock-comment-face ((t (:italic t :bold t :foreground "#7B7BFF"))))
+   '(term-color-blue ((t (:foreground "#7B7BFF"))))
+   ;; Don't highlight lines in the terminal
    '(highlight ((t (:background "gray10"))))
    '(hl-line ((((min-colors 256)) (:inherit highlight))
               (((min-colors 8)) (:inherit nil :background nil))))
