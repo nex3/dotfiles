@@ -49,4 +49,6 @@ for f in $conf/bin/*; do
 done
 
 mkdir ~/src
-~/bin/get-dart --activate latest
+if [ ! -d ~/src/dart-current ]; then
+    ~/bin/get-dart --activate latest
+fi
