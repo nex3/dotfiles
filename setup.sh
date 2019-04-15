@@ -17,33 +17,36 @@ ln -s ../git-hooks .git/hooks
 conf=`pwd`
 cd ~
 
-rm -rf .{info,emacs,elisp,bashrc,inputrc,irbrc,factor-rc,screenrc,Xresources,Xmodmap,gitconfig,gitignore.global}
+rm -rf .{emacs,bashrc,irbrc,factor-rc}
 ln -s $conf/emacs.el .emacs
 ln -s $conf/bashrc.sh .bashrc
 ln -s $conf/irbrc.rb .irbrc
 ln -s $conf/rc.factor .factor-rc
-ln -s {$conf/,.}elisp
-ln -s {$conf/,.}info
-ln -s {$conf/,.}inputrc
-ln -s {$conf/,.}screenrc
-ln -s {$conf/,.}Xresources
-ln -s {$conf/,.}Xmodmap
-ln -s {$conf/,.}gitconfig
-ln -s {$conf/,.}gitignore.global
+
+for file in elisp info inputrc screenrc Xresources Xmodmap gitconfig gitignore.global; do
+    ln -sf {$conf/,.}$file
+done
 
 $conf/git-hooks/post-commit
 
 which xrdb &> /dev/null && [ ! -z "$DISPLAY" ] && xrdb -merge .Xresources
 
-mkdir -p ~/.config
+mkdir ~/.config
 cd ~/.config
 rm -rf awesome
 ln -s {$conf/,}awesome
 
-mkdir -p ~/bin
+mkdir ~/bin
+for executable in dart dart2js dartanalyzer dartdevc dartdoc dartfmt pub; do
+    ln -sf ~/src/dart-current/bin/$executable ~/bin/$executable
+done
+
 cd ~/bin
 for f in $conf/bin/*; do
     newfile="`echo "$f" | sed 's/.*\/\(.*\)\..*$/\1/'`"
     rm -f "$newfile"
     ln -s "$f" "$newfile"
 done
+
+mkdir ~/src
+~/bin/get-dart --activate latest
