@@ -24,7 +24,7 @@ ln -s $conf/irbrc.rb .irbrc
 ln -s $conf/rc.factor .factor-rc
 
 for file in elisp info inputrc screenrc Xresources Xmodmap gitconfig gitignore.global; do
-    mr -rf .$file
+    rm -rf .$file
     ln -s {$conf/,.}$file
 done
 
