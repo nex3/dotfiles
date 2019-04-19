@@ -1,3 +1,3 @@
 #!/bin/bash
 
-dart ~/goog/sass/sass/bin/sass.dart "$@"
+dart ~/goog/sass/dart/bin/sass.dart "$@"
