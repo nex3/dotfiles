@@ -24,7 +24,7 @@ ln -s $conf/irbrc.rb .irbrc
 ln -s $conf/rc.factor .factor-rc
 
 for file in elisp info inputrc screenrc Xresources Xmodmap gitconfig gitignore.global; do
-    mr -rf .$file
+    rm -rf .$file
     ln -s {$conf/,.}$file
 done
 
@@ -32,12 +32,12 @@ $conf/git-hooks/post-commit
 
 which xrdb &> /dev/null && [ ! -z "$DISPLAY" ] && xrdb -merge .Xresources
 
-mkdir ~/.config
+mkdir -p ~/.config
 cd ~/.config
 rm -rf awesome
 ln -s {$conf/,}awesome
 
-mkdir ~/bin
+mkdir -p ~/bin
 for executable in dart dart2js dartanalyzer dartdevc dartdoc dartfmt pub; do
     ln -sf ~/src/dart-current/bin/$executable ~/bin/$executable
 done
@@ -49,7 +49,7 @@ for f in $conf/bin/*; do
     ln -s "$f" "$newfile"
 done
 
-mkdir ~/src
+mkdir -p ~/src
 if [ ! -d ~/src/dart-current ]; then
     ~/bin/get-dart --activate latest
 fi
