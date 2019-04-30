@@ -1,3 +1,3 @@
 #!/bin/bash
 
-~/code/sass/bin/sass "$@"
+ruby ~/goog/sass/ruby/bin/sass "$@"
