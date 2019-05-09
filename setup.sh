@@ -38,7 +38,7 @@ rm -rf awesome
 ln -s {$conf/,}awesome
 
 mkdir -p ~/bin
-for executable in dart dart2js dartanalyzer dartdevc dartdoc dartfmt pub; do
+for executable in dart dart2aot dartaotruntime dart2js dartanalyzer dartdevc dartdoc dartfmt pub; do
     ln -sf ~/src/dart-current/bin/$executable ~/bin/$executable
 done
 
