@@ -58,6 +58,7 @@ rm dartsdk-linux-x64-release.zip
 
 
 if [[ ! -z "$activate" ]]; then
+    rm -f ~/src/dart-current
     ln -sf ~/src/dart-$actual_version ~/src/dart-current
     echo "Activated Dart $actual_version!"
 fi
