@@ -88,11 +88,11 @@ awful.layout.layouts = {
 tags_by_screen = nil
 if screen.count() == 1 then
     tags_by_screen = {
-        {"check", "prog", "media", "edit"}
+        {"check", "prog", "media", "im", "edit"}
     }
 else
     tags_by_screen = {
-        {"check", "media"},
+        {"check", "media", "im"},
         {"prog", "edit"}
     }
 end
