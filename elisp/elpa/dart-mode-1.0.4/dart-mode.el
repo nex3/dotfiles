@@ -2,7 +2,8 @@
 
 ;; Author: Natalie Weizenbaum
 ;; URL: https://github.com/nex3/dart-mode
-;; Version: 1.0.3
+;; Package-Version: 1.0.4
+;; Version: 1.0.4
 ;; Package-Requires: ((emacs "24.5") (cl-lib "0.5") (dash "2.10.0") (flycheck "0.23") (s "1.10"))
 ;; Keywords: language
 
@@ -80,6 +81,9 @@
 
 (require 'cc-mode)
 (eval-when-compile
+  (and (= emacs-major-version 24)
+       (>= emacs-minor-version 4)
+       (require 'cl))
   (require 'cc-langs)
   (require 'cc-fonts))
 
@@ -88,10 +92,13 @@
 (require 'cl-lib)
 (require 'compile)
 (require 'dash)
-(require 'flycheck)
+(ignore-errors
+ (require 'flycheck))
+(require 'help-mode)
 (require 'json)
 (require 's)
 
+(add-to-list 'c-require-final-newline '(dart-mode . t))
 
 ;;; Utility functions and macros
 
@@ -127,6 +134,32 @@ true for positions before the start of the statement, but on its line."
        (cl-case (char-before)
          ((?} ?\;) t)
          ((?{) (dart-in-block-p (c-guess-basic-syntax))))))))
+
+(defun dart--delete-whole-line (&optional arg)
+  "Delete the current line without putting it in the `kill-ring'.
+Derived from function `kill-whole-line'.  ARG is defined as for that
+function."
+  (setq arg (or arg 1))
+  (if (and (> arg 0)
+           (eobp)
+           (save-excursion (forward-visible-line 0) (eobp)))
+      (signal 'end-of-buffer nil))
+  (if (and (< arg 0)
+           (bobp)
+           (save-excursion (end-of-visible-line) (bobp)))
+      (signal 'beginning-of-buffer nil))
+  (cond ((zerop arg)
+         (delete-region (progn (forward-visible-line 0) (point))
+                        (progn (end-of-visible-line) (point))))
+        ((< arg 0)
+         (delete-region (progn (end-of-visible-line) (point))
+                        (progn (forward-visible-line (1+ arg))
+                               (unless (bobp)
+                                 (backward-char))
+                               (point))))
+        (t
+         (delete-region (progn (forward-visible-line 0) (point))
+                        (progn (forward-visible-line arg) (point))))))
 
 (defconst dart--identifier-re
   "[a-zA-Z_$][a-zA-Z0-9_$]*"
@@ -454,9 +487,6 @@ Returns nil if `dart-sdk-path' is nil."
 (define-key dart-mode-map (kbd "M-?") 'dart-expand-parameters)
 
 ;;; CC indentation support
-
-(defvar c-syntactic-context nil
-  "A dynamically-bound variable used by cc-mode.")
 
 (defun dart-block-offset (info)
   "Calculate the correct indentation for inline functions.
@@ -787,7 +817,8 @@ directory or the current file directory to the analysis roots."
   (add-hook 'first-change-hook 'dart-add-analysis-overlay t t)
   (add-hook 'after-change-functions 'dart-change-analysis-overlay t t)
   (add-hook 'after-save-hook 'dart-remove-analysis-overlay t t)
-  (add-to-list 'flycheck-checkers 'dart-analysis-server))
+  (when (featurep 'flycheck)
+   (add-to-list 'flycheck-checkers 'dart-analysis-server)))
 
 (defun dart-start-analysis-server ()
   "Start the Dart analysis server.
@@ -803,8 +834,7 @@ Initializes analysis server support for all `dart-mode' buffers."
           (start-process "dart-analysis-server"
                          "*dart-analysis-server*"
                          (dart-executable-path)
-                         (dart--analysis-server-snapshot-path)
-                         "--no-error-notification")))
+                         (dart--analysis-server-snapshot-path))))
     (set-process-query-on-exit-flag dart-process nil)
     (setq dart--analysis-server
           (dart--analysis-server-create dart-process)))
@@ -833,11 +863,16 @@ Initializes analysis server support for all `dart-mode' buffers."
 The Dart analysis server allows clients to 'overlay' file contents with
 a client-supplied string.  This is needed because we want Emacs to report
 errors for the current contents of the buffer, not whatever is saved to disk."
-  (dart--analysis-server-send
-   "analysis.updateContent"
-   `((files .
-            ((,buffer-file-name . ((type . "add")
-                                   (content . ,(buffer-string)))))))))
+  ;; buffer-file-name can be nil within revert-buffer, but in that case the
+  ;; buffer is just being reverted to its format on disk anyway.
+  (when buffer-file-name
+    (dart--analysis-server-send
+     "analysis.updateContent"
+     `((files .
+              ((,buffer-file-name . ((type . "add")
+                                     (content . ,(save-restriction
+                                                   (widen)
+                                                   (buffer-string)))))))))))
 
 (defun dart-change-analysis-overlay
     (change-begin change-end change-before-length)
@@ -875,8 +910,8 @@ otherwise.  If no FILE is given, then this will default to the variable
          (pub-root (locate-dominating-file file-to-add "pubspec.yaml"))
          (current-dir (file-name-directory file-to-add)))
     (if pub-root
-        (dart-add-to-analysis-roots (expand-file-name pub-root))
-      (dart-add-to-analysis-roots (expand-file-name current-dir)))))
+        (dart-add-to-analysis-roots (directory-file-name (expand-file-name pub-root)))
+      (dart-add-to-analysis-roots (directory-file-name (expand-file-name current-dir))))))
 
 (defun dart-add-to-analysis-roots (dir)
   "Add DIR to the analysis server's analysis roots.
@@ -1025,10 +1060,12 @@ SUBSCRIPTION is an opaque object provided by
      (lambda (response)
        (dart--report-errors response buffer callback)))))
 
-(flycheck-define-generic-checker 'dart-analysis-server
+(when (featurep 'flycheck)
+ (flycheck-define-generic-checker
+  'dart-analysis-server
   "Checks Dart source code for errors using Dart analysis server."
   :start 'dart--flycheck-start
-  :modes '(dart-mode))
+  :modes '(dart-mode)))
 
 (defun dart--report-errors (response buffer callback)
   "Report the errors returned from the analysis server.
@@ -1689,10 +1726,11 @@ inside a `before-save-hook'."
 This can be customized by setting `dart-formatter-command-override'."
   (or dart-formatter-command-override
       (when dart-sdk-path
-        (file-name-as-directory "bin")
-            (if (memq system-type '(ms-dos windows-nt))
-                "dartfmt.exe"
-              "dartfmt"))))
+        (concat dart-sdk-path
+                (file-name-as-directory "bin")
+                (if (memq system-type '(ms-dos windows-nt))
+                    "dartfmt.exe"
+                  "dartfmt")))))
 
 (defvar dart--formatter-compilation-regexp
   '("^line \\([0-9]+\\), column \\([0-9]+\\) of \\([^ \n]+\\):" 3 1 2)
@@ -1786,7 +1824,7 @@ this can be overridden by customizing
                 (goto-char (point-min))
                 (forward-line (- from line-offset 1))
                 (cl-incf line-offset len)
-                (let (kill-ring) (kill-whole-line len))))
+                (dart--delete-whole-line len)))
 
              (t
               (error "Invalid RCS patch or internal error in dart--apply-rcs-patch")))))))))
