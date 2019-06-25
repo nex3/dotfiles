@@ -19,7 +19,7 @@
 ;; running as soon as possible. Loading packages the normal way can take time.
 (add-to-list 'load-path "~/.elisp/elpa/color-theme-6.6.1")
 
-
+`
 (when (< emacs-major-version 23) (require 'old-emacs))
 
 (defun init-frame (&optional frame)
@@ -72,7 +72,6 @@
 (package-initialize)
 
 (require 'pager)
-(require 'tex-site)
 (eval-when-compile (require 'cl))
 
 (persp-mode)
@@ -161,12 +160,6 @@ The -hook suffix is unnecessary."
 (my-after-load dart-mode
   (my-add-hook dart-mode
     (c-set-style "dart")))
-
-(my-after-load tex
-  (with-temp-buffer (LaTeX-mode))
-  (TeX-global-PDF-mode)
-  (setcdr (assoc "^pdf$" TeX-output-view-style)
-          '("." "evince %o")))
 
 (my-after-load ruby-mode
   (defface ruby-tab-face
