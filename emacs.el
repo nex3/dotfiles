@@ -31,7 +31,7 @@
       (set-frame-font
        (if (and (>= (/ (+ (display-pixel-width) 0.0) (display-mm-width)) 3)
                 (< (display-mm-width) 500))
-           "Monospace-9.5" "Monospace-8.5"))
+           "Monospace-12" "Monospace-8.5"))
       (toggle-scroll-bar -1))))
 
 (init-frame)
@@ -309,7 +309,12 @@ PACKAGE may be a desc or a package name."
 (global-font-lock-mode 1)
 (transient-mark-mode -1)
 
-(unless (file-exists-p (format "/tmp/emacs%d/server" (user-uid)))
+(when (boundp 'mac-function-modifier)
+  (setq mac-command-modifier 'meta)
+  (setq mac-function-modifier 'control))
+
+(require 'server)
+(unless (server-running-p server-name)
   (server-start))
 
 (setq hippie-expand-try-functions-list
