@@ -29,21 +29,28 @@ done
 eval set -- "$params"
 
 version=$1
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    os=macos
+elif [[ "$OSTYPE" == "cygwin" || "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
+    os=windows
+else
+    os=linux
+fi
 
 if [ "$1" = dev ]; then
-    url="https://storage.googleapis.com/dart-archive/channels/dev/release/latest/sdk/dartsdk-linux-x64-release.zip"
+    url="https://storage.googleapis.com/dart-archive/channels/dev/release/latest/sdk/dartsdk-$os-x64-release.zip"
 elif [ "$1" = stable ]; then
-    url="https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip"
+    url="https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-$os-x64-release.zip"
 elif [[ "$1" == *"-dev."* ]]; then
-    url="https://storage.googleapis.com/dart-archive/channels/dev/release/$1/sdk/dartsdk-linux-x64-release.zip"
+    url="https://storage.googleapis.com/dart-archive/channels/dev/release/$1/sdk/dartsdk-$os-x64-release.zip"
 else
-    url="https://storage.googleapis.com/dart-archive/channels/stable/release/$1/sdk/dartsdk-linux-x64-release.zip"
+    url="https://storage.googleapis.com/dart-archive/channels/stable/release/$1/sdk/dartsdk-$os-x64-release.zip"
 fi
 
 wget "$url"
-actual_version=$(unzip -qc dartsdk-linux-x64-release.zip dart-sdk/version)
+actual_version=$(unzip -qc dartsdk-$os-x64-release.zip dart-sdk/version)
 if [[ ! -d ~/src/dart-$actual_version ]]; then
-    unzip -q dartsdk-linux-x64-release.zip
+    unzip -q dartsdk-$os-x64-release.zip
     mv dart-sdk ~/src/dart-$actual_version
 
     for file in `ls ~/src/dart-$actual_version/bin/`; do
@@ -54,7 +61,7 @@ if [[ ! -d ~/src/dart-$actual_version ]]; then
 else
     echo "Dart $actual_version is already installed!"
 fi
-rm dartsdk-linux-x64-release.zip
+rm dartsdk-$os-x64-release.zip
 
 
 if [[ ! -z "$activate" ]]; then
