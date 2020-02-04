@@ -264,6 +264,9 @@ PACKAGE may be a desc or a package name."
     (make-variable-buffer-local 'compilation-save-buffers-predicate)
     (setq compilation-save-buffers-predicate (lambda () nil))))
 
+(my-after-load js
+  (setq js-indent-level 2)
+  (setq typescript-indent-level 2))
 
 (my-add-hook text-mode flyspell-mode)
 (my-add-hook lisp-mode pretty-lambdas)
