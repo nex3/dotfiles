@@ -11,7 +11,7 @@
 (defun my-term (&optional arg)
   "Create or switch to the terminal for the current perspective.
 
-A numeric prefix arg (as in ‘C-u 42 M-x eshell RET’) switches to
+A numeric prefix arg (as in ‘C-u 42 M-x my-term RET’) switches to
 the session with that number, creating it if necessary. A
 nonnumeric prefix arg means to create a new session.
 
