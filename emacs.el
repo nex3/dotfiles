@@ -256,9 +256,6 @@ PACKAGE may be a desc or a package name."
   (my-add-hook persp-created
     (setq eshell-buffer-name (format "*eshell* (%s)" (persp-name (persp-curr))))))
 
-(my-after-load flymake
-  (require 'flymake-cursor))
-
 (my-after-load grep
   (my-add-hook grep-mode
     (make-variable-buffer-local 'compilation-save-buffers-predicate)

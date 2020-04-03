@@ -25,3 +25,5 @@
 	default = upstream
 [http]
 	cookiefile = /home/nweiz/.gitcookies
+[url "sso://code/"]
+	insteadof = https://code.googlesource.com/
