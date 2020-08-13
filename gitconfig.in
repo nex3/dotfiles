@@ -19,6 +19,7 @@
         sshow = show --stat=150,130
         msg = commit --allow-empty -m
         prp = !hub pull-request --push
+        L = !git-land
 [color]
         ui = auto
 [push]
