@@ -27,3 +27,5 @@
 	cookiefile = /home/nweiz/.gitcookies
 [url "sso://code/"]
 	insteadof = https://code.googlesource.com/
+[pull]
+	rebase = false
