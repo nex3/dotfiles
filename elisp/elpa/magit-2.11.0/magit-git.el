@@ -269,8 +269,9 @@ to do the following.
 
 (defun magit-git-exit-code (&rest args)
   "Execute Git with ARGS, returning its exit code."
-  (apply #'magit-process-file magit-git-executable nil nil nil
-         (magit-process-git-arguments args)))
+  (let ((result (apply #'magit-process-file magit-git-executable nil nil nil
+                       (magit-process-git-arguments args))))
+    (if (stringp result) 255 result)))
 
 (defun magit-git-success (&rest args)
   "Execute Git with ARGS, returning t if its exit code is 0."
