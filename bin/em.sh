@@ -9,7 +9,12 @@ else
 fi
 
 if [ "$TERM" = screen ]; then
-    emacsclient -t -a 'temacs' $args
+    remote_system="$(emacsclient --eval '(system-name)' 2> /dev/null)"
+    if [[ "\"$HOSTNAME\"" != "$remote_system" ]]; then
+        emacsclient -a 'temacs' "--tramp=/ssh:$USER@$HOSTNAME:" $args
+    else
+        emacsclient -a 'temacs' $args
+    fi
 elif [ ! -z "$INSIDE_EMACS" ]; then
     emacsclient -a 'emacs' $args
 else
