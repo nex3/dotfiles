@@ -371,7 +371,11 @@ globalkeys = awful.util.table.join(
               function()
                   awful.util.spawn("gnome-screensaver-command --lock")
               end,
-              {description = "lock the screen", group = "launcher"})
+              {description = "lock the screen", group = "launcher"}),
+    awful.key({ modkey, "Shift" }, "s", function ()
+                  awful.util.spawn("screenshot")
+              end,
+              {description = "take screenshot", group = "launcher"})
 )
 
 clientkeys = awful.util.table.join(
