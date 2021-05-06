@@ -13,8 +13,8 @@
 (autoload 'dart-mode "dart-mode" "\
 Major mode for editing Dart files.
 
-The hook `c-mode-common-hook' is run with no args at mode
-initialization, then `dart-mode-hook'.
+The hook `dart-mode-hook' is run with no args at mode
+initialization.
 
 Key bindings:
 \\{dart-mode-map}

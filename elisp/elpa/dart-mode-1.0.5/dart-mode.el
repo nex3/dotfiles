@@ -1,11 +1,14 @@
 ;;; dart-mode.el --- Major mode for editing Dart files -*- lexical-binding: t; -*-
 
 ;; Author: Natalie Weizenbaum
-;; URL: https://github.com/nex3/dart-mode
-;; Package-Version: 1.0.4
-;; Version: 1.0.4
+;;      Brady Trainor <mail@bradyt.com>
+;; Maintainer: Brady Trainor <mail@bradyt.com>
+;; URL: https://github.com/bradyt/dart-mode
+;; Package-Version: 1.0.5
+;; Package-Commit: d414a5faf22f7fafbb0a8208b88cecd6324704bf
+;; Version: 1.0.5
 ;; Package-Requires: ((emacs "24.5") (cl-lib "0.5") (dash "2.10.0") (flycheck "0.23") (s "1.10"))
-;; Keywords: language
+;; Keywords: languages
 
 ;; Copyright (C) 2011 Google Inc.
 ;;
@@ -24,7 +27,13 @@
 
 ;; This file contains several functions and variables adapted from the
 ;; code in https://github.com/dominikh/go-mode.el
+
+;; Definitions adapted from go-mode.el are
 ;;
+;; gofmt-command gofmt-args gofmt-show-errors gofmt go--apply-rcs-patch
+;; gofmt--kill-error-buffer gofmt--process-errors gofmt-before-save
+;; go--goto-line go--delete-whole-line
+
 ;; go-mode.el uses this license:
 ;;
 ;; Copyright (c) 2014 The go-mode Authors. All rights reserved.
@@ -57,37 +66,12 @@
 
 ;;; Commentary:
 
-;; To install, see https://github.com/nex3/dart-mode/blob/master/README.md
-;;
-;; Known bugs:
-;;
-;; * Multiline strings using """ and ''' are not recognized. They fontify
-;;   correctly, but only because they look like three strings in a row.
-;; * In a map with identifier keys, the first key is fontified like a label.
-;; * Return values for operator methods aren't fontified correctly.
-;; * Untyped parameters aren't fontified correctly.
-;; * Quotes immediately after string interpolation are marked as unclosed.
-;; * Sexp movement doesn't properly ignore quotes in interpolation.
-;; * Methods using "=>" can cause indentation woes.
-;; * C and C++ modes seem to be hosed.
+;; Major mode for editing Dart files.
 
-;; Definitions adapted from go-mode.el are
-;;
-;; gofmt-command gofmt-args gofmt-show-errors gofmt go--apply-rcs-patch
-;; gofmt--kill-error-buffer gofmt--process-errors gofmt-before-save
-;; go--goto-line go--delete-whole-line
+;; Provides basic syntax highlighting and indentation. Also provides
+;; formatting via the dartfmt and diff executables.
 
 ;;; Code:
-
-(require 'cc-mode)
-(eval-when-compile
-  (and (= emacs-major-version 24)
-       (>= emacs-minor-version 4)
-       (require 'cl))
-  (require 'cc-langs)
-  (require 'cc-fonts))
-
-(eval-and-compile (c-add-language 'dart-mode 'java-mode))
 
 (require 'cl-lib)
 (require 'compile)
@@ -96,9 +80,9 @@
  (require 'flycheck))
 (require 'help-mode)
 (require 'json)
+(require 'rx)
 (require 's)
-
-(add-to-list 'c-require-final-newline '(dart-mode . t))
+(require 'subr-x)
 
 ;;; Utility functions and macros
 
@@ -132,8 +116,7 @@ true for positions before the start of the statement, but on its line."
              while (looking-at "^ *$"))
        (skip-syntax-backward " ")
        (cl-case (char-before)
-         ((?} ?\;) t)
-         ((?{) (dart-in-block-p (c-guess-basic-syntax))))))))
+         ((?} ?\;) t))))))
 
 (defun dart--delete-whole-line (&optional arg)
   "Delete the current line without putting it in the `kill-ring'.
@@ -277,7 +260,11 @@ Only set in `dart-popup-mode'.")
 (defcustom dart-sdk-path
   ;; Use Platform.resolvedExecutable so that this logic works through symlinks
   ;; and wrapper scripts.
-  (-when-let (dart (executable-find "dart"))
+  (-when-let (dart (or (executable-find "dart")
+                       (let ((flutter (executable-find "flutter")))
+                         (when flutter
+                           (expand-file-name "cache/dart-sdk/bin/dart"
+                                             (file-name-directory flutter))))))
     (dart--with-temp-file input
       (with-temp-file input (insert "
         import 'dart:io';
@@ -293,7 +280,7 @@ Only set in `dart-popup-mode'.")
   "The absolute path to the root of the Dart SDK."
   :group 'dart-mode
   :type 'directory
-  :package-version '(dart-mode . "1.0.0"))
+  :package-version '(dart-mode . "1.0.5"))
 
 (defun dart-executable-path ()
   "The absolute path to the 'dart' executable.
@@ -307,174 +294,9 @@ Returns nil if `dart-sdk-path' is nil."
               "dart"))))
 
 
-;;; CC configuration
+;;; Configuration
 
-(c-lang-defconst c-symbol-start
-  dart (concat "[" c-alpha "_]"))
-
-(c-lang-defconst c-identifier-ops
-  dart nil)
-
-(c-lang-defconst c-after-id-concat-ops
-  dart nil)
-
-(c-lang-defconst c-multiline-string-start-char
-  dart ?@)
-
-(c-lang-defconst c-opt-cpp-prefix
-  dart "\\s *#\\s *")
-
-(c-lang-defconst c-cpp-message-directives
-  dart nil)
-
-(c-lang-defconst c-cpp-include-directives
-  dart nil)
-
-(c-lang-defconst c-opt-cpp-macro-define
-  dart nil)
-
-(c-lang-defconst c-cpp-expr-directives
-  dart '("import" "source" "library" "resource"))
-
-(c-lang-defconst c-cpp-expr-functions
-  dart nil)
-
-(c-lang-defconst c-operators
-  dart `((prefix "#")
-         (postfix-if-paren "<" ">")
-         (prefix "super")
-         (left-assoc ".")
-         (postfix "++" "--" "[" "]" "(" ")")
-         (unary "++" "--" "+" "-" "!" "~" "negate" "new" "const")
-         (left-assoc "*" "/" "%")
-         (left-assoc "+" "-")
-         (left-assoc "<<" ">>" ">>>")
-         (left-assoc "<" ">" "<=" ">=")
-         (left-assoc "==" "!=" "===" "!==" "is" "is!")
-         (left-assoc "&")
-         (left-assoc "^")
-         (left-assoc "|")
-         (left-assoc "&&")
-         (left-assoc "||")
-         (right-assoc-sequence "?" ":")
-         (left-assoc "=>")
-         (right-assoc ,@(c-lang-const c-assignment-operators))
-         (left-assoc ",")))
-
-(c-lang-defconst c-overloadable-operators
-  dart '("==" "<" ">" "<=" ">=" "-" "+" "*" "/" "%" "|" "^" "&"
-         "<<" ">>" ">>>" "[]=" "[]" "~" "negate"))
-
-(c-lang-defconst c-opt-op-identifier-prefix
-  dart (c-make-keywords-re t '("operator")))
-
-(c-lang-defconst c-doc-comment-start-regexp
-  dart nil)
-
-(c-lang-defconst c-paragraph-start
-  dart "$")
-
-(c-lang-defconst c-primitive-type-kwds
-  dart '("Dynamic" "void" "num" "int" "double" "bool"))
-
-(c-lang-defconst c-class-decl-kwds
-  dart '("class" "interface"))
-
-;; Don't put these in c-modifier-kwds because they can be used without a type
-;; following them.
-(c-lang-defconst c-typeless-decl-kwds
-  dart '("abstract" "const" "factory" "final" "operator" "static" "typedef" "var"))
-
-(c-lang-defconst c-modifier-kwds
-  dart nil)
-
-(c-lang-defconst c-other-decl-kwds
-  dart nil)
-
-(c-lang-defconst c-decl-hangon-kwds
-  dart '("get" "set" "native"))
-
-(c-lang-defconst c-postfix-decl-spec-kwds
-  dart '("extends" "implements" "factory"))
-
-(c-lang-defconst c-type-list-kwds
-  dart '("new" "const" "is" "is!" "extends" "implements" "factory"))
-
-(c-lang-defconst c-ref-list-kwds
-  dart nil)
-
-(c-lang-defconst c-block-stmt-2-kwds
-  dart '("for" "if" "switch" "while" "catch"))
-
-(c-lang-defconst c-simple-stmt-kwds
-  dart '("break" "continue" "return" "throw"))
-
-(c-lang-defconst c-before-label-kwds
-  dart '("break" "continue"))
-
-(c-lang-defconst c-nonlabel-token-key
-  dart (concat (concat "\\s\(\\|" (c-lang-const c-nonlabel-token-key))))
-
-(c-lang-defconst c-inexpr-class-kwds
-  dart nil)
-
-(c-lang-defconst c-inexpr-brace-list-kwds
-  dart nil)
-
-(c-lang-defconst c-other-kwds
-  dart '("in"))
-
-(c-lang-defconst c-decl-prefix-re
-  dart "\\([\{\}\([;,<]+\\)")
-
-(c-lang-defconst c-cast-parens
-  dart nil)
-
-(c-lang-defconst c-block-prefix-disallowed-chars
-  dart (cl-set-difference (c-lang-const c-block-prefix-disallowed-chars)
-                          '(?\" ?')))
-
-(c-lang-defconst c-type-decl-prefix-key
-  dart "\\(\(\\)\\([^=]\\|$\\)")
-
-(c-lang-defconst c-after-suffixed-type-decl-key
-  dart (concat (c-lang-const c-after-suffixed-type-decl-key) "\\|:"))
-
-(c-lang-defconst c-opt-type-suffix-key
-  dart nil)
-
-(c-lang-defconst c-recognize-typeless-decls
-  dart t)
-
-(c-lang-defconst c-recognize-<>-arglists
-  dart t)
-
-(c-lang-defconst c-opt-postfix-decl-spec-kwds
-  dart '("native"))
-
-(c-lang-defconst c-opt-postfix-decl-spec-kwds
-  dart '("native"))
-
-(push '(dart-brace-list-cont-nonempty . 0)
-      (get 'c-offsets-alist 'c-stylevar-fallback))
-
-(defconst dart-c-style
-  '("java"
-    (c-basic-offset . 2)
-    (indent-tabs-mode . nil)
-    (fill-column . 80)
-    (c-offsets-alist . ((arglist-intro . ++)
-                        (arglist-cont-nonempty . ++)
-                        (statement-block-intro . dart-block-offset)
-                        (block-close . dart-block-offset)
-                        (dart-brace-list-cont-nonempty .
-                         dart-brace-list-cont-nonempty-offset)
-                        (case-label . +))))
-  "The default Dart styles.")
-
-(c-add-style "dart" dart-c-style)
-
-(defvar dart-mode-map (c-make-inherited-keymap)
+(defvar dart-mode-map (make-sparse-keymap)
   "Keymap used in dart-mode buffers.")
 (define-key dart-mode-map (kbd "C-c ?") 'dart-show-hover)
 (define-key dart-mode-map (kbd "C-c C-g") 'dart-goto)
@@ -485,172 +307,528 @@ Returns nil if `dart-sdk-path' is nil."
 (define-key dart-mode-map (kbd "C-c C-o") 'dart-format)
 (define-key dart-mode-map (kbd "M-/") 'dart-expand)
 (define-key dart-mode-map (kbd "M-?") 'dart-expand-parameters)
+(define-key dart-mode-map (kbd "<backtab>") 'dart-dedent-simple)
+(define-key dart-mode-map (kbd "C-c C-i") 'indent-according-to-mode)
 
-;;; CC indentation support
 
-(defun dart-block-offset (info)
-  "Calculate the correct indentation for inline functions.
+;;; Indentation support
 
-When indenting inline functions, we want to pretend that
-functions taking them as parameters essentially don't exist."
-  (cl-destructuring-bind (syntax . anchor) info
-    (let ((arglist-count
-           (cl-loop for (symbol . _) in c-syntactic-context
-                    count (eq symbol 'arglist-cont-nonempty))))
-      (if (> arglist-count 0)
-          (- (* -1 c-basic-offset arglist-count)
-             (if (eq syntax 'block-close) c-basic-offset 0))
-        (if (eq syntax 'block-close) 0 '+)))))
+(defcustom dart-indent-trigger-commands
+  '(indent-for-tab-command yas-expand yas/expand dart-dedent-simple)
+  "Commands that might trigger a `dart-indent-line' call."
+  :type '(repeat symbol)
+  :group 'dart)
 
-(defun dart-brace-list-cont-nonempty-offset (info)
-  "Indent a brace-list line in the same style as arglist-cont-nonempty.
-This could be either an actual brace-list or an optional parameter."
-  (cl-destructuring-bind (_ . anchor) info
-    ;; If we're in a function definition with optional arguments, indent as if
-    ;; the brace wasn't there. Currently this misses the in-function function
-    ;; definition, but that's probably acceptable.
-    (if (and
-         (save-excursion (backward-up-list) (eq (char-after) ?\[))
-         (assq 'topmost-intro
-               (save-excursion (goto-char anchor) (c-guess-basic-syntax))))
-        '++
-      ;; Otherwise, we're in an actual brace list, in which case only indent
-      ;; once.
-      '+)))
+(defun dart-indent-line-function ()
+  "`indent-line-function' for Dart mode.
+When the variable `last-command' is equal to one of the symbols
+inside `dart-indent-trigger-commands' it cycles possible
+indentation levels from right to left."
+  (if (and (memq this-command dart-indent-trigger-commands)
+           (eq last-command this-command))
+      (dart-indent-simple)
+    (dart-indent-line-relative)))
 
-(defun dart-in-block-p (syntax-guess)
-  "Return whether or not the immediately enclosing {} block is a code block.
-The other option, of course, is a map literal.
-
-SYNTAX-GUESS is the output of `c-guess-basic-syntax'."
+(defun dart-indent-simple (&optional backwards)
+  (interactive)
   (save-excursion
-    (c-safe
-      ;; If we're in a continued statement within a class, we want to know we're
-      ;; in a class so we can return true.
-      (when (eq 'statement-cont (caar syntax-guess))
-        (save-excursion
-          (c-beginning-of-statement-1 nil t t)
-          (setq syntax-guess (c-guess-basic-syntax))))
+    (indent-line-to
+     (max 0 (indent-next-tab-stop (current-indentation) backwards))))
+  (when (< (current-column) (current-indentation))
+    (back-to-indentation)))
 
-      (backward-up-list)
-      (when (= (char-after) ?\{)
-        (c-backward-comments)
-        (or
-         ;; Both anonymous and named functions have a ")" immediately before the
-         ;; code block.
-         (= (char-before) ?\))
-         ;; "else" and "try" are the only keywords that come immediately before
-         ;; a block.  Look only back at most 4 characters (the length of
-         ;; "else") for performance reasons.
-         (looking-back "\\<\\(else\\|try\\)\\>" (- (point) 4))
-         ;; CC is good at figuring out if we're in a class.
-         (assq 'inclass syntax-guess))))))
+(defun dart-dedent-simple ()
+  (interactive)
+  (dart-indent-simple 'backwards))
 
-(defadvice c-guess-basic-syntax (after dart-guess-basic-syntax activate)
-  (when (c-major-mode-is 'dart-mode)
-    (let* ((syntax (car (last ad-return-value)))
-           (type (car syntax)))
-      (save-excursion
-        (back-to-indentation)
+(defun dart-depth-of-line ()
+  (save-excursion
+    (back-to-indentation)
+    (let ((depth (car (syntax-ppss))))
+      (when (and (char-after)
+                 (= (char-syntax (char-after)) ?\)))
+        (while (and (char-after)
+                    (/= (char-syntax (char-after)) ?\()
+                    (/= (char-after) ?\C-j))
+          (when (= (char-syntax (char-after)) ?\))
+            (setq depth (1- depth)))
+          (forward-char)))
+      depth)))
 
-        (or
-         ;; Handle indentation in a constructor with an initializer on a
-         ;; separate line.
-         (when (memq type '(defun-block-intro inline-close))
-           (save-excursion
-             (c-safe
-               (goto-char (cadr syntax))
-               (when (= (char-after) ?:)
-                 (c-beginning-of-statement-1)
-                 (setq ad-return-value `((,type ,(point))))
-                 t))))
-
-         ;; Handle array literal indentation
-         (when (memq type
-                     '(arglist-intro
-                       arglist-cont
-                       arglist-cont-nonempty
-                       arglist-close))
-           (save-excursion
-             (c-safe
-               (backward-up-list)
-               (when (= (char-after) ?\[)
-                 (setq ad-return-value
-                       `((,(cl-case type
-                             (arglist-intro 'brace-list-intro)
-                             (arglist-cont 'brace-list-entry)
-                             (arglist-cont-nonempty 'dart-brace-list-cont-nonempty)
-                             (arglist-close 'brace-list-close))
-                          ,(cadr syntax)))))
-               t)))
-
-         ;; Handle map literal indentation
-         (when (and (memq type '(label statement-block-intro statement-cont statement
-                                 block-close defun-block-intro defun-close))
-                    (not (dart-in-block-p ad-return-value)))
-           (save-excursion
-             (c-safe
-               (if (= (char-after) ?\})
-                   (progn
-                     (backward-up-list)
-                     (when (= (char-after) ?\{)
-                       (back-to-indentation)
-                       (setq ad-return-value `((brace-list-close ,(point))))))
-                 (c-backward-comments)
-                 ;; Completely reset ad-return-value here because otherwise it
-                 ;; gets super-screwy.
-                 (if (= (char-before) ?\{)
-                     (progn
-                       (back-to-indentation)
-                       (setq ad-return-value `((brace-list-intro ,(point))))
-                       t)
-                   (backward-up-list)
-                   (when (= (char-after) ?\{)
-                     (forward-char)
-                     (let ((contp (not (looking-at "\\s-*$"))))
-                       (c-forward-comments)
-                       (back-to-indentation)
-                       (setq ad-return-value
-                             `((,(if contp 'dart-brace-list-cont-nonempty
-                                   'brace-list-entry)
-                                ,(point))))
-                       t))))))))))))
-
-(defadvice c-inside-bracelist-p (after dart-inside-bracelist-p activate)
-  ;; This function is only called within c-guess-basic-syntax. Since we do all
-  ;; out brace-list detection in our advice, we just never report being in a
-  ;; bracelist there.
-  (when (c-major-mode-is 'dart-mode)
-    (setq ad-return-value nil)))
-
-(defadvice c-search-decl-header-end (around dart-search-decl-header-end activate)
-  (if (not (c-major-mode-is 'dart-mode)) ad-do-it
-    (let ((base (point)))
-      (while (and
-              (c-syntactic-re-search-forward "[;{=:]" nil 'move t t)
-              (c-end-of-current-token base))
-        (setq base (point)))
-      ;; If we hit :, we're in a member initialization list and we want to
-      ;; ignore = signs.
-      (when (= (char-before) ?:)
-        (while (and
-                (c-syntactic-re-search-forward "[;{]" nil 'move t t)
-                (c-end-of-current-token base))
-        (setq base (point)))))))
-
-(if (fboundp 'c-parse-state-1)
-  (defadvice c-parse-state (around dart-c-parse-state activate)
-    (if (not (c-major-mode-is 'dart-mode)) ad-do-it
-      ;; c-parse-state is a wrapper around c-parse-state-1 that does some tricks
-      ;; to ensure that dangling brackets in preprocessor commands don't screw up
-      ;; parse information for the real world. In Dart, all "preprocessor"
-      ;; directives have matched braces, so we don't need to worry about that. The
-      ;; wrapper was also screwing up indentation in weird ways, so we just ignore
-      ;; it.
-      (setq ad-return-value (c-parse-state-1)))))
+(defun dart-indent-line-relative ()
+  (let ((curr-depth (dart-depth-of-line))
+        prev-line
+        prev-depth
+        prev-indent)
+    (save-excursion
+      (beginning-of-line)
+      (catch 'done
+        (while t
+          (when (= (point) 1)
+            (throw 'done t))
+          (forward-line -1)
+          (unless (looking-at (rx (and bol (zero-or-more space) eol)))
+            (setq prev-line t)
+            (setq prev-indent (current-indentation))
+            (setq prev-depth (dart-depth-of-line))
+            (throw 'done t)))))
+    (save-excursion
+      (if prev-line
+          (indent-line-to (max 0 (+ prev-indent
+                                    (* (- curr-depth prev-depth)
+                                       tab-width))))
+        (indent-line-to 0)))
+    (when (< (current-column) (current-indentation))
+      (back-to-indentation))))
 
 
 ;;; Additional fontification support
+
+(defvar dart--file-directives
+  '("as" "deferred" "export" "hide" "import" "library" "of" "part"
+    "show"))
+
+(defvar dart--builtins
+  ;; ECMA 408; Section: Identifier Reference
+  ;; "Built-in identifiers"
+  '("abstract" "as" "deferred" "dynamic" "export" "external" "hide"
+    "factory" "get" "implements" "import" "library" "of" "operator"
+    "part" "set" "show" "static" "typedef"))
+
+(defvar dart--keywords
+  ;; ECMA 408; Section: Reserved Words
+  '("assert" "break" "case" "catch" "class" "const" "continue"
+    "default" "do" "else" "enum" "extends" "final" "finally" "for"
+    "if" "in" "is" "new" "rethrow" "return" "super" "switch" "this"
+    "throw" "try" "var" "while" "with" "mixin"))
+;; mixin is not part of ECMA 408 but it's used in dart.
+
+(defvar dart--types '("bool" "double" "dynamic" "int" "num" "void"))
+
+(defvar dart--constants '("false" "null" "true"))
+
+(defvar dart--async-keywords-re (rx word-start
+                                    (or "async" "await" "sync" "yield")
+                                    word-end
+                                    (zero-or-one ?*)))
+
+(defvar dart--number-re (rx symbol-start
+                            (zero-or-one ?-)
+                            (group (or (and (one-or-more digit)
+                                            (zero-or-one
+                                             (and ?. (one-or-more digit))))
+                                       (and ?. (one-or-more digit)))
+                                   (zero-or-one (and (or ?e ?E)
+                                                     (zero-or-one (or ?+ ?-))
+                                                     (one-or-more digit))))))
+
+(defvar dart--hex-number-re (rx symbol-start
+                                (zero-or-one ?-)
+                                (group (or "0x" "0X")
+                                       (one-or-more (any (?a . ?f)
+                                                         (?A . ?F)
+                                                         digit)))))
+
+(eval-and-compile (defun dart--identifier (&optional case)
+   `(and (or word-start symbol-start)
+         (zero-or-more (any ?$ ?_))
+         ,(if case
+              case
+            'alpha)
+         (zero-or-more (or ?$ ?_ alnum)))))
+
+(defvar dart--metadata-re (rx ?@ (eval (dart--identifier))))
+
+(defvar dart--types-re (rx (eval (dart--identifier 'upper))))
+
+(defvar dart--constants-re (rx (and word-start
+                                    upper
+                                    (>= 2 (or upper ?_))
+                                    word-end)))
+
+(defun dart--string-interpolation-id-func (limit)
+  "Font-lock matcher for string interpolation identifiers.
+
+These have the form $variableName.
+
+Can fontify entire match with group 0, or using group 1 for sigil,
+group 2 for variableName."
+  (catch 'result
+    (let (data end syntax)
+      (while (re-search-forward (rx (group ?$)
+                                    (group (zero-or-more ?_)
+                                           lower
+                                           (zero-or-more (or ?_ alnum))))
+                                limit t)
+        (setq data (match-data))
+        (setq end (match-end 2))
+        (setq syntax (syntax-ppss))
+        ;; Check that we are in a string and not in a raw string
+        (when (and (nth 3 syntax)
+                   (or (= (nth 8 syntax) 1)
+                       (not (eq (char-before (nth 8 syntax)) ?r))))
+          (set-match-data data)
+          (goto-char end)
+          (throw 'result t))
+        (when end
+          (goto-char end)))
+      (throw 'result nil))))
+
+(defun dart--string-interpolation-exp-func (limit)
+  "Font-lock matcher for string interpolation expressions.
+
+These have the form ${expression}.
+
+Can fontify entire match with group 0, or using group 1 for sigil,
+groups 2 and 4 for curly brackets, and 3 for contents."
+  (catch 'result
+    (let (sigil beg open close end depth)
+      ;; Loop and put point after ${
+      (while (and (search-forward "${" limit t)
+                  ;; Check that we are in a string and not in a raw string
+                  (save-excursion
+                    (and (nth 3 (syntax-ppss))
+                         (not (eq (char-before (nth 8 (syntax-ppss))) ?r)))))
+        ;; "a string with ${someInterpolation + aValue} inside of it."
+        ;;                ^^^                         ^^
+        ;;                |||                         ||
+        ;;         sigil -+|+- open            close -++- end
+        ;;                 +- beg
+        (setq open (point))
+        (setq beg (- open 1))
+        (setq sigil (- open 2))
+        (setq depth 1)
+        ;; Move forward until limit, while depth is positive and we
+        ;; are inside string.
+        (while (and (> depth 0)
+                    (< (point) limit)
+                    (nth 3 (syntax-ppss)))
+          (setq depth (+ depth (pcase (char-after)
+                                 (?\{ 1)
+                                 (?\} -1)
+                                 (_ 0))))
+          (forward-char))
+        (setq end (point))
+        ;; If depth is zero, we have found a closing } within string
+        ;; and before limit. Set `match-data', `point', and return `t'.
+        (when (= depth 0)
+          (setq close (1- end))
+          (set-match-data (list sigil end
+                                sigil beg
+                                beg open
+                                open close
+                                close end))
+          (goto-char end)
+          (throw 'result t))
+        ;; If the candidate did not meet criteria, put point at end
+        ;; and search again.
+        (goto-char end))
+      ;; When there are no more candidate "${", return nil.
+      (throw 'result nil))))
+
+(defun dart--function-declaration-func (limit)
+  "Font-lock matcher function for function declarations.
+
+Matches function declarations before LIMIT that look like,
+
+  \"lowercaseIdentifier([...]) [[a]sync[*], {, =>]\"
+
+For example, \"main\" in \"void main() async\" would be matched."
+  (catch 'result
+    (let (beg end)
+      (while (re-search-forward
+              (rx (group (eval (dart--identifier 'lower))) ?\() limit t)
+        (setq beg (match-beginning 1))
+        (setq end (match-end 1))
+        (condition-case nil
+            (progn
+              (up-list)
+              (when (looking-at (rx (one-or-more space)
+                                    (or "async" "async*" "sync*" "{" "=>")))
+                (set-match-data (list beg end))
+                (goto-char end)
+                (throw 'result t)))
+          (scan-error nil))
+        (goto-char end))
+      (throw 'result nil))))
+
+(defun dart--declared-identifier-func (limit)
+  "Font-lock matcher function for declared identifiers.
+
+Matches declared identifiers before LIMIT that look like,
+
+  \"finalConstVarOrType lowercaseIdentifier\"
+
+For example, \"height\" in \"const int height\" would be matched."
+  (catch 'result
+    (let (beg end)
+      (while (re-search-forward
+              (rx
+               (and (group (or (or "const" "final"
+                                   "bool" "double" "dynamic" "int" "num" "void"
+                                   "var"
+                                   "get" "set")
+                               (eval (dart--identifier 'upper)))
+                           (zero-or-more ?>))
+                    (one-or-more (or space ?\C-j))
+                    (group (eval (dart--identifier 'lower)))
+                    (not (any ?\( alnum ?$ ?_))))
+              limit t)
+        (setq beg (match-beginning 2))
+        (setq end (match-end 2))
+        ;; Check for false positives
+        (when (not (member (match-string 2)
+                           '("bool" "double" "dynamic" "int" "num" "void"
+                             "var"
+                             "get" "set")))
+          (set-match-data (list beg end))
+          (goto-char end)
+          (throw 'result t))
+        (goto-char (match-end 1)))
+      (throw 'result nil))))
+
+(defun dart--in-parenthesized-expression-or-formal-parameter-list-p ()
+  "Returns `t' if `point' is in parentheses, otherwise `nil'.
+
+In particular, parenthesized expressions or formal parameter lists."
+  (save-excursion
+    (catch 'result
+      ;; Attempt to jump out of parentheses.
+      (condition-case nil
+          (backward-up-list)
+        (scan-error (throw 'result nil)))
+      ;; If we've only jumped out of optional or named section of
+      ;; formal parameters, try to jump again.
+      (when (member (char-after (point)) '(?\[ ?\{))
+        (condition-case nil
+            (backward-up-list)
+          (scan-error (throw 'result nil))))
+      (throw 'result (= (char-after (point)) ?\()))))
+
+(defun dart--declared-identifier-anchor-func (limit)
+  "Font-lock matcher for declared identifier.
+
+Uses `dart--declared-identifier-func' to find candidates before
+LIMIT, and checks that they are not in parentheses.
+
+This matcher is an anchor to match multiple identifiers in a
+single variable declaration. From ECMA-408,
+
+  variableDeclaration:
+    declaredIdentifier (', ' identifier)*
+  ;
+
+After this function sets anchor, font-lock will use the function
+`dart--declared-identifier-next-func' to find subsequent
+identifiers."
+  (catch 'result
+    (let (data)
+      (while (dart--declared-identifier-func limit)
+        (setq data (match-data))
+        (unless (dart--in-parenthesized-expression-or-formal-parameter-list-p)
+          (set-match-data data)
+          (goto-char (match-end 0))
+          (throw 'result t))
+        (goto-char (match-end 0)))
+      (throw 'result nil))))
+
+(defun dart--declared-identifier-next-func (limit)
+  "Font-lock matcher for subsequent identifiers.
+
+For use after `dart--declared-identifier-anchor-func' sets
+anchor, this function will look for subsequent identifers to
+fontify as declared variables. From ECMA-408,
+
+  variableDeclaration:
+    declaredIdentifier (', ' identifier)*
+  ;"
+  (ignore limit)
+  (catch 'result
+    (let ((depth (car (syntax-ppss))))
+      (while t
+        (cond
+         ;; If point is followed by semi-colon, we are done.
+         ((or (= (char-after (point)) ?\x3b) ; ?;
+              (< (car (syntax-ppss)) depth))
+          (throw 'result nil))
+         ;; If point is followed by comma, and we are still at same
+         ;; depth, then attempt to match another identifier, otherwise
+         ;; return nil.
+         ((and (= (char-after (point)) ?\x2c) ; ?,
+               (= (car (syntax-ppss)) depth))
+          (if (looking-at (rx ?\x2c
+                              (one-or-more space)
+                              (group (eval (dart--identifier 'lower)))))
+              (progn (set-match-data (list (match-beginning 1)
+                                           (match-end 1)))
+                     (goto-char (match-end 0))
+                     (throw 'result t))
+            (throw 'result nil)))
+         ;; Otherwise, if we are still before `point-max' (shouldn't
+         ;; this be `limit'? May be a bad attempt to deal with
+         ;; multiline searches. Should research how this is done with
+         ;; font-lock.), move forward.
+         ((< (point) (point-max))
+          (forward-char))
+         ;; Otherwise, return nil.
+         (t (throw 'result nil)))))))
+
+(defun dart--anonymous-function-matcher (limit)
+  "Font-lock matcher for start of anonymous functions.
+
+Looks for opening parenthesis, tries to jump to opening
+parenthesis, ensure it is not preceded by for, while, etc. Then
+tries to jump to closing parenthesis and check if followed by \"
+{\" or \" =>\".
+
+Used with `dart--untyped-parameter-anchored-matcher' to fontify
+untyped parameters. For example, in
+
+  (untypedParameter) => untypedParameter.length"
+  (catch 'result
+    (let (beg end)
+      (while (search-forward "(" limit t)
+        (setq beg (match-beginning 0))
+        (setq end (match-end 0))
+        (unless (looking-back (rx (or (and (or "do" "for" "if" "switch" "while")
+                                           space)
+                                      "super")
+                                  ?\())
+          (condition-case nil
+              (up-list)
+            (scan-error (throw 'result nil)))
+          (when (looking-at (rx space (or ?\{ "=>")))
+            (set-match-data (list beg end))
+            (goto-char end)
+            (throw 'result t))
+          (goto-char end)))
+      (throw 'result nil))))
+
+(defun dart--untyped-parameter-anchored-matcher (limit)
+  "Font-lock anchored-matcher for untyped parameters.
+
+Searches forward for for lowercase idenitifer and ensures depth
+is still same.
+
+Used with `dart--anonymous-function-matcher' to fontify
+untyped parameters. For example, in
+
+  (untypedParameter) => untypedParameter.length"
+  (let (beg end)
+    (catch 'result
+      (if (equal (char-after) ?\))
+          (throw 'result nil))
+      (let ((depth (car (syntax-ppss))))
+        (while (re-search-forward
+                (rx (and (group (or (one-or-more (char ?_))
+                                    (eval (dart--identifier 'lower))))
+                         (or ?, ?\)))))
+          (setq beg (match-beginning 1))
+          (setq end (match-end 1))
+          (goto-char end)
+          (if (or (> (point) limit)
+                  (< (car (syntax-ppss)) depth))
+              (throw 'result nil)
+            (set-match-data (list beg end))
+            (throw 'result t))))
+      (throw 'result nil))))
+
+(defun dart--get-point-at-end-of-list ()
+  (let (pt)
+    (save-excursion
+      (up-list)
+      (setq pt (point)))
+    pt))
+
+(defvar dart-font-lock-defaults
+  '((dart-font-lock-keywords-1 dart-font-lock-keywords-1
+                               dart-font-lock-keywords-2
+                               dart-font-lock-keywords-3)))
+
+(defvar dart-font-lock-keywords-1
+  `((,(regexp-opt dart--file-directives 'words) . font-lock-builtin-face)
+    (dart--function-declaration-func            . font-lock-function-name-face)))
+
+(defvar dart-font-lock-keywords-2
+  `(,dart--async-keywords-re
+    ,(regexp-opt dart--keywords 'words)
+    (,(regexp-opt dart--builtins 'words)  . font-lock-builtin-face)
+    (,(regexp-opt dart--constants 'words) . font-lock-constant-face)
+    (,dart--hex-number-re                 . (1 font-lock-constant-face))
+    (,dart--number-re                     . (1 font-lock-constant-face))
+    (,dart--metadata-re                   . font-lock-constant-face)
+    (,dart--constants-re                   . font-lock-constant-face)
+    (,(regexp-opt dart--types 'words)     . font-lock-type-face)
+    (,dart--types-re                      . font-lock-type-face)
+    (dart--function-declaration-func      . font-lock-function-name-face)))
+
+(defvar dart-font-lock-keywords-3
+  (append
+   dart-font-lock-keywords-2
+   `((dart--declared-identifier-func      . font-lock-variable-name-face)
+     (dart--declared-identifier-anchor-func
+      . (dart--declared-identifier-next-func
+         nil
+         nil
+         (0 font-lock-variable-name-face)))
+     (dart--anonymous-function-matcher
+      . (dart--untyped-parameter-anchored-matcher
+         (dart--get-point-at-end-of-list)
+         nil
+         (0 font-lock-variable-name-face)))
+     (dart--string-interpolation-id-func  (0 font-lock-variable-name-face t))
+     (dart--string-interpolation-exp-func (0 font-lock-variable-name-face t)))))
+
+(defun dart-syntax-propertize-function (beg end)
+  "Sets syntax-table text properties for raw and/or multiline strings.
+
+We use fences uniformly for consistency.
+
+In raw strings, we modify backslash characters to have punctuation
+syntax rather than escape syntax.
+
+String interpolation is not handled correctly yet, but the fixes to
+quote characters in multiline strings, and escape characters in raw
+strings, ensures that code outside of strings is not highlighted as
+strings."
+  (goto-char beg)
+  ;; We rely on syntax-propertize-extend-region-functions that `beg`
+  ;; will be at beginning of line, but we ensure here that we are not
+  ;; in a string
+  (while (nth 3 (syntax-ppss))
+    (goto-char (nth 8 (syntax-ppss)))
+    (beginning-of-line))
+  ;; Search for string opening
+  (while (re-search-forward (rx (group (optional ?r))
+                                (group (or (repeat 3 ?\")
+                                           (repeat 3 ?\')
+                                           ?\"
+                                           ?\')))
+                            end t)
+    (let ((bos (match-beginning 2))
+          (rawp (equal (match-string-no-properties 1) "r"))
+          (string-delimiter (match-string-no-properties 2)))
+      ;; Set string fence syntax at beginning of string
+      (put-text-property bos (1+ bos) 'syntax-table (string-to-syntax "|") nil)
+      ;; Look for the end of string delimiter, depending on rawp and
+      ;; string-delimiter
+      ;; Unless rawp, ensure an even number of backslashes
+      (when (or (looking-at (concat (unless rawp (rx (zero-or-more ?\\ ?\\)))
+                                    string-delimiter))
+                (re-search-forward (concat (unless rawp (rx (not (any ?\\)) (zero-or-more ?\\ ?\\)))
+                                           string-delimiter)
+                                   end t))
+        (let ((eos (match-end 0)))
+          ;; Set end of string fence delimiter
+          (put-text-property (1- eos) eos 'syntax-table (string-to-syntax "|") nil)
+          ;; For all strings, remove fence property between fences
+          ;; For raw strings, set all backslashes to punctuation syntax
+          (dolist (pt (number-sequence (1+ bos) (- eos 2)))
+            (when (equal (get-text-property pt 'syntax-table) (string-to-syntax "|"))
+              (remove-text-properties pt (1+ pt) 'syntax-table))
+            (when (and rawp (equal (char-after pt) ?\\))
+              (put-text-property pt (1+ pt) 'syntax-table (string-to-syntax ".") nil)))
+          (goto-char eos))))))
 
 (defun dart-fontify-region (beg end)
   "Use fontify the region between BEG and END as Dart.
@@ -700,30 +878,8 @@ whichever comes first."
 (defcustom dart-font-lock-extra-types nil
   "*List of extra types (aside from the type keywords) to recognize in DART mode.
 Each list item should be a regexp matching a single identifier."
-  :group 'dart-mode)
-
-(c-override-default-keywords 'dart-font-lock-keywords)
-
-(defconst dart-font-lock-keywords-1 (c-lang-const c-matchers-1 dart)
-  "Minimal highlighting for Dart mode.")
-
-(defconst dart-font-lock-keywords-2 (c-lang-const c-matchers-2 dart)
-  "Fast normal highlighting for Dart mode.")
-
-(defconst dart-font-lock-keywords-3
-  (cons
-   '(dart-highlight-interpolation 1 font-lock-variable-name-face prepend)
-   (c-lang-const c-matchers-3 dart))
-  "Accurate normal highlighting for Dart mode.")
-
-(defvar dart-font-lock-keywords dart-font-lock-keywords-3
-  "Default expressions to highlight in Dart mode.")
-
-(defvar dart-mode-syntax-table nil
-  "Syntax table used in dart-mode buffers.")
-(unless dart-mode-syntax-table
-  (setq dart-mode-syntax-table
-        (funcall (c-lang-const c-make-mode-syntax-table dart))))
+  :group 'dart-mode
+  :type '(list regexp))
 
 
 ;;; Dart analysis server
@@ -752,7 +908,7 @@ The Dart analysis server adds support for error checking, code completion,
 navigation, and more."
   :group 'dart-mode
   :type 'boolean
-  :package-version '(dart-mode . "0.12"))
+  :package-version '(dart-mode . "1.0.5"))
 
 (defvar dart--analysis-server nil
   "The instance of the Dart analysis server we are communicating with.")
@@ -806,6 +962,11 @@ object which can be passed to `dart--analysis-server-unsubscribe'.")
                       msg))
       (insert "\n"))))
 
+(defun dart--normalize-path (path)
+  (if (equal system-type 'windows-nt)
+      (replace-regexp-in-string (rx "/") (rx "\\") path)
+    path))
+
 (defun dart--start-analysis-server-for-current-buffer ()
   "Initialize Dart analysis server for current buffer.
 
@@ -817,8 +978,8 @@ directory or the current file directory to the analysis roots."
   (add-hook 'first-change-hook 'dart-add-analysis-overlay t t)
   (add-hook 'after-change-functions 'dart-change-analysis-overlay t t)
   (add-hook 'after-save-hook 'dart-remove-analysis-overlay t t)
-  (when (featurep 'flycheck)
-   (add-to-list 'flycheck-checkers 'dart-analysis-server)))
+  (when (boundp 'flycheck-checkers)
+    (add-to-list 'flycheck-checkers 'dart-analysis-server)))
 
 (defun dart-start-analysis-server ()
   "Start the Dart analysis server.
@@ -868,11 +1029,11 @@ errors for the current contents of the buffer, not whatever is saved to disk."
   (when buffer-file-name
     (dart--analysis-server-send
      "analysis.updateContent"
-     `((files .
-              ((,buffer-file-name . ((type . "add")
-                                     (content . ,(save-restriction
-                                                   (widen)
-                                                   (buffer-string)))))))))))
+     `((files
+        . ((,(dart--normalize-path buffer-file-name)
+            . ((type . "add")
+               (content
+                . ,(save-restriction (widen) (buffer-string)))))))))))
 
 (defun dart-change-analysis-overlay
     (change-begin change-end change-before-length)
@@ -884,7 +1045,7 @@ length of the text before the change is CHANGE-BEFORE-LENGTH. See also
   (dart--analysis-server-send
    "analysis.updateContent"
    `((files
-      . ((,buffer-file-name
+      . ((,(dart--normalize-path buffer-file-name)
           . ((type . "change")
              (edits
               . (((offset . ,(- change-begin 1))
@@ -898,7 +1059,7 @@ length of the text before the change is CHANGE-BEFORE-LENGTH. See also
 See also `dart-add-analysis-overlay'."
   (dart--analysis-server-send
    "analysis.updateContent"
-   `((files . ((,buffer-file-name . ((type . "remove"))))))))
+   `((files . ((,(dart--normalize-path buffer-file-name) . ((type . "remove"))))))))
 
 (defun dart-add-analysis-root-for-file (&optional file)
   "Add the given FILE's root to the analysis server's analysis roots.
@@ -919,7 +1080,7 @@ otherwise.  If no FILE is given, then this will default to the variable
 The analysis roots are directories that contain Dart files. The analysis server
 analyzes all Dart files under the analysis roots and provides information about
 them when requested."
-  (add-to-list 'dart-analysis-roots dir)
+  (add-to-list 'dart-analysis-roots (dart--normalize-path dir))
   (dart--send-analysis-roots))
 
 (defun dart--send-analysis-roots ()
@@ -1055,12 +1216,12 @@ SUBSCRIPTION is an opaque object provided by
   (dart-info (format "Checking syntax for %s" (current-buffer)))
   (dart--analysis-server-send
    "analysis.getErrors"
-   `((file . ,(buffer-file-name)))
+   `((file . ,(dart--normalize-path (buffer-file-name))))
    (-let [buffer (current-buffer)]
      (lambda (response)
        (dart--report-errors response buffer callback)))))
 
-(when (featurep 'flycheck)
+(when (fboundp 'flycheck-define-generic-checker)
  (flycheck-define-generic-checker
   'dart-analysis-server
   "Checks Dart source code for errors using Dart analysis server."
@@ -1080,14 +1241,15 @@ reported to CALLBACK."
 
 (defun dart--to-flycheck-err (err buffer)
   "Create a flycheck error from a dart ERR in BUFFER."
-  (flycheck-error-new
-   :buffer buffer
-   :checker 'dart-analysis-server
-   :filename (dart--get err 'location 'file)
-   :line (dart--get err 'location 'startLine)
-   :column (dart--get err 'location 'startColumn)
-   :message (dart--get err 'message)
-   :level (dart--severity-to-level (dart--get err 'severity))))
+  (when (fboundp 'flycheck-error-new)
+    (flycheck-error-new
+     :buffer buffer
+     :checker 'dart-analysis-server
+     :filename (dart--get err 'location 'file)
+     :line (dart--get err 'location 'startLine)
+     :column (dart--get err 'location 'startColumn)
+     :message (dart--get err 'message)
+     :level (dart--severity-to-level (dart--get err 'severity)))))
 
 (defun dart--severity-to-level (severity)
   "Convert SEVERITY to a flycheck level."
@@ -1104,7 +1266,7 @@ reported to CALLBACK."
 With a prefix argument, opens a new buffer rather than using the
 minibuffer."
   (interactive "P")
-  (-when-let (filename (buffer-file-name))
+  (-when-let (filename (dart--normalize-path (buffer-file-name)))
     (let ((show-in-buffer show-in-buffer)
           (buffer (current-buffer))
           (pos (point)))
@@ -1236,7 +1398,7 @@ minibuffer."
 
 (defun dart-goto ()
   (interactive)
-  (-when-let (filename (buffer-file-name))
+  (-when-let (filename (dart--normalize-path (buffer-file-name)))
     (dart--analysis-server-send
      "analysis.getNavigation"
      `(("file" . ,filename) ("offset" . ,(point)) ("length" . 0))
@@ -1260,7 +1422,7 @@ minibuffer."
 
 (defun dart-find-refs (pos &optional include-potential)
   (interactive "dP")
-  (-when-let (filename (buffer-file-name))
+  (-when-let (filename (dart--normalize-path (buffer-file-name)))
     (dart--analysis-server-send
      "search.findElementReferences"
      `(("file" . ,filename)
@@ -1402,7 +1564,7 @@ This is used when the analysis server isn't available. It
 defaults to the command globally bound to M-/."
   :group 'dart-mode
   :type 'function
-  :package-version '(dart-mode . "1.0.0"))
+  :package-version '(dart-mode . "1.0.5"))
 
 (defvar dart--last-expand-results nil
   "The results of the last call to `dart-expand'.")
@@ -1463,7 +1625,7 @@ stayas in place when the parameter is overwritten.")
   (setq dart--last-expand-index nil)
   (setq dart--last-expand-subscription nil)
 
-  (-when-let (filename (buffer-file-name))
+  (-when-let (filename (dart--normalize-path (buffer-file-name)))
     (dart--analysis-server-send
      "completion.getSuggestions"
      `(("file" . ,filename)
@@ -1693,19 +1855,19 @@ Also removes this function from `post-command-hook'."
 Don't read this variable; call `dart-formatter-command' instead."
   :type 'string
   :group 'dart-mode
-  :package-version '(dart-mode . "1.0.0"))
+  :package-version '(dart-mode . "1.0.5"))
 
 (defcustom dart-formatter-line-length 80
   "The line length to use when running the Dart formatter."
   :type 'integer
   :group 'dart-mode
-  :package-version '(dart-mode . "1.0.0"))
+  :package-version '(dart-mode . "1.0.5"))
 
 (defcustom dart-format-on-save nil
   "Whether to run the Dart formatter before saving."
   :type 'boolean
   :group 'dart-mode
-  :package-version '(dart-mode . "1.0.0"))
+  :package-version '(dart-mode . "1.0.5"))
 
 (defcustom dart-formatter-show-errors 'buffer
   "Where to display Dart formatter error output.
@@ -1728,9 +1890,7 @@ This can be customized by setting `dart-formatter-command-override'."
       (when dart-sdk-path
         (concat dart-sdk-path
                 (file-name-as-directory "bin")
-                (if (memq system-type '(ms-dos windows-nt))
-                    "dartfmt.exe"
-                  "dartfmt")))))
+                "dartfmt"))))
 
 (defvar dart--formatter-compilation-regexp
   '("^line \\([0-9]+\\), column \\([0-9]+\\) of \\([^ \n]+\\):" 3 1 2)
@@ -1853,24 +2013,27 @@ This replaces references to TEMP-FILE with REAL-FILE."
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.dart\\'" . dart-mode))
 
 ;;;###autoload
-(defun dart-mode ()
+(define-derived-mode dart-mode prog-mode "Dart"
   "Major mode for editing Dart files.
 
-The hook `c-mode-common-hook' is run with no args at mode
-initialization, then `dart-mode-hook'.
+The hook `dart-mode-hook' is run with no args at mode
+initialization.
 
 Key bindings:
 \\{dart-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (c-initialize-cc-mode t)
-  (set-syntax-table dart-mode-syntax-table)
-  (setq major-mode 'dart-mode
-        mode-name "Dart")
-  (use-local-map dart-mode-map)
-  (c-init-language-vars dart-mode)
-  (c-common-init 'dart-mode)
-  (c-set-style "dart")
+  (modify-syntax-entry ?/  "_ 124b")
+  (modify-syntax-entry ?*  ". 23")
+  (modify-syntax-entry ?\n "> b")
+  (modify-syntax-entry ?\' "\"")
+  (setq-local electric-indent-chars '(?\n ?\) ?\] ?\}))
+  (setq-local comment-start "//")
+  (setq-local comment-end "")
+  (setq fill-column 80)
+  (setq font-lock-defaults dart-font-lock-defaults)
+  (setq-local indent-line-function 'dart-indent-line-function)
+  (setq indent-tabs-mode nil)
+  (setq tab-width 2)
+  (setq-local syntax-propertize-function 'dart-syntax-propertize-function)
   (when dart-enable-analysis-server
     (if (null dart-sdk-path)
         (dart-log
@@ -1878,11 +2041,7 @@ Key bindings:
       (dart--start-analysis-server-for-current-buffer)))
 
   (add-hook (make-local-variable 'before-save-hook)
-            (lambda () (when dart-format-on-save (dart-format))))
-
-  (run-hooks 'c-mode-common-hook)
-  (run-hooks 'dart-mode-hook)
-  (c-update-modeline))
+            (lambda () (when dart-format-on-save (dart-format)))))
 
 (provide 'dart-mode)
 
