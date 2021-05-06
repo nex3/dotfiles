@@ -97,6 +97,7 @@ it's loaded for files matching REGEXP."
 (load-mode 'yaml "\\.ya?ml$")
 (load-mode 'ruby "\\(\\.\\(rb\\|rake\\|rjs\\|duby\\|gemspec\\|thor\\)\\|Rakefile\\|Capfile\\|Thorfile\\)$")
 (load-mode 'css "\\.css$")
+(load-mode 'js "\\.m?js$")
 
 (defmacro my-after-load (name &rest body)
   "Like `eval-after-load', but a macro."
