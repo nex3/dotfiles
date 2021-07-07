@@ -1,20 +1,7 @@
 #!/bin/sh
-#
-# An example hook script that is called after a successful
-# commit is made.
-#
-# To enable this hook, make this file executable.
+
+rebuild_autoloads="$(dirname "${BASH_SOURCE[0]}")/rebuild-autoloads.el"
 
 echo 'Compiling Emacs autoloads and byte-compiling Elisp...'
-emacs --batch --eval '
-(let ((make-backup-files nil)
-      (generated-autoload-file "~/.elisp/my-loaddefs.el")
-      (byte-compile-warnings nil)
-      (byte-compile-verbose nil)
-      (noninteractive t)
-      (dirs '\''("~/.elisp"))
-      (elpa-dirs (directory-files "~/.elisp/elpa" '\''full "-\\([0-9]\\.?\\)+")))
-  (setq load-path (append dirs elpa-dirs load-path))
-  (dolist (dir dirs) (update-directory-autoloads dir))
-  (byte-recompile-directory "~/.elisp" 0))' &> /dev/stdout | \
-    grep -v '^\(Checking\|Compiling\|Saving\|Loading\|Wrote\|Warning: defvar ignored\|(No changes need to be saved)\)'
+emacs --batch -l "$rebuild_autoloads" &> /dev/stdout | \
+    grep -v '^\(Checking\|Compiling\|Saving\|Loading\|Wrote\|Warning: defvar ignored\|(No changes need to be saved)\|  INFO\)'
