@@ -49,6 +49,10 @@ for f in $conf/bin/*; do
     ln -s "$f" "$newfile"
 done
 
+git clone https://github.com/deficient/battery-widget \
+    -r 25b7e94a34ed854697d61e3cbb0a3ebd9745dbd4 \
+    awesome/battery-widget
+
 mkdir -p ~/src
 if [ ! -d ~/src/dart-current ]; then
     ~/bin/get-dart --activate latest
