@@ -3,10 +3,10 @@
 if which git; then
     git clone git://github.com/nex3/dotfiles.git config
 elif which wget; then
-    wget -O- http://github.com/nex3/dotfiles/tarball/master | tar xz
+    wget -O- http://github.com/nex3/dotfiles/tarball/main | tar xz
     mv dotfiles config
 elif which curl; then
-    curl http://github.com/nex3/dotfiles/tarball/master | tar xz
+    curl http://github.com/nex3/dotfiles/tarball/main | tar xz
     mv dotfiles config
 fi
 
