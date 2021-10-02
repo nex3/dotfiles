@@ -7,7 +7,7 @@ xterm*foreground: white
 xterm*background: black
 
 Xft.hinting: 1
-Xft.dpi: 96
+Xft.dpi: 192
 
 *VT100.Translations: #override \
  	!Ctrl Meta <Key>.: string("\033&C.")\n\
