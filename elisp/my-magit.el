@@ -8,6 +8,8 @@
 (require 'magit)
 (require 'cl)
 
+(autoload 'vc-git-grep "vc-git.el")
+
 ;;;###autoload
 (defun my-magit-status-buffer ()
   "Return the Magit status buffer for this perspective.
