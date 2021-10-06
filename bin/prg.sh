@@ -1,3 +1,3 @@
 #!/bin/bash
 
-pub run grinder "$@"
+dart run grinder "$@"

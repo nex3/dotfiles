@@ -1,3 +1,3 @@
 #!/bin/bash
 
-pub run test --color -r compact "$@"
+dart run test --color -r compact "$@"
