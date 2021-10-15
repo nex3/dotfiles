@@ -1,3 +1,3 @@
 #!/bin/bash
 
-~/src/libsass/sassc/bin/sassc "$@"
+~/goog/sass/libsass/sassc/bin/sassc "$@"
