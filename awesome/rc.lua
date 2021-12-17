@@ -39,11 +39,13 @@ do
 end
 -- }}}
 
+awful.util.spawn(os.getenv("HOME") .. "/.xsession")
+
 -- {{{ Variable definitions
 -- Themes define colours, icons, and wallpapers
 beautiful.init(awful.util.get_themes_dir() .. "default/theme.lua")
 
-wallpapers = {"horizontal.jpg", "vertical.jpg"}
+wallpapers = {"horizontal.jpg", "vertical.jpg", "horizontal2.jpg"}
 
 beautiful.wallpaper = function(s)
     file = wallpapers[s.index] or "wallpaper1.jpg"
@@ -62,6 +64,7 @@ editor = os.getenv("EDITOR") or "nano"
 -- If you do not like this or do not have such a key,
 -- I suggest you to remap Mod4 to another key using xmodmap or other tools.
 -- However, you can use another modifier like Mod1, but it may interact with others.
+meta = "Mod1"
 modkey = "Mod3"
 modkey2 = "Mod4"
 
@@ -90,10 +93,16 @@ if screen.count() == 1 then
     tags_by_screen = {
         {"check", "prog", "media", "im", "edit"}
     }
-else
+elseif screen.count() == 2 then
     tags_by_screen = {
         {"check", "media", "im"},
         {"prog", "edit"}
+    }
+else
+    tags_by_screen = {
+        {"im", "media"},
+        {"prog", "edit"},
+        {"check"}
     }
 end
 
@@ -134,14 +143,14 @@ end
 -- {{{ Menu
 -- Create a launcher widget and a main menu
 myawesomemenu = {
-   { "hotkeys", function() return false, hotkeys_popup.show_help end},
-   { "manual", terminal .. " -e man awesome" },
-   { "edit config", editor .. " " .. awesome.conffile },
-   { "restart", awesome.restart },
    { "quit", function()
                  awful.util.spawn("pkill -u 96759")
                  awesome.quit()
-             end }
+             end },
+   { "hotkeys", function() return false, hotkeys_popup.show_help end},
+   { "manual", terminal .. " -e man awesome" },
+   { "edit config", editor .. " " .. awesome.conffile },
+   { "restart", awesome.restart }
 }
 
 mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
@@ -442,20 +451,22 @@ function tagkey(mod, char, tagfn)
                   {group = "tag"}),
         awful.key({ mod, "Shift" }, char,
                   function ()
-                      if client.focus then
-                          local tag = tagfn(client.focus.screen)
+                      local c = client.focus
+                      if c then
+                          local tag = tagfn(c.screen)
                           if tag then
-                              client.focus:move_to_tag(tag)
+                              c:move_to_tag(tag)
                           end
                       end
                   end,
                   {group = "tag"}),
         awful.key({ mod, "Control", "Shift" }, char,
                   function ()
-                      if client.focus then
-                          local tag = tagfn(client.focus.screen)
+                      local c = client.focus
+                      if c then
+                          local tag = tagfn(c.screen)
                           if tag then
-                              client.focus:toggle_tag(tag)
+                              c:toggle_tag(tag)
                           end
                       end
                   end,
@@ -482,7 +493,86 @@ end
 clientbuttons = awful.util.table.join(
     awful.button({ }, 1, function (c) client.focus = c; c:raise() end),
     awful.button({ modkey }, 1, awful.mouse.client.move),
-    awful.button({ modkey }, 3, awful.mouse.client.resize))
+    awful.button({ modkey }, 3, awful.mouse.client.resize)
+)
+
+modmap = {
+   Mod1 = "Alt_L",
+   Mod3 = "Hyper_L",
+   Mod4 = "Super_L",
+   Control = "Control_L",
+   Shift = "Shift_L"
+}
+
+local function emitkey(chords)
+   for _, keys in ipairs(chords) do
+      if type(keys) == 'string' then keys = { keys } end
+
+      for _, key in ipairs(keys) do
+         root.fake_input('key_press', key)
+      end
+
+      for i = #keys, 1, -1 do
+         root.fake_input('key_release', keys[i])
+      end
+   end
+end
+
+local function translate(meta, input, chords)
+   return awful.key(meta, input,
+                    function (c)
+                       awful.keygrabber.stop()
+
+                       for _, mod in ipairs(meta) do
+                          root.fake_input('key_release', modmap[mod])
+                       end
+
+                       emitkey(chords)
+
+                       for _, mod in ipairs(meta) do
+                          root.fake_input('key_press', modmap[mod])
+                       end
+                    end)
+end
+
+-- Fake Emacs-style navigation for Chrome
+chromekeys = awful.util.table.join(
+    translate({ meta }, "i", {"Next"}),
+    translate({ meta }, "o", {"Prior"}),
+    translate({ meta }, "j", {"Left"}),
+    translate({ meta }, ";", {"Right"}),
+    translate({ meta }, "k", {"Down"}),
+    translate({ meta }, "l", {"Up"}),
+    translate({ meta }, "u", {"Home"}),
+    translate({ meta }, "p", {"End"}),
+    translate({ meta, "Shift" }, "j", {{"Control_L", "Left"}}),
+    translate({ meta, "Shift" }, ";", {{"Control_L", "Right"}}),
+    translate({ meta, "Shift" }, "k", {{"Control_L", "Down"}}),
+    translate({ meta, "Shift" }, "l", {{"Control_L", "Up"}}),
+    translate({ meta, "Shift" }, "u", {{"Control_L", "Home"}}),
+    translate({ meta, "Shift" }, "p", {{"Control_L", "End"}}),
+    translate({ meta }, "n", {"BackSpace"}),
+    translate({ meta }, ".", {"Delete"}),
+    translate({ meta }, "m", {"Home", {"Shift_L", "End"}, {"Shift_L", "Right"}, {"Control_L", "X"}}),
+    translate({ meta }, ",", {"End", "Right", {"Shift_L", "Left"}, {"Shift_L", "Home"}, {"Control_L", "X"}}),
+    translate({ meta, "Shift" }, "n", {{"Control_L", "Shift_L", "Left"}, {"Control_L", "X"}}),
+    translate({ meta, "Shift" }, ".", {{"Control_L", "Shift_L", "Right"}, {"Control_L", "X"}}),
+    translate({ meta, "Shift" }, "m", {{"Control_L", "Shift_L", "Down"}, {"Control_L", "X"}}),
+    translate({ meta, "Shift" }, ",", {{"Control_L", "Shift_L", "Up"}, {"Control_L", "X"}}),
+    translate({ meta, "Shift" }, "/", {{"Control_L", "Z"}}),
+    translate({ meta, "Shift" }, "space", {{"Control_L", "V"}}),
+    translate({ meta, "Control" }, "j", {{"Alt_L", "Left"}}),
+    translate({ meta, "Control" }, ";", {{"Alt_L", "Right"}}),
+    translate({ meta, "Control" }, "i", {{"Control_L", "Next"}}),
+    translate({ meta, "Control" }, "o", {{"Control_L", "Prior"}}),
+    translate({ meta, "Control", "Shift" }, "i", {{"Control_L", "Shift_L", "Next"}}),
+    translate({ meta, "Control", "Shift" }, "o", {{"Control_L", "Shift_L", "Prior"}})
+)
+
+chromebuttons = awful.util.table.join(
+    awful.button({ }, 6, function() emitkey({{'Control_L', 'Prior'}}) end),
+    awful.button({ }, 7, function() emitkey({{'Control_L', 'Next'}}) end)
+)
 
 -- Set keys
 root.keys(globalkeys)
@@ -503,6 +593,16 @@ awful.rules.rules = {
                      placement = awful.placement.no_overlap+awful.placement.no_offscreen
      }
     },
+
+    { rule = { class = "Google-chrome" },
+      properties = {
+         keys = chromekeys,
+         buttons = chromebuttons,
+      }
+    },
+
+    { rule = { class = "Pidgin" },
+      properties = { screen = 1, tag = "im" } },
 
     { rule_any = {
          class = {
