@@ -569,11 +569,6 @@ chromekeys = awful.util.table.join(
     translate({ meta, "Control", "Shift" }, "o", {{"Control_L", "Shift_L", "Prior"}})
 )
 
-chromebuttons = awful.util.table.join(
-    awful.button({ }, 6, function() emitkey({{'Control_L', 'Prior'}}) end),
-    awful.button({ }, 7, function() emitkey({{'Control_L', 'Next'}}) end)
-)
-
 -- Set keys
 root.keys(globalkeys)
 -- }}}
