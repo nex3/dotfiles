@@ -1,3 +1,3 @@
 #!/bin/bash
 
-dart ~/goog/sass/dart/bin/sass.dart "$@"
+dart --enable-asserts ~/goog/sass/dart/bin/sass.dart "$@"
