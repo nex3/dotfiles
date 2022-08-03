@@ -45,7 +45,7 @@ awful.util.spawn(os.getenv("HOME") .. "/.xsession")
 -- Themes define colours, icons, and wallpapers
 beautiful.init(awful.util.get_themes_dir() .. "default/theme.lua")
 
-wallpapers = {"horizontal.jpg", "vertical.jpg", "horizontal2.jpg"}
+wallpapers = {"horizontal.jpg", "horizontal2.jpg", "vertical.jpg"}
 
 beautiful.wallpaper = function(s)
     file = wallpapers[s.index] or "wallpaper1.jpg"
@@ -101,8 +101,8 @@ elseif screen.count() == 2 then
 else
     tags_by_screen = {
         {"im", "media"},
-        {"prog", "edit"},
-        {"check"}
+        {"check"},
+        {"prog", "edit"}
     }
 end
 
