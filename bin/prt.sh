@@ -1,3 +1,3 @@
 #!/bin/bash
 
-dart run test --color -r compact "$@"
+dart run test --chain-stack-traces --color -r compact "$@"
