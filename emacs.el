@@ -220,6 +220,7 @@ The -hook suffix is unnecessary."
 (my-after-load markdown-mode
   (setq markdown-spaces-after-code-fence 0)
   (my-add-hook markdown-mode
+    (setq markdown-gfm-use-electric-backquote nil)
     (toggle-word-wrap 1)
     (toggle-truncate-lines -1)))
 
