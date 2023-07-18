@@ -535,8 +535,8 @@ local function translate(meta, input, chords)
                     end)
 end
 
--- Fake Emacs-style navigation for Chrome
-chromekeys = awful.util.table.join(
+-- Fake Emacs-style navigation for Chrome and Firefox
+browserkeys = awful.util.table.join(
     translate({ meta }, "i", {"Next"}),
     translate({ meta }, "o", {"Prior"}),
     translate({ meta }, "j", {"Left"}),
@@ -590,10 +590,11 @@ awful.rules.rules = {
     },
 
     { rule = { class = "Google-chrome" },
-      properties = {
-         keys = chromekeys,
-         buttons = chromebuttons,
-      }
+      properties = { keys = browserkeys }
+    },
+
+    { rule = { class = "Firefox" },
+      properties = { keys = browserkeys }
     },
 
     { rule = { class = "Pidgin" },
