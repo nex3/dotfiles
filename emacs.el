@@ -555,12 +555,12 @@ it doesn't prompt for a tag name."
         (let ((chars (string-to-list "qwertyuiop]\\asdfghjklzxcvbnm"))
               (meta (string-to-char (kbd "ESC"))))
           (flet ((add-prefix (prefix char)
-                             (read-kbd-macro (concat prefix "-" (char-to-string char))))
+                              (concat prefix "-" (char-to-string char)))
                  (make-bindings (binding-prefix)
                                 (mapcar
                                  (lambda (char)
-                                   (cons (string-to-char (add-prefix "C" char))
-                                         (add-prefix binding-prefix char)))
+                                   (cons (aref (read-kbd-macro (add-prefix "C" char) t) 0)
+                                         (kbd (add-prefix binding-prefix char))))
                                  chars)))
             ;; C-M-S- bindings are a slightly weird case. None of them work by
             ;; default, so we have to bind them en masse. In addition, they're
