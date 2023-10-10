@@ -176,7 +176,7 @@ Otherwise, bind key to FALLBACK or its default binding."
 (term-in-prompt "M-." 'term-send-del)
 (term-in-prompt "M-N" (lambda () (interactive)
                         (copy-region-as-kill (point) (progn (forward-word -1) (point)))
-                        (term-send-raw-string "\e[3;3~")))
+                        (term-send-raw-string "\e\x7f")))
 (term-in-prompt "M->" (lambda () (interactive)
                         (copy-region-as-kill (point) (progn (forward-word) (point)))
                         (term-send-raw-string "\ed")))
