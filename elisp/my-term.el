@@ -20,26 +20,30 @@ through shells."
   (interactive "P")
   (let* ((term-buffer-base (concat "shell: " (persp-name (persp-curr))))
          (term-buffer-name (concat "*" term-buffer-base "*"))
+         (eshell-buffer-name term-buffer-name)
          (magit-buffer (my-magit-status-buffer))
          (default-directory (or (and magit-buffer
                                      (with-current-buffer magit-buffer
                                        default-directory))
                                 (magit-toplevel default-directory)
                                 default-directory)))
+    (message "%S" eshell-buffer-name)
 
     (cond
      (arg
-      (let* ((name
-              (if (integerp arg) (format "%s<%d>" term-buffer-name arg)
-                (generate-new-buffer-name term-buffer-name)))
-             (buffer (get-buffer name)))
-        (if buffer (switch-to-buffer buffer)
-          (setq name (term-ansi-make-term name "/bin/bash"))
-          (set-buffer name)
-          (term-mode)
-          (term-char-mode)
-          (term-set-escape-char ?\C-x)
-          (switch-to-buffer name))))
+      (if (string-equal system-type "windows-nt")
+          (eshell arg)
+        (let* ((name
+                (if (integerp arg) (format "%s<%d>" term-buffer-name arg)
+                  (generate-new-buffer-name term-buffer-name)))
+               (buffer (get-buffer name)))
+          (if buffer (switch-to-buffer buffer)
+            (setq name (term-ansi-make-term name "/bin/bash"))
+            (set-buffer name)
+            (term-mode)
+            (term-char-mode)
+            (term-set-escape-char ?\C-x)
+            (switch-to-buffer name)))))
 
      ((eq last-command this-command)
       (let ((term-buffer-re (concat "^" (regexp-quote term-buffer-name)))
@@ -61,7 +65,9 @@ through shells."
      (t
       (if (get-buffer term-buffer-name)
           (switch-to-buffer term-buffer-name)
-        (ansi-term "/bin/bash" term-buffer-base))))))
+        (if (string-equal system-type "windows-nt")
+            (eshell)
+          (ansi-term "/bin/bash" term-buffer-base)))))))
 
 (defun term-in-prompt-p (&optional only-in-text)
   "Returns whether the cursor is in the editable prompt line.
