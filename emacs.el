@@ -36,7 +36,7 @@
     (when window-system
       (set-frame-font
        (cond
-        ((string-equal system-type "windows-nt") "Consolas-10")
+        ((string-equal system-type "windows-nt") "Consolas-11")
         ((and (>= (/ (+ (display-pixel-width) 0.0) (display-mm-width)) 3)
                 (< (display-mm-width) 500))
          "Monospace-12")
