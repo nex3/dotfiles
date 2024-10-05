@@ -191,7 +191,6 @@ then
         export RIPDIR RUBYLIB PATH
     fi
 
-    export PYTHONPATH=$HOME/lib/python:/usr/local/lib/python2.6/site-packages:/usr/local/lib/python2.6/dist-packages:$PYTHONPATH
     export LIBRARY_PATH=$HOME/lib:$LIBRARY_PATH
     export C_INCLUDE_PATH=$HOME/include
     export INFOPATH=$HOME/.info:$INFOPATH
