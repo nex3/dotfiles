@@ -10,16 +10,22 @@
   (tool-bar-mode -1))
 (menu-bar-mode -1)
 
+(setq my-elisp-dir
+  (if (file-directory-p "~/.elisp") "~/.elisp"
+       ;; On Windows, we can't symlink in ~/.elisp so we have to load
+       ;; straight from the dotfiles directory.
+       (concat
+         (file-name-parent-directory (file-truename "~/.emacs"))
+         (file-name-as-directory "elisp"))))
 (add-to-list 'load-path "/usr/share/emacs/site-lisp")
 (add-to-list 'load-path "/usr/share/emacs-snapshot/site-lisp")
-(add-to-list 'load-path "~/.elisp")
+(add-to-list 'load-path my-elisp-dir)
 (add-to-list 'load-path "~/share/emacs/site-lisp")
 
 ;; Add this to the load path explicitly so we can get the color theme up and
 ;; running as soon as possible. Loading packages the normal way can take time.
-(add-to-list 'load-path "~/.elisp/elpa/color-theme-6.6.1")
+(add-to-list 'load-path (concat my-elisp-dir "elpa/color-theme-6.6.1"))
 
-`
 (when (< emacs-major-version 23) (require 'old-emacs))
 
 (defun init-frame (&optional frame)
@@ -29,9 +35,12 @@
     ;; Set my font
     (when window-system
       (set-frame-font
-       (if (and (>= (/ (+ (display-pixel-width) 0.0) (display-mm-width)) 3)
+       (cond
+        ((string-equal system-type "windows-nt") "Consolas-11")
+        ((and (>= (/ (+ (display-pixel-width) 0.0) (display-mm-width)) 3)
                 (< (display-mm-width) 500))
-           "Monospace-12" "Monospace-8.5"))
+         "Monospace-12")
+        (t "Monospace-8.5")))
       (toggle-scroll-bar -1))))
 
 (init-frame)
@@ -68,7 +77,7 @@
 
 (when (boundp 'package-archives)
   (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/")))
-(setq package-user-dir "~/.elisp/elpa")
+(setq package-user-dir (concat my-elisp-dir "elpa"))
 (package-initialize)
 
 (require 'pager)
@@ -285,7 +294,7 @@ PACKAGE may be a desc or a package name."
 (setq make-backup-files nil)
 (setq auto-save-default nil)
 (setq create-lockfiles nil)
-(setq default-truncate-lines t)
+(set-default 'truncate-lines t)
 (setq-default indent-tabs-mode nil)
 (setq column-number-mode t)
 (setq normal-erase-is-backspace-mode 0)
@@ -452,7 +461,7 @@ it doesn't prompt for a tag name."
 (defun my-commit-config (message)
   "Commit a change to the config repo."
   (save-window-excursion
-    (magit-status (file-name-directory (file-chase-links "~/.elisp")))
+    (magit-status (file-name-directory (file-chase-links my-elisp-dir)))
     (magit-run-git "add" "-A" "elisp/elpa")
     (magit-run-git "commit" "-m" message)))
 

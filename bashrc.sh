@@ -32,7 +32,8 @@ fi
 # http://bc.tech.coop/
 function start_or_join_screen {
     if [ "$TERM" != dumb -a "$PS1" != "" -a "${STARTED_SCREEN:-x}" = x -a "${SSH_TTY:-x}" \
-                 -a "$INSIDE_EMACS" = "" ]
+                 -a "$INSIDE_EMACS" = "" ] &&
+       which screen &> /dev/null
     then
         STARTED_SCREEN=1 ; export STARTED_SCREEN
         sleep 1
@@ -150,7 +151,7 @@ alias $1=$name
 
 advise cd with-ls 'super "$@" && ls'
 
-if which hub > /dev/null; then
+if which hub &> /dev/null; then
     alias git=hub
     completion=`readlink -f \`which hub\``/etc/hub.bash_completion.sh
     if [ -e "$completion" ]; then . "$completion"; fi
