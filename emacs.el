@@ -506,6 +506,11 @@ it doesn't prompt for a tag name."
     current-prefix-arg))
   (shell-command command output-buffer))
 
+(defun my-insert-iso-8601 ()
+  "Inserts the current time in JS-compatible ISO-8601 format."
+  (interactive)
+  (insert (format-time-string "%Y-%m-%dT%TZ" nil t)))
+
 ;; ----------
 ;; -- Keybindings
 ;; ----------
