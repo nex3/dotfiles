@@ -11,7 +11,7 @@
 (menu-bar-mode -1)
 
 (setq my-elisp-dir
-  (if (file-directory-p "~/.elisp") "~/.elisp"
+  (if (file-directory-p "~/.elisp") "~/.elisp/"
        ;; On Windows, we can't symlink in ~/.elisp so we have to load
        ;; straight from the dotfiles directory.
        (concat
