@@ -36,15 +36,47 @@
 
 (when (or window-system (and (fboundp 'daemonp) (daemonp)))
   (setq color-theme-load-all-themes nil)
-  (require 'color-theme)
+  (global-hl-line-mode t)
 
-  (load "alexandres-theme")
-  (my-color-theme-dark)
+  (deftheme my-theme "Natalie's theme (based on Alexandre's)")
+  (custom-theme-set-faces
+   'my-theme
 
-  (custom-set-faces
-   '(default ((((min-colors 256)) (:foreground "pink"))
-              (t (:foreground "white"))))
-   '(font-lock-comment-face ((t (:italic t :bold t :foreground "#7B7BFF"))))
+   '(default ((((min-colors 256)) (:foreground "pink" :background "black"))
+              (t (:foreground "white" :background "black"))))
+
+   ;; orange: #E67321
+   ;; green: #00b200
+   ;; dark blue: #6666FF
+   ;; light blue: #398EE6
+   '(font-lock-builtin-face ((t (:bold t :foreground "#E67321"))))
+   '(font-lock-comment-face ((t (:italic t :bold t :foreground "#6666FF"))))
+   '(font-lock-constant-face ((t (:bold t :foreground "#398EE6"))))
+   '(font-lock-doc-string-face ((t (:bold t :foreground "#00b200"))))
+   '(font-lock-function-name-face ((t (:foreground "LightSkyBlue"))))
+   '(font-lock-keyword-face ((t (:bold t :foreground "#E67321"))))
+   '(font-lock-preprocessor-face ((t (:foreground "#2B2BFF" :bold t))))
+   '(font-lock-reference-face ((t (:foreground "red3"))))
+   '(font-lock-string-face ((t (:bold t :foreground "#00b200"))))
+   '(font-lock-type-face ((t (:bold t :foreground "#398EE6"))))
+   '(font-lock-variable-name-face ((t (:italic t :bold t :foreground "magenta3"))))
+   '(font-lock-warning-face ((t (:bold t :foreground "red"))))
+   '(py-builtins-face ((t (:bold t :foreground "#398EE6"))))
+   '(py-pseudo-keyword-face ((t (:bold t :foreground "#398EE6"))))
+   '(rst-level-1-face ((t (:bold t :foreground "snow1"))))
+   '(rst-level-2-face ((t (:bold t :foreground "snow2"))))
+   '(rst-level-3-face ((t (:bold t :foreground "snow3"))))
+   '(rst-level-4-face ((t (:bold t :foreground "snow4"))))
+   '(erc-action-face ((t (nil))))
+   '(erc-notice-face ((t (:foreground "#878899"))))
+   '(erc-bold-face ((t (:bold t :weight bold))))
+   '(erc-command-indicator-face ((t (:bold t :weight bold))))
+   '(erc-dangerous-host-face ((t (:foreground "red"))))
+   '(erc-default-face ((t (nil))))
+   '(erc-timestamp-face ((t (:bold nil :foreground "gray45" :weight normal))))
+   '(erc-underline-face ((t (:underline t))))
+   '(erc-prompt-face ((t (:bold t :foreground "GoldenRod3" :weight bold))))
+   '(trailing-whitespace ((t (:background "gray30"))))
    '(term-color-blue ((t (:foreground "#7B7BFF"))))
    ;; Don't highlight lines in the terminal
    '(highlight ((t (:background "gray10"))))
@@ -54,7 +86,8 @@
    '(magit-item-highlight ((t (:background "#222222"))))
    '(markdown-inline-code-face ((t (:foreground "cyan3"))))
    '(markdown-markup-face ((t (:foreground "pink3"))))
-   '(markdown-reference-face ((t (:inherit markdown-markup-face))))))
+   '(markdown-reference-face ((t (:inherit markdown-markup-face)))))
+  (enable-theme 'my-theme))
 
 ;; ----------
 ;; -- Loading Modules
@@ -371,7 +404,7 @@ which should be selected."
   (make-directory (minibuffer-contents) t)
   (princ (concat "Created directory " (minibuffer-contents))))
 
-(defun* pretty-lambdas (&optional (regexp "(?\\(lambda\\>\\)"))
+(cl-defun pretty-lambdas (&optional (regexp "(?\\(lambda\\>\\)"))
   "Make NAME render as λ."
   (font-lock-add-keywords
    nil `((,regexp
@@ -551,14 +584,14 @@ it doesn't prompt for a tag name."
       (eval-when-compile
         (let ((chars (string-to-list "qwertyuiop]\\asdfghjklzxcvbnm"))
               (meta (string-to-char (kbd "ESC"))))
-          (flet ((add-prefix (prefix char)
-                              (concat prefix "-" (char-to-string char)))
-                 (make-bindings (binding-prefix)
-                                (mapcar
-                                 (lambda (char)
-                                   (cons (aref (read-kbd-macro (add-prefix "C" char) t) 0)
-                                         (kbd (add-prefix binding-prefix char))))
-                                 chars)))
+          (cl-flet* ((add-prefix (prefix char)
+                       (concat prefix "-" (char-to-string char)))
+                     (make-bindings (binding-prefix)
+                       (mapcar
+                        (lambda (char)
+                          (cons (aref (read-kbd-macro (add-prefix "C" char) t) 0)
+                                (kbd (add-prefix binding-prefix char))))
+                        chars)))
             ;; C-M-S- bindings are a slightly weird case. None of them work by
             ;; default, so we have to bind them en masse. In addition, they're
             ;; actually included in two of the subdivisions below. The A keymap
