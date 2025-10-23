@@ -18,6 +18,8 @@ conf=`pwd`
 cd ~
 
 rm -rf .{emacs,bashrc,irbrc,factor-rc}
+mkdir -p ~/.emacs.d
+ln -s $conf/emacs-early.el .emacs.d/early-init.el
 ln -s $conf/emacs.el .emacs
 ln -s $conf/bashrc.sh .bashrc
 ln -s $conf/irbrc.rb .irbrc

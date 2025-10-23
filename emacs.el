@@ -10,18 +10,6 @@
   (tool-bar-mode -1))
 (menu-bar-mode -1)
 
-(setq my-elisp-dir
-  (if (file-directory-p "~/.elisp") "~/.elisp/"
-       ;; On Windows, we can't symlink in ~/.elisp so we have to load
-       ;; straight from the dotfiles directory.
-       (concat
-         (file-name-parent-directory (file-truename "~/.emacs"))
-         (file-name-as-directory "elisp"))))
-(add-to-list 'load-path "/usr/share/emacs/site-lisp")
-(add-to-list 'load-path "/usr/share/emacs-snapshot/site-lisp")
-(add-to-list 'load-path my-elisp-dir)
-(add-to-list 'load-path "~/share/emacs/site-lisp")
-
 ;; Add this to the load path explicitly so we can get the color theme up and
 ;; running as soon as possible. Loading packages the normal way can take time.
 (add-to-list 'load-path (concat my-elisp-dir "elpa/color-theme-6.6.1"))
@@ -62,7 +50,7 @@
    '(highlight ((t (:background "gray10"))))
    '(hl-line ((((min-colors 256)) (:inherit highlight))
               (((min-colors 8)) (:inherit nil :background nil))))
-   '(mode-line ((t (:background "gray80" :foreground "gray20" :box (:line-width -1 :style "released-button")))))
+   '(mode-line ((t (:background "gray80" :foreground "gray20"))))
    '(magit-item-highlight ((t (:background "#222222"))))
    '(markdown-inline-code-face ((t (:foreground "cyan3"))))
    '(markdown-markup-face ((t (:foreground "pink3"))))
@@ -72,16 +60,11 @@
 ;; -- Loading Modules
 ;; ----------
 
-(load "my-loaddefs")
-(require 'package)
-
 (when (boundp 'package-archives)
-  (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/")))
-(setq package-user-dir (concat my-elisp-dir "elpa"))
-(package-initialize)
+  (push '("melpa" . "http://melpa.org/packages/") package-archives)
+  (push '("melpa-stable" . "http://stable.melpa.org/packages/") package-archives))
 
 (require 'pager)
-(eval-when-compile (require 'cl))
 
 (persp-mode)
 
