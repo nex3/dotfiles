@@ -1,8 +1,11 @@
 ;;; flycheck-ert.el --- Flycheck: ERT extensions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2015  Sebastian Wiesner <swiesner@lunaryorn.com>
+;; Copyright (C) 2017-2018 Flycheck contributors
+;; Copyright (C) 2013-2016 Sebastian Wiesner and Flycheck contributors
 
 ;; Author: Sebastian Wiesner <swiesner@lunaryorn.com>
+;; Maintainer: Clément Pit-Claudel <clement.pitclaudel@live.com>
+;;             fmdkdd <fmdkdd@gmail.com>
 ;; URL: https://github.com/flycheck/flycheck
 
 ;; This file is not part of GNU Emacs.
@@ -35,32 +38,6 @@
 (require 'macroexp)                     ; For macro utilities
 
 
-;;; Compatibility
-
-(eval-and-compile
-  ;; Provide `ert-skip' and friends for Emacs 24.3
-  (defconst flycheck-ert-ert-can-skip (fboundp 'ert-skip)
-    "Whether ERT supports test skipping.")
-
-  (unless flycheck-ert-ert-can-skip
-    ;; Fake skipping
-
-    (put 'flycheck-ert-skipped 'error-message "Test skipped")
-    (put 'flycheck-ert-skipped 'error-conditions '(error))
-
-    (defun ert-skip (data)
-      (signal 'flycheck-ert-skipped data))
-
-    (defmacro skip-unless (form)
-      `(unless (ignore-errors ,form)
-         (signal 'flycheck-ert-skipped ',form)))
-
-    (defun ert-test-skipped-p (result)
-      (and (ert-test-failed-p result)
-           (eq (car (ert-test-failed-condition result))
-               'flycheck-ert-skipped)))))
-
-
 ;;; Internal variables
 
 (defvar flycheck-ert--resource-directory nil
@@ -75,7 +52,7 @@
 Like `with-temp-buffer', but resets the modification state of the
 temporary buffer to make sure that it is properly killed even if
 it has a backing file and is modified."
-  (declare (indent 0))
+  (declare (indent 0) (debug t))
   `(with-temp-buffer
      (unwind-protect
          ,(macroexp-progn body)
@@ -90,7 +67,7 @@ it has a backing file and is modified."
 
 BODY is evaluated with `current-buffer' being a buffer with the
 contents FILE-NAME."
-  (declare (indent 1))
+  (declare (indent 1) (debug t))
   `(let ((file-name ,file-name))
      (unless (file-exists-p file-name)
        (error "%s does not exist" file-name))
@@ -128,7 +105,7 @@ After BODY, restore the old state of Global Flycheck Mode."
 (defmacro flycheck-ert-with-env (env &rest body)
   "Add ENV to `process-environment' in BODY.
 
-Execute BODY with a `process-environment' with contains all
+Execute BODY with a `process-environment' which contains all
 variables from ENV added.
 
 ENV is an alist, where each cons cell `(VAR . VALUE)' is a
@@ -146,7 +123,7 @@ with VALUE."
   "Determine the absolute file name of a RESOURCE-FILE.
 
 Relative file names are expanded against
-`flycheck-ert-resources-directory'."
+`flycheck-ert--resource-directory'."
   (expand-file-name resource-file flycheck-ert--resource-directory))
 
 (defmacro flycheck-ert-with-resource-buffer (resource-file &rest body)
@@ -158,15 +135,6 @@ The absolute file name of RESOURCE-FILE is determined with
   `(flycheck-ert-with-file-buffer
        (flycheck-ert-resource-filename ,resource-file)
      ,@body))
-
-(defun flycheck-ert-locate-config-file (filename _checker)
-  "Find a configuration FILENAME within unit tests.
-
-_CHECKER is ignored."
-  (let* ((directory (flycheck-ert-resource-filename "config-files"))
-         (filepath (expand-file-name filename directory)))
-    (when (file-exists-p filepath)
-      filepath)))
 
 
 ;;; Test suite initialization
@@ -181,49 +149,10 @@ should use to lookup resource files."
   (let ((tests (ert-select-tests t t)))
     ;; Select all tests
     (unless tests
-      (error "No tests defined.  Call `flycheck-ert-initialize' after defining all tests!"))
+      (error "No tests defined.  \
+Call `flycheck-ert-initialize' after defining all tests!"))
 
-    (setq flycheck-ert--resource-directory resource-dir)
-
-    ;; Emacs 24.3 don't support skipped tests, so we add poor man's test
-    ;; skipping: We mark skipped tests as expected failures by adjusting the
-    ;; expected result of all test cases. Not particularly pretty, but works :)
-    (unless flycheck-ert-ert-can-skip
-      (dolist (test tests)
-        (let ((result (ert-test-expected-result-type test)))
-          (setf (ert-test-expected-result-type test)
-                `(or ,result (satisfies ert-test-skipped-p))))))))
-
-
-;;; Environment and version information
-
-(defconst flycheck-ert-user-error-type
-  (if (version< emacs-version "24.2")
-      'error
-    'user-error)
-  "The `user-error' type used by Flycheck.")
-
-(defun flycheck-ert-travis-ci-p ()
-  "Determine whether we are running on Travis CI."
-  (string= (getenv "TRAVIS") "true"))
-
-(defun flycheck-ert-check-gpg ()
-  "Check whether GPG is available."
-  (or (epg-check-configuration (epg-configuration)) t))
-
-(defun flycheck-ert-extract-version-command (re executable &rest args)
-  "Use RE to extract the version from EXECUTABLE with ARGS.
-
-Run EXECUTABLE with ARGS, catch the output, and apply RE to find
-the version number.  Return the text captured by the first group
-in RE, or nil, if EXECUTABLE is missing, or if RE failed to
-match."
-  (-when-let (executable (executable-find executable))
-    (with-temp-buffer
-      (apply #'call-process executable nil t nil args)
-      (goto-char (point-min))
-      (when (re-search-forward re nil 'no-error)
-        (match-string 1)))))
+    (setq flycheck-ert--resource-directory resource-dir)))
 
 
 ;;; Test case definitions
@@ -248,11 +177,11 @@ may be given.  They have the same meaning as in `ert-deftest.',
 and are added to the tags and result expectations set up by this
 macro.
 
-The remaining forms denote the body of the test case, including
-assertions and setup code."
+The remaining forms KEYS-AND-BODY denote the body of the test
+case, including assertions and setup code."
   (declare (indent 3))
   (unless checker
-    (error "No syntax checkers specified."))
+    (error "No syntax checkers specified"))
   (unless language
     (error "No languages specified"))
   (let* ((checkers (if (symbolp checker) (list checker) checker))
@@ -270,16 +199,14 @@ assertions and setup code."
          (keys (car keys-and-body))
          (default-tags '(syntax-checker external-tool)))
     `(ert-deftest ,full-name ()
-       :expected-result
-       (list 'or
-             '(satisfies flycheck-ert-syntax-check-timed-out-p)
-             ,(or (plist-get keys :expected-result) :passed))
+       :expected-result ,(or (plist-get keys :expected-result) :passed)
        :tags (append ',(append default-tags language-tags checker-tags)
                      ,(plist-get keys :tags))
-       ,@(mapcar (lambda (c) `(skip-unless
-                               ;; Ignore non-command checkers
-                               (or (not (get ',c 'flycheck-command))
-                                   (executable-find (flycheck-checker-executable ',c)))))
+       ,@(mapcar (lambda (c)
+                   `(skip-unless
+                     ;; Ignore non-command checkers
+                     (or (not (flycheck-checker-get ',c 'command))
+                         (executable-find (flycheck-checker-executable ',c)))))
                  checkers)
        ,@body)))
 
@@ -309,16 +236,14 @@ RESULT is an ERT test result object."
 After this time has elapsed, the checker is considered to have
 failed, and the test aborted with failure.")
 
-(put 'flycheck-ert-syntax-check-timed-out 'error-message
-     "Syntax check timed out.")
-(put 'flycheck-ert-syntax-check-timed-out 'error-conditions '(error))
+(define-error 'flycheck-ert-syntax-check-timed-out "Syntax check timed out.")
 
 (defun flycheck-ert-wait-for-syntax-checker ()
   "Wait until the syntax check in the current buffer is finished."
   (let ((starttime (float-time)))
     (while (and (not flycheck-ert-syntax-checker-finished)
                 (< (- (float-time) starttime) flycheck-ert-checker-wait-time))
-      (sleep-for 1))
+      (accept-process-output nil 0.02))
     (unless (< (- (float-time) starttime) flycheck-ert-checker-wait-time)
       (flycheck-stop)
       (signal 'flycheck-ert-syntax-check-timed-out nil)))
@@ -328,8 +253,9 @@ failed, and the test aborted with failure.")
   "Like `flycheck-buffer', but synchronously."
   (setq flycheck-ert-syntax-checker-finished nil)
   (should (not (flycheck-running-p)))
-  (flycheck-mode)                       ; This will only start a deferred check,
-  (flycheck-buffer)                     ; so we need an explicit manual check
+  (flycheck-mode) ;; This will only start a deferred check,
+  (should (flycheck-get-checker-for-buffer))
+  (flycheck-buffer) ;; …so we need an explicit manual check
   ;; After starting the check, the checker should either be running now, or
   ;; already be finished (if it was fast).
   (should (or flycheck-current-syntax-check
@@ -344,21 +270,34 @@ failed, and the test aborted with failure.")
 Raise an assertion error if the buffer is not clear afterwards."
   (flycheck-clear)
   (should (not flycheck-current-errors))
-  (should (not (-any? (lambda (ov) (overlay-get ov 'flycheck-overlay))
-                      (overlays-in (point-min) (point-max))))))
+  (should (not (seq-find (lambda (ov) (overlay-get ov 'flycheck-overlay))
+                         (overlays-in (point-min) (point-max))))))
 
 
 ;;; Test assertions
+
+(defun flycheck-error-without-group (err)
+  "Return a copy ERR with the `group' property set to nil."
+  (let ((copy (copy-flycheck-error err)))
+    (setf (flycheck-error-group copy) nil)
+    copy))
 
 (defun flycheck-ert-should-overlay (error)
   "Test that ERROR has a proper overlay in the current buffer.
 
 ERROR is a Flycheck error object."
-  (let* ((overlay (-first (lambda (ov) (equal (overlay-get ov 'flycheck-error)
-                                              error))
-                          (flycheck-overlays-in 0 (+ 1 (buffer-size)))))
-         (region (flycheck-error-region-for-mode error 'symbols))
-         (message (flycheck-error-message error))
+  (let* ((overlay (seq-find (lambda (ov)
+                              (equal (flycheck-error-without-group
+                                      (overlay-get ov 'flycheck-error))
+                                     (flycheck-error-without-group error)))
+                            (flycheck-overlays-in 0 (+ 1 (buffer-size)))))
+         (region
+          ;; Overlays of errors from other files are on the first line
+          (if (flycheck-relevant-error-other-file-p error)
+              (cons (point-min)
+                    (save-excursion (goto-char (point-min))
+                                    (line-end-position)))
+            (flycheck-error-region-for-mode error 'symbols)))
          (level (flycheck-error-level error))
          (category (flycheck-error-level-overlay-category level))
          (face (get category 'face))
@@ -374,8 +313,13 @@ ERROR is a Flycheck error object."
                                       (overlay-get overlay 'before-string))
                    fringe-icon))
     (should (eq (overlay-get overlay 'category) category))
-    (should (equal (overlay-get overlay 'flycheck-error) error))
-    (should (string= (overlay-get overlay 'help-echo) message))))
+    (should (equal (flycheck-error-without-group (overlay-get overlay
+                                                              'flycheck-error))
+                   (flycheck-error-without-group error)))))
+
+(defun flycheck-ert-sort-errors (errors)
+  "Sort ERRORS by `flycheck-error-<'."
+  (seq-sort #'flycheck-error-< errors))
 
 (defun flycheck-ert-should-errors (&rest errors)
   "Test that the current buffers has ERRORS.
@@ -391,12 +335,58 @@ With ERRORS, test that each error in ERRORS is present in the
 current buffer, and that the number of errors in the current
 buffer is equal to the number of given ERRORS.  In other words,
 check that the buffer has all ERRORS, and no other errors."
-  (let ((expected (mapcar (apply-partially #'apply #'flycheck-error-new-at)
-                          errors)))
-    (should (equal expected flycheck-current-errors))
+  (let ((expected (flycheck-ert-sort-errors
+                   (mapcar (apply-partially #'apply #'flycheck-error-new-at)
+                           errors)))
+        (current (flycheck-ert-sort-errors flycheck-current-errors)))
+    (should (equal (mapcar #'flycheck-error-without-group expected)
+                   (mapcar #'flycheck-error-without-group current)))
+    ;; Check that related errors are the same
+    (cl-mapcar
+     (lambda (err1 err2)
+       (should (equal (flycheck-ert-sort-errors
+                       (mapcar #'flycheck-error-without-group
+                               (flycheck-related-errors err1 expected)))
+                      (flycheck-ert-sort-errors
+                       (mapcar #'flycheck-error-without-group
+                               (flycheck-related-errors err2))))))
+     expected current)
     (mapc #'flycheck-ert-should-overlay expected))
   (should (= (length errors)
              (length (flycheck-overlays-in (point-min) (point-max))))))
+
+(define-error 'flycheck-ert-suspicious-checker "Suspicious state from checker")
+
+(defun flycheck-ert-should-syntax-check-in-buffer (&rest errors)
+  "Test a syntax check in BUFFER, expecting ERRORS.
+
+This is like `flycheck-ert-should-syntax-check', but with a
+buffer in the right mode instead of a file."
+  ;; Load safe file-local variables because some tests depend on them
+  (let ((enable-local-variables :safe)
+        ;; Disable all hooks at this place, to prevent 3rd party packages
+        ;; from interfering
+        (hack-local-variables-hook))
+    (hack-local-variables))
+  ;; Configure config file locating for unit tests
+  (let ((process-hook-called 0)
+        (suspicious nil))
+    (add-hook 'flycheck-process-error-functions
+              (lambda (_err)
+                (setq process-hook-called (1+ process-hook-called))
+                nil)
+              nil :local)
+    (add-hook 'flycheck-status-changed-functions
+              (lambda (status)
+                (when (eq status 'suspicious)
+                  (setq suspicious t)))
+              nil :local)
+    (flycheck-ert-buffer-sync)
+    (when suspicious
+      (signal 'flycheck-ert-suspicious-checker nil))
+    (apply #'flycheck-ert-should-errors errors)
+    (should (= process-hook-called (length errors))))
+  (flycheck-ert-ensure-clear))
 
 (defun flycheck-ert-should-syntax-check (resource-file modes &rest errors)
   "Test a syntax check in RESOURCE-FILE with MODES.
@@ -426,20 +416,7 @@ resource directory."
       (ert-skip (format "%S missing" mode)))
     (flycheck-ert-with-resource-buffer resource-file
       (funcall mode)
-      ;; Configure config file locating for unit tests
-      (dolist (fn '(flycheck-locate-config-file-absolute-path
-                    flycheck-ert-locate-config-file))
-        (add-hook 'flycheck-locate-config-file-functions fn 'append 'local))
-      (let ((process-hook-called 0))
-        (add-hook 'flycheck-process-error-functions
-                  (lambda (_err)
-                    (setq process-hook-called (1+ process-hook-called))
-                    nil)
-                  nil :local)
-        (flycheck-ert-buffer-sync)
-        (apply #'flycheck-ert-should-errors errors)
-        (should (= process-hook-called (length errors))))
-      (flycheck-ert-ensure-clear))))
+      (apply #'flycheck-ert-should-syntax-check-in-buffer errors))))
 
 (defun flycheck-ert-at-nth-error (n)
   "Determine whether point is at the N'th Flycheck error.
@@ -453,12 +430,17 @@ current buffer.  Otherwise return nil."
          (= (point) (car region)))))
 
 (defun flycheck-ert-explain--at-nth-error (n)
+  "Explain a failed at-nth-error predicate at N."
   (let ((errors (flycheck-overlay-errors-at (point))))
     (if (null errors)
         (format "Expected to be at error %s, but no error at point %s"
                 n (point))
       (let ((pos (cl-position (car errors) flycheck-current-errors)))
-        (format "Expected to be at error %s, but point %s is at error %s"
+        (format "Expected to be at point %s and error %s, \
+but point %s is at error %s"
+                (car (flycheck-error-region-for-mode
+                      (nth (1- n) flycheck-current-errors)
+                      flycheck-highlighting-mode))
                 n (point) (1+ pos))))))
 
 (put 'flycheck-ert-at-nth-error 'ert-explainer
