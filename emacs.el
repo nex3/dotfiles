@@ -78,6 +78,7 @@
    '(erc-prompt-face ((t (:bold t :foreground "GoldenRod3" :weight bold))))
    '(trailing-whitespace ((t (:background "gray30"))))
    '(term-color-blue ((t (:foreground "#7B7BFF"))))
+   '(term-color-black ((t (:background "black" :foreground "dim gray"))))
    ;; Don't highlight lines in the terminal
    '(highlight ((t (:background "gray10"))))
    '(hl-line ((((min-colors 256)) (:inherit highlight))
