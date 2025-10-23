@@ -94,8 +94,8 @@
 ;; ----------
 
 (when (boundp 'package-archives)
-  (push '("melpa" . "http://melpa.org/packages/") package-archives)
-  (push '("melpa-stable" . "http://stable.melpa.org/packages/") package-archives))
+  (push '("melpa-stable" . "http://stable.melpa.org/packages/") package-archives)
+  (push '("melpa" . "http://melpa.org/packages/") package-archives))
 
 (require 'pager)
 
