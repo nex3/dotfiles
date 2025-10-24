@@ -271,7 +271,7 @@ PACKAGE may be a desc or a package name."
   (defadvice package-delete (after my-commit-package-delete (pkg-desc &optional force nosave) activate)
     (my-commit-config
      (format "[Emacs] Delete %s version %s."
-             (package-desc-name pkg)
+             (package-desc-name pkg-desc)
              (package-desc-version pkg-desc)))))
 
 (my-after-load eshell
