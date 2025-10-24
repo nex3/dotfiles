@@ -4,7 +4,8 @@
 ;;       Chris Wanstrath
 ;;       Daniel Hackney
 
-;; Version: 1.2
+;; Package-Version: 1.3
+;; Package-Revision: bf9897eb287c
 
 ;; This file is not part of Emacs
 
@@ -47,7 +48,7 @@
 (eval-when-compile
   (require 'font-lock))
 
-(defvar mustache-mode-version "1.2"
+(defvar mustache-mode-version "1.3"
   "Version of `mustache-mode.el'.")
 
 (defvar mustache-mode-map
@@ -77,14 +78,13 @@
 (defconst mustache-mode-section (concat "\\({{[#^/]\s*"
                                    mustache-mode-mustache-token
                                    "\s*}}\\)"))
-(defconst mustache-mode-open-section (concat "\\({{#\s*"
-                                        mustache-mode-mustache-token
+(defconst mustache-mode-open-section (concat "\\({{[#^]\s*"
+                                             mustache-mode-mustache-token
                                         "\s*}}\\)"))
 (defconst mustache-mode-close-section (concat "{{/\\(\s*"
                                          mustache-mode-mustache-token
                                          "\s*\\)}}"))
-;; TODO(tonyg) Figure out a way to support multiline comments.
-(defconst mustache-mode-comment "\\({{!.*?}}\\)")
+(defconst mustache-mode-comment "\\({{!\\(?:.\\|\n\\)*?}}\\)")
 (defconst mustache-mode-include (concat "\\({{[><]\s*"
                                    mustache-mode-mustache-token
                                    "\s*}}\\)"))
