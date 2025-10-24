@@ -100,6 +100,7 @@
 
 (require 'pager)
 
+(setq persp-mode-prefix-key (kbd "C-x x"))
 (persp-mode)
 
 (setq frame-title-format '("Emacs: %b [" (:eval (persp-name (persp-curr))) "]"))
