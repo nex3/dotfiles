@@ -4,12 +4,6 @@
 ;; -- Do This First
 ;; ----------
 
-(setq inhibit-startup-message t)
-
-(when (functionp 'tool-bar-mode)
-  (tool-bar-mode -1))
-(menu-bar-mode -1)
-
 ;; Add this to the load path explicitly so we can get the color theme up and
 ;; running as soon as possible. Loading packages the normal way can take time.
 (add-to-list 'load-path (concat my-elisp-dir "elpa/color-theme-6.6.1"))
@@ -744,3 +738,14 @@ it doesn't prompt for a tag name."
 
 (quick-perspective-keys)
 (my-key "C-S-SPC" persp-switch-last)
+
+(custom-set-variables
+ '(package-selected-packages
+   '(csharp-mode dart-mode flycheck go-mode haml-mode lua-mode magit
+                 markdown-mode mustache-mode pager perspective powershell
+                 protobuf-mode rust-mode ssass-mode scss-mode tide yaml-mode))
+ '(inhibit-startup-message t))
+
+(when (functionp 'tool-bar-mode)
+  (tool-bar-mode -1))
+(menu-bar-mode -1)
