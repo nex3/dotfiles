@@ -1,4 +1,4 @@
-;;; powershell.el --- Mode for editing Powershell scripts  -*- lexical-binding: t; -*-
+;;; powershell.el --- Mode for editing PowerShell scripts  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009, 2010 Frédéric Perrin
 ;; Copyright (C) 2012 Richard Bielawski rbielaws-at-i1-dot-net
@@ -6,9 +6,9 @@
 
 ;; Author: Frédéric Perrin <frederic (dot) perrin (arobas) resel (dot) fr>
 ;; URL: http://github.com/jschaf/powershell.el
-;; Package-Version: 0.1
-;; Version: 0.3
-;; Package-Requires: ((emacs "24))
+;; Package-Version: 20250614.1529
+;; Package-Revision: 99e0e73082fd
+;; Package-Requires: ((emacs "24"))
 ;; Keywords: powershell, languages
 
 ;; This file is NOT part of GNU Emacs.
@@ -37,7 +37,7 @@
 
 ;;; Commentary:
 
-;; Powershell.el is a combination of powershell.el by Dino Chiesa
+;; powershell.el is a combination of powershell.el by Dino Chiesa
 ;; <dpchiesa@hotmail.com> and powershell-mode.el by Frédéric Perrin
 ;; and Richard Bielawski.  Joe Schafer combined the work into a single
 ;; file.
@@ -81,7 +81,7 @@
 (require 'compile)
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist (cons (purecopy "\\.ps1\\'")  'powershell-mode))
+(add-to-list 'auto-mode-alist '("\\.ps[dm]?1\\'" . powershell-mode))
 
 
 ;; User Variables
@@ -119,6 +119,15 @@ Value is a list of strings, which may be nil."
   :type '(repeat (string :tag "Argument"))
   :group 'powershell)
 
+(defcustom powershell-default-langserver-path
+  (expand-file-name ".cache/powershell/" user-emacs-directory)
+  "Default expression used to locate Powershell Languageserver.
+If found, added to eglot.  Supports environment-variables and glob-pattterns.
+Changes may require an Emacs-restart to take effect."
+  :type 'string
+  :group 'powershell)
+
+
 (defun powershell-continuation-line-p ()
   "Return t is the current line is a continuation line.
 The current line is a continued line when the previous line ends
@@ -142,7 +151,8 @@ with a backtick or a pipe"
             (forward-line -1))
           (+ (current-indentation) powershell-continuation-indent))
       ;; otherwise, indent relative to the block's opening char ([{
-      (let ((closing-paren (looking-at "\\s-*\\s)"))
+      ;; \\s- includes newline, which make the line right before closing paren not indented
+      (let ((closing-paren (looking-at "[ \t]*\\s)"))
             new-indent
             block-open-line)
         (condition-case nil
@@ -313,13 +323,15 @@ The text is assumed to be `regexp-opt' output."
 (defvar powershell-keywords
   (concat "\\_<"
           (regexp-opt
-           '("begin" "break" "catch" "class" "continue" "data" "do" "default"
+           '("begin" "break" "catch" "class" "continue" "data" "define" "do" "default"
              "dynamicparam" "else" "elseif" "end" "enum" "exit" "filter" "finally"
-             "for" "foreach" "from" "function" "if" "in" "param" "process"
-             "return" "switch" "throw" "trap" "try" "until" "where" "while")
+             "for" "foreach" "from" "function" "hidden" "if" "in" "param" "process"
+             "return" "static" "switch" "throw" "trap" "try" "until" "using" "var" "where" "while"
+             ;; Questionable, specific to workflow sessions
+             "inlinescript")
            t)
           "\\_>")
-  "Powershell keywords.")
+  "PowerShell keywords.")
 
 ;; Taken from About_Comparison_Operators and some questionable sources :-)
 (defvar powershell-operators
@@ -330,28 +342,32 @@ The text is assumed to be `regexp-opt' output."
              "-ceq" "-cne" "-cgt" "-cge" "-clt" "-cle"
              ;; explicitly case insensitive
              "-ieq" "-ine" "-igt" "-ige" "-ilt" "-ile"
-             "-band" "-bor" "-bxor"
-             "-and" "-or" "-xor"
+             "-band" "-bor" "-bxor" "-bnot"
+             "-and" "-or" "-xor" "-not" "!"
              "-like" "-notlike" "-clike" "-cnotlike" "-ilike" "-inotlike"
              "-match" "-notmatch" "-cmatch" "-cnotmatch" "-imatch" "-inotmatch"
              "-contains" "-notcontains" "-ccontains" "-cnotcontains"
              "-icontains" "-inotcontains"
              "-replace" "-creplace" "-ireplace"
-             "-is" "-as" "-f"
+             "-is" "-isnot" "-as" "-f"
+             "-in" "-cin" "-iin" "-notin" "-cnotin" "-inotin"
+             "-split" "-csplit" "-isplit"
+             "-join"
+             "-shl" "-shr"
              ;; Questionable --> specific to certain contexts
              "-casesensitive" "-wildcard" "-regex" "-exact" ;specific to case
              "-begin" "-process" "-end" ;specific to scriptblock
              ) t)
           "\\_>")
-  "Powershell operators.")
+  "PowerShell operators.")
 
 (defvar powershell-scope-names
   '("global"   "local"    "private"  "script"   )
-  "Names of scopes in Powershell mode.")
+  "Names of scopes in PowerShell mode.")
 
 (defvar powershell-variable-drive-names
-  (append '("env" "function" "variable" "alias") powershell-scope-names)
-  "Names of scopes in Powershell mode.")
+  (append '("env" "function" "variable" "alias" "hklm" "hkcu" "wsman") powershell-scope-names)
+  "Names of scopes in PowerShell mode.")
 
 (defconst powershell-variables-regexp
   ;; There are 2 syntaxes detected: ${[scope:]name} and $[scope:]name
@@ -394,16 +410,21 @@ The text is assumed to be `regexp-opt' output."
      "^"                              "_"
      "args"                           "ConsoleFileName"
      "Error"                          "Event"
+     "EventArgs"
      "EventSubscriber"                "ExecutionContext"
      "false"                          "Foreach"
      "HOME"                           "Host"
-     "input"                          "LASTEXITCODE"
+     "input"                          "lsCoreCLR"
+     "lsLinux"                        "lsMacOS"
+     "lsWindows"                      "LASTEXITCODE"
      "Matches"                        "MyInvocation"
      "NestedPromptLevel"              "null"
      "PID"                            "PROFILE"
      "PSBoundParameters"              "PSCmdlet"
+     "PSCommandPath"
      "PSCulture"                      "PSDebugContext"
-     "PSHOME"                         "PSScriptRoot"
+     "PSHOME"                         "PSITEM"
+     "PSScriptRoot"                   "PSSenderInfo"
      "PSUICulture"                    "PSVersionTable"
      "PWD"                            "ReportErrorShowExceptionClass"
      "ReportErrorShowInnerException"  "ReportErrorShowSource"
@@ -411,14 +432,15 @@ The text is assumed to be `regexp-opt' output."
      "ShellId"                        "SourceArgs"
      "SourceEventArgs"                "StackTrace"
      "this"                           "true"                           ) t)
-  "The names of the built-in Powershell variables.
+  "The names of the built-in PowerShell variables.
 They are highlighted differently from the other variables.")
 
 (defvar powershell-config-variables-regexp
   (regexp-opt
    '("ConfirmPreference"           "DebugPreference"
      "ErrorActionPreference"       "ErrorView"
-     "FormatEnumerationLimit"      "LogCommandHealthEvent"
+     "FormatEnumerationLimit"      "InformationPreference"
+     "LogCommandHealthEvent"
      "LogCommandLifecycleEvent"    "LogEngineHealthEvent"
      "LogEngineLifecycleEvent"     "LogProviderHealthEvent"
      "LogProviderLifecycleEvent"   "MaximumAliasCount"
@@ -426,7 +448,8 @@ They are highlighted differently from the other variables.")
      "MaximumFunctionCount"        "MaximumHistoryCount"
      "MaximumVariableCount"        "OFS"
      "OutputEncoding"              "ProgressPreference"
-     "PSEmailServer"               "PSSessionApplicationName"
+     "PSDefaultParameterValues"    "PSEmailServer"
+     "PSModuleAutoLoadingPreference" "PSSessionApplicationName"
      "PSSessionConfigurationName"  "PSSessionOption"
      "VerbosePreference"           "WarningPreference"
      "WhatIfPreference"            ) t)
@@ -506,7 +529,7 @@ characters that can't be set by the `syntax-table' alone.")
     (,powershell-operators . font-lock-builtin-face)
     ;; the REQUIRES mark
     ("^#\\(REQUIRES\\)" 1 font-lock-warning-face t))
-  "Keywords for the first level of font-locking in Powershell mode.")
+  "Keywords for the first level of font-locking in PowerShell mode.")
 
 (defvar powershell-font-lock-keywords-2
   (append
@@ -516,7 +539,7 @@ characters that can't be set by the `syntax-table' alone.")
       0 font-lock-builtin-face t)
      (,(concat "\\$\\(" powershell-config-variables-regexp "\\)\\>")
       0 font-lock-builtin-face t)))
-  "Keywords for the second level of font-locking in Powershell mode.")
+  "Keywords for the second level of font-locking in PowerShell mode.")
 
 (defvar powershell-font-lock-keywords-3
   (append
@@ -528,14 +551,14 @@ characters that can't be set by the `syntax-table' alone.")
       (2 (cons font-lock-type-face '(underline)) t t))
      ;; function argument names
      (,powershell-function-switch-names-regexp
-      (0 font-lock-reference-face)
+      (0 font-lock-constant-face)
       (1 (cons font-lock-type-face '(underline)) t t)
       (2 (cons font-lock-type-face '(underline)) t t))
      ;; function names
      (,powershell-function-names-regex
       (0 font-lock-function-name-face)
       (1 (cons font-lock-type-face '(underline)) t t))))
-  "Keywords for the maximum level of font-locking in Powershell mode.")
+  "Keywords for the maximum level of font-locking in PowerShell mode.")
 
 
 (defun powershell-setup-font-lock ()
@@ -592,7 +615,6 @@ characters that can't be set by the `syntax-table' alone.")
 (defvar powershell-mode-map
   (let ((powershell-mode-map (make-keymap)))
     ;;    (define-key powershell-mode-map "\r" 'powershell-indent-line)
-    (define-key powershell-mode-map "\t" 'powershell-indent-line)
     (define-key powershell-mode-map (kbd "M-\"")
       'powershell-doublequote-selection)
     (define-key powershell-mode-map (kbd "M-'") 'powershell-quote-selection)
@@ -722,17 +744,16 @@ Where <fcn-name> is the name of the function to which <helper string> applies.
 
 (defun powershell-setup-imenu ()
   "Install `powershell-imenu-expression'."
-  (when (require 'imenu nil t)
+  (when (fboundp 'imenu-add-menubar-index)
     ;; imenu doc says these are buffer-local by default
     (setq imenu-generic-expression powershell-imenu-expression)
     (setq imenu-case-fold-search nil)
-    (imenu-add-menubar-index)
-    (when (require 'which-func nil t)
-      (which-function-mode t))))
+    (imenu-add-menubar-index)))
 
-(when (require 'speedbar nil t)
-  (declare-function speedbar-add-supported-extension "speedbar")
-  (speedbar-add-supported-extension ".ps1?"))
+(defun powershell-setup-speedbar ()
+  "Install `speedbar-add-supported-extension'."
+  (when (fboundp 'speedbar-add-supported-extension)
+    (speedbar-add-supported-extension ".ps1?")))
 
 ;; A better command would be something like "powershell.exe -NoLogo
 ;; -NonInteractive -Command & (buffer-file-name)". But it will just
@@ -759,41 +780,51 @@ Where <fcn-name> is the name of the function to which <helper string> applies.
 Entry to this mode calls the value of `powershell-mode-hook' if
 that value is non-nil."
   (powershell-setup-font-lock)
-  (set (make-local-variable 'indent-line-function) 'powershell-indent-line)
-  (set (make-local-variable 'compile-command) powershell-compile-command)
-  (set (make-local-variable 'comment-start) "#")
-  (set (make-local-variable 'comment-start-skip) "#+\\s*")
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (setq-local indent-line-function 'powershell-indent-line)
+  (setq-local compile-command powershell-compile-command)
+  (setq-local comment-start "#")
+  (setq-local comment-start-skip "#+\\s*")
+  (setq-local parse-sexp-ignore-comments t)
+  ;; Support electric-pair-mode
+  (setq-local electric-indent-chars
+              (append "{}():;," electric-indent-chars))
   (powershell-setup-imenu)
+  (powershell-setup-speedbar)
   (powershell-setup-menu)
-  (powershell-setup-eldoc))
+  (powershell-setup-eldoc)
+  (with-eval-after-load 'eglot
+    (powershell--register-langserver)))
 
-
-;;; Powershell inferior mode
+;;; PowerShell inferior mode
 
-;; TODO: set this programmatically, relying on %WINDIR%
 ;;; Code:
 (defcustom powershell-location-of-exe
-  "c:\\windows\\system32\\WindowsPowerShell\\v1.0\\powershell.exe"
-  "A string, providing the location of the Powershell.exe."
-  :group 'powershell)
+   (or (executable-find "pwsh") (executable-find "powershell"))
+  "A string providing the location of the powershell executable. Since
+the newer PowerShell Core (pwsh.exe) does not replace the older Windows
+PowerShell (powershell.exe) when installed, this attempts to find the
+former first, and only if it doesn't exist, falls back to the latter."
+  :group 'powershell
+  :type 'string)
 
 (defcustom powershell-log-level 3
   "The current log level for powershell internal operations.
 0 = NONE, 1 = Info, 2 = VERBOSE, 3 = DEBUG."
-  :group 'powershell)
+  :group 'powershell
+  :type 'integer)
 
 (defcustom powershell-squish-results-of-silent-commands t
-"The function `powershell-invoke-command-silently' returns the results
+  "The function `powershell-invoke-command-silently' returns the results
 of a command in a string.  PowerShell by default, inserts newlines when
 the output exceeds the configured width of the powershell virtual
 window. In some cases callers might want to get the results with the
 newlines and formatting removed. Set this to true, to do that."
-:group 'powershell)
+  :group 'powershell
+  :type 'boolean)
 
 (defvar powershell-prompt-regex  "PS [^#$%>]+> "
   "Regexp to match the powershell prompt.
-Powershell.el uses this regex to determine when a command has
+powershell.el uses this regex to determine when a command has
 completed.  Therefore, you need to set this appropriately if you
 explicitly change the prompt function in powershell.  Any value
 should include a trailing space, if the powershell prompt uses a
@@ -812,7 +843,7 @@ once, when the powershell starts up.")
 
 (defvar powershell-command-timeout-seconds 12
   "The timeout for a powershell command.
-Powershell.el will wait this long before giving up.")
+powershell.el will wait this long before giving up.")
 
 (defvar powershell--need-rawui-resize t
   "No need to fuss with this.  It's intended for internal use
@@ -821,18 +852,18 @@ emacs has resized its window.")
 
 (defconst powershell--find-max-window-width-command
   (concat
-  "function _Emacs_GetMaxPhsWindowSize \n"
-  "{\n"
-  "  $rawui = (Get-Host).UI.RawUI\n"
-  "  $mpws_exists = ($rawui | Get-Member | ? "
-  "{$_.Name -eq \"MaxPhysicalWindowSize\"})\n"
-  "  if ($mpws_exists -eq $null) {\n"
-  "    \"210\" | Out-Host\n"
-  "  } else {\n"
-  "    $rawui.MaxPhysicalWindowSize.Width | Out-Host\n"
-  "  }\n"
-  "}\n"
-  "_Emacs_GetMaxPhsWindowSize\n")
+  "function _Emacs_GetMaxPhsWindowSize"
+  " {"
+  " $rawui = (Get-Host).UI.RawUI;"
+  " $mpws_exists = ($rawui | Get-Member | Where-Object"
+  " {$_.Name -eq \"MaxPhysicalWindowSize\"});"
+  " if ($mpws_exists -eq $null) {"
+  " 210"
+  " } else {"
+  " $rawui.MaxPhysicalWindowSize.Width"
+  " }"
+  " };"
+  " _Emacs_GetMaxPhsWindowSize")
   "The powershell logic to determine the max physical window width.")
 
 (defconst powershell--set-window-width-fn-name  "_Emacs_SetWindowWidth"
@@ -848,32 +879,27 @@ set the window width. Intended for internal use only.")
   ;; buffer size first.
 
     (concat  "function " powershell--set-window-width-fn-name
-             "([string] $pswidth)\n"
-             "{\n"
-             ;;"  \"resetting window width to $pswidth\n\" | Out-Host\n"
-             "  $rawui = (Get-Host).UI.RawUI\n"
-             "  # retrieve the values\n"
-             "  $bufsize = $rawui.BufferSize\n"
-             "  $winsize = $rawui.WindowSize\n"
-             "  $cwidth = $winsize.Width\n"
-             "  $winsize.Width = $pswidth \n"
-             "  $bufsize.Width = $pswidth\n"
-             "  if ($cwidth -lt $pswidth) {\n"
-             "    # increase the width\n"
-             "    $rawui.BufferSize = $bufsize\n"
-             "    $rawui.WindowSize = $winsize\n"
-             "  }\n"
-             "  elseif ($cwidth -gt $pswidth) {\n"
-             "    # decrease the width\n"
-             "    $rawui.WindowSize = $winsize\n"
-             "    $rawui.BufferSize = $bufsize\n"
-             "  }\n"
-             "  # destroy variables\n"
-             "  Set-Variable -name rawui -value $null\n"
-             "  Set-Variable -name winsize -value $null\n"
-             "  Set-Variable -name bufsize -value $null\n"
-             "  Set-Variable -name cwidth -value $null\n"
-             "}\n\n")
+             "([string] $pswidth)"
+             " {"
+             " $rawui = (Get-Host).UI.RawUI;"
+             " $bufsize = $rawui.BufferSize;"
+             " $winsize = $rawui.WindowSize;"
+             " $cwidth = $winsize.Width;"
+             " $winsize.Width = $pswidth;"
+             " $bufsize.Width = $pswidth;"
+             " if ($cwidth -lt $pswidth) {"
+             " $rawui.BufferSize = $bufsize;"
+             " $rawui.WindowSize = $winsize;"
+             " }"
+             " elseif ($cwidth -gt $pswidth) {"
+             " $rawui.WindowSize = $winsize;"
+             " $rawui.BufferSize = $bufsize;"
+             " };"
+             " Set-Variable -name rawui -value $null;"
+             " Set-Variable -name winsize -value $null;"
+             " Set-Variable -name bufsize -value $null;"
+             " Set-Variable -name cwidth -value $null;"
+             " }")
 
     "The text of the powershell function that will be used at runtime to
 set the width of the virtual Window in PowerShell, as the Emacs window
@@ -998,13 +1024,14 @@ See the help for `shell' for more details.  \(Type
 
   (setq buffer (get-buffer-create (or buffer "*PowerShell*")))
   (powershell-log 1 "powershell starting up...in buffer %s" (buffer-name buffer))
-  (let ((tmp-shellfile explicit-shell-file-name))
+  (let ((explicit-shell-file-name (if (and (eq system-type 'cygwin)
+                                           (fboundp 'cygwin-convert-file-name-from-windows))
+				      (cygwin-convert-file-name-from-windows powershell-location-of-exe)
+				    powershell-location-of-exe)))
     ;; set arguments for the powershell exe.
     ;; Does this need to be tunable?
 
-    (setq explicit-shell-file-name powershell-location-of-exe)
-    (shell buffer)
-    (setq explicit-shell-file-name tmp-shellfile))
+    (shell buffer))
 
   ;; (powershell--get-max-window-width "*PowerShell*")
   ;; (powershell-invoke-command-silently (get-buffer-process "*csdeshell*")
@@ -1046,8 +1073,8 @@ See the help for `shell' for more details.  \(Type
 
     ;; add the hook that sets the flag
     (add-hook 'window-size-change-functions
-              '(lambda (&optional x)
-                 (setq powershell--need-rawui-resize t)))
+              #'(lambda (&rest _)
+                  (setq powershell--need-rawui-resize t)))
 
     ;; set the flag so we resize properly the first time.
     (setq powershell--need-rawui-resize t)
@@ -1263,7 +1290,7 @@ emitted when a PS command completes. This makes it difficult for
 a comint mode to determine when the command has completed.
 Therefore, we send an explicit request for the prompt, after
 sending the actual (primary) command. When the primary command
-completes, Powershell then responds to the \"prompt\" command,
+completes, PowerShell then responds to the \"prompt\" command,
 and emits the prompt.
 
 This insures we get and display the prompt."
@@ -1271,7 +1298,7 @@ This insures we get and display the prompt."
   ;; this by calling a resize function in the PowerShell, before sending
   ;; the user-entered command to the shell.
   ;;
-  ;; Powershell keeps track of its \"console\", and formats its output
+  ;; PowerShell keeps track of its \"console\", and formats its output
   ;; according to the width it thinks it is using.  This is true even when
   ;; powershell is invoked with the - argument, which tells it to use
   ;; stdin as input.
@@ -1371,6 +1398,67 @@ This insures we get and display the prompt."
 ;;                (not (file-directory-p (comint-match-partial-filename))))
 ;;           (insert " "))
 ;;       success)))
+
+(defun powershell--fetch-json-array (url)
+  "Fetch JSON from URL, parse as if array."
+  (with-temp-buffer (url-insert-file-contents url)
+		    (json-parse-buffer :array-type 'list)))
+
+(defun powershell--unzip-file (zip-file destination)
+  "Unzip ZIP-FILE into DESTINATION directory using the 'unzip' command."
+  (make-directory destination t)  ;; Ensure the destination directory exists
+  (let ((exit-code (call-process "unzip" nil nil nil "-o" zip-file "-d" destination)))
+    (if (zerop exit-code)
+        (message "Successfully unzipped %s to %s" zip-file destination)
+      (error "Failed to unzip %s (exit code %d)" zip-file exit-code))))
+
+(defun powershell--get-latest-release-version ()
+  (let* ((release-json (powershell--fetch-json-array "https://api.github.com/repos/PowerShell/PowerShellEditorServices/releases"))
+         (first        (car release-json)) ;; assume first = latest
+         (version      (gethash "tag_name" first)))
+    version))
+
+(defun powershell--download-langserver ()
+  (let* ((download-dir  (expand-file-name "dl" powershell-default-langserver-path))
+         (download-file (expand-file-name "powershell-langserver.zip" download-dir)))
+    (make-directory download-dir :parents)
+    (let* ((version     (powershell--get-latest-release-version))
+           (url         (format "https://github.com/PowerShell/PowerShellEditorServices/releases/download/%s/PowerShellEditorServices.zip" version)))
+      (url-copy-file url download-file 't)
+      (powershell--unzip-file download-file powershell-default-langserver-path)
+      (delete-directory download-dir t)
+      ;; make our function respond with something more interesting than nil :)
+      (message (format "Powershell LangServer version %s downloaded and unpacked to \'%s\'" version powershell-default-langserver-path)))))
+
+(defun powershell-install-langserver ()
+  "Downloads the lang-server and unpacks it in the default location."
+  (interactive)
+  (powershell--download-langserver)
+  (powershell--register-langserver))
+
+(defun powershell--register-langserver ()
+  (defvar eglot-server-programs)
+  (let* ((langserver-path (powershell-langserver-file-name))
+         (langserver-exe (expand-file-name "PowerShellEditorServices/Start-EditorServices.ps1" langserver-path)))
+    (and (file-exists-p langserver-exe)
+         (add-to-list 'eglot-server-programs
+                      `(powershell-mode . ("pwsh"
+                                           "-OutputFormat" "Text"
+                                           "-File"
+                                           ,langserver-exe
+                                           "-Stdio"
+                                           "-HostVersion" "1.0"
+                                           "-HostName" "Emacs"
+                                           "-HostProfileId" "Emacs.Eglot"
+                                           "-SessionDetailsPath"
+                                           ,(expand-file-name "eglot-powershell" temporary-file-directory)
+                                           "-BundledModulesPath"
+                                           ,langserver-path))))))
+
+
+(defun powershell-langserver-file-name ()
+  (car (file-expand-wildcards
+        (substitute-in-file-name powershell-default-langserver-path))))
 
 (provide 'powershell)
 
