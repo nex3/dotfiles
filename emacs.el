@@ -306,6 +306,23 @@ PACKAGE may be a desc or a package name."
   (keymap-unset tide-mode-map "M-,")
   (keymap-set tide-mode-map "M-a" #'tide-jump-to-definition))
 
+(my-after-load dart-mode
+  (add-hook 'dart-mode-hook #'lsp))
+
+(my-after-load lsp
+  (defun my-lsp-format-sexp ()
+    (interactive)
+    (save-excursion
+      (backward-up-list)
+      (let ((start (point)))
+        (forward-sexp)
+        (lsp-format-region start (point)))))
+
+  (keymap-set lsp-mode-map "M-a" #'lsp-find-definition)
+  (keymap-set lsp-mode-map "M-Q" #'lsp-format-buffer)
+  (keymap-set lsp-mode-map "C-M-Q" #'my-lsp-format-sexp)
+  (keymap-unset lsp-mode-map "C-S-SPC"))
+
 (my-after-load company
   (global-company-mode)
   (keymap-set company-active-map "M-k" #'company-select-next-or-abort)
@@ -762,8 +779,8 @@ it doesn't prompt for a tag name."
  ;; If there is more than one, they won't work right.
  '(inhibit-startup-screen t)
  '(package-selected-packages
-   '(company csharp-mode dart-mode flycheck go-mode haml-mode lua-mode magit
-             markdown-mode mustache-mode pager perspective powershell
+   '(company csharp-mode dart-mode flycheck go-mode haml-mode lsp-dart lua-mode
+             magit markdown-mode mustache-mode pager perspective powershell
              protobuf-mode rust-mode scss-mode ssass-mode tide typescript-mode
              yaml-mode)))
 
