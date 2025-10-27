@@ -197,6 +197,7 @@ Otherwise, bind key to FALLBACK or its default binding."
 (define-key my-term-keymap (kbd "M-S-SPC") 'term-yank)
 (define-key my-term-keymap (kbd "M-C-S-SPC") 'term-yank-pop)
 (define-key my-term-keymap (kbd "M-R") (lambda () (interactive) (term-send-raw-string "\C-r")))
+(define-key my-term-keymap (kbd "C-c C-c") (lambda () (interactive) (term-send-raw-string "\C-c")))
 
 (custom-set-faces
  '(term-color-black ((t (:background "black" :foreground "dim gray")))))
