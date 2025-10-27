@@ -179,10 +179,6 @@ The -hook suffix is unnecessary."
       (let ((c-buffer-is-cc-mode t))
         (c-set-style "awesome")))))
 
-(my-after-load dart-mode
-  (my-add-hook dart-mode
-    (c-set-style "dart")))
-
 (my-after-load ruby-mode
   (defface ruby-tab-face
     '((((class color)) (:background "hotpink"))
