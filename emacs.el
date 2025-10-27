@@ -325,8 +325,12 @@ PACKAGE may be a desc or a package name."
 
 (my-after-load company
   (global-company-mode)
+  (setq company-idle-delay nil)
   (keymap-set company-active-map "M-k" #'company-select-next-or-abort)
   (keymap-set company-active-map "M-l" #'company-select-previous-or-abort))
+
+(my-after-load yasnippet
+  (yas-global-mode))
 
 (my-add-hook text-mode flyspell-mode)
 (my-add-hook lisp-mode pretty-lambdas)
@@ -379,6 +383,14 @@ PACKAGE may be a desc or a package name."
 (require 'server)
 (unless (server-running-p server-name)
   (server-start))
+
+(setq hippie-expand-try-functions-list
+      '(try-expand-all-abbrevs
+        try-expand-dabbrev
+        try-expand-dabbrev-all-buffers
+        try-expand-dabbrev-from-kill
+        try-complete-lisp-symbol-partially
+        try-complete-lisp-symbol))
 
 (defadvice server-save-buffers-kill-terminal (around confirm-before-killing activate)
   "Confirm before killing a windowed emacsclient."
@@ -574,8 +586,12 @@ it doesn't prompt for a tag name."
   (declare (indent 1))
   `(let ((my-keymap ,keymap)) ,@body))
 
-(defmacro my-key (key fn &optional map)
-  `(define-key ,(or map 'my-keymap) (kbd ,key) ',fn))
+(defmacro my-key (key &rest fn-or-body)
+  (declare (indent 2))
+  `(define-key my-keymap (kbd ,key)
+               ,(if (eq (length fn-or-body) 1)
+                    `#',(nth fn-or-body 1)
+                  `(lambda ,@fn-or-body))))
 
 (defmacro my-map (key name)
   (let ((varname (intern (concat (symbol-name name) "-map"))))
@@ -734,8 +750,11 @@ it doesn't prompt for a tag name."
 (my-key "C-c x" pop-tag-mark)
 
 (my-key "M-'" execute-extended-command)
-(my-key "M-/" company-complete)
 (my-key "M-?" undo)
+(my-key "M-/" (arg)
+  (interactive "P")
+  (if company-mode (company-complete)
+    (hippie-expand arg)))
 
 (my-key "M-\"" back-to-indentation)
 
@@ -747,8 +766,8 @@ it doesn't prompt for a tag name."
 
 (my-key "C-M-!" my-shell-command)
 
-(define-key my-keymap (kbd "M-S-s-SPC")
-  (lambda () (interactive) (insert-register ?\s t)))
+(my-key "M-S-s-SPC"
+  (insert-register ?\s t))
 
 (ffap-bindings)
 
@@ -773,11 +792,6 @@ it doesn't prompt for a tag name."
 (my-key "C-S-SPC" persp-switch-last)
 
 (custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(inhibit-startup-screen t)
  '(package-selected-packages
    '(company csharp-mode dart-mode flycheck go-mode haml-mode lsp-dart lua-mode
              magit markdown-mode mustache-mode pager perspective powershell
@@ -787,9 +801,3 @@ it doesn't prompt for a tag name."
 (when (functionp 'tool-bar-mode)
   (tool-bar-mode -1))
 (menu-bar-mode -1)
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(term-color-black ((t (:background "black" :foreground "dim gray")))))
