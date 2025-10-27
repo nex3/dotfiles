@@ -90,7 +90,10 @@
 
 (when (boundp 'package-archives)
   (push '("melpa-stable" . "http://stable.melpa.org/packages/") package-archives)
-  (push '("melpa" . "http://melpa.org/packages/") package-archives))
+  ;; Add this only when reinstalling packages that are onyly available on it,
+  ;; like Pager.
+  ;; (push '("melpa" . "http://melpa.org/packages/") package-archives)
+  )
 
 (require 'pager)
 
@@ -245,8 +248,11 @@ The -hook suffix is unnecessary."
   (defun my-package-get-desc (package)
     "Return the description of PACKAGE.
 PACKAGE may be a desc or a package name."
-    (if (package-desc-p package) package
-      (assq (if (symbolp package) package (intern package)) package-alist)))
+    (cond
+     ((package-desc-p package) package)
+     ((symbolp package) (assq package package-alist))
+     ((stringp package) (assq (intern package) package-alist))
+     ((listp package) (nth 1 package))))
 
   (defun my-package-latest-version (package)
     "Return the latest version number of `package'."
@@ -262,7 +268,7 @@ PACKAGE may be a desc or a package name."
              (my-package-latest-version package))))
 
   (defadvice package-install (after my-commit-package-install (pkg &optional dont-select) activate)
-    (my-commit-package pkg))
+    (my-commit-package (my-package-get-desc pkg)))
 
   (defadvice package-delete (after my-commit-package-delete (pkg-desc &optional force nosave) activate)
     (my-commit-config
@@ -283,6 +289,27 @@ PACKAGE may be a desc or a package name."
 (my-after-load js
   (setq js-indent-level 2)
   (setq typescript-indent-level 2))
+
+(my-after-load typescript-ts-mode
+  (my-add-hook typescript-ts-mode
+    (tide-setup)
+    (flycheck-mode +1)
+    (setq flycheck-check-syntax-automatically '(save mode-enabled))
+    (eldoc-mode +1)
+    (tide-hl-identifier-mode +1)
+    (company-mode +1)
+    ;; TODO: Try using `treesit-*-sexp-list' once that's available.
+    (setq forward-sexp-function #'forward-sexp-default-function)
+    (setq backward-sexp-function #'backward-sexp-default-function))
+
+  (keymap-unset tide-mode-map "M-.")
+  (keymap-unset tide-mode-map "M-,")
+  (keymap-set tide-mode-map "M-a" #'tide-jump-to-definition))
+
+(my-after-load company
+  (global-company-mode)
+  (keymap-set company-active-map "M-k" #'company-select-next-or-abort)
+  (keymap-set company-active-map "M-l" #'company-select-previous-or-abort))
 
 (my-add-hook text-mode flyspell-mode)
 (my-add-hook lisp-mode pretty-lambdas)
@@ -335,14 +362,6 @@ PACKAGE may be a desc or a package name."
 (require 'server)
 (unless (server-running-p server-name)
   (server-start))
-
-(setq hippie-expand-try-functions-list
-      '(try-expand-all-abbrevs
-        try-expand-dabbrev
-        try-expand-dabbrev-all-buffers
-        try-expand-dabbrev-from-kill
-        try-complete-lisp-symbol-partially
-        try-complete-lisp-symbol))
 
 (defadvice server-save-buffers-kill-terminal (around confirm-before-killing activate)
   "Confirm before killing a windowed emacsclient."
@@ -695,9 +714,10 @@ it doesn't prompt for a tag name."
 (my-key "C-M-@" kill-region)
 (my-key "M-S-SPC" yank)
 (my-key "C-M-S-SPC" yank-pop)
+(my-key "C-c x" pop-tag-mark)
 
 (my-key "M-'" execute-extended-command)
-(my-key "M-/" hippie-expand)
+(my-key "M-/" company-complete)
 (my-key "M-?" undo)
 
 (my-key "M-\"" back-to-indentation)
@@ -736,12 +756,23 @@ it doesn't prompt for a tag name."
 (my-key "C-S-SPC" persp-switch-last)
 
 (custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(inhibit-startup-screen t)
  '(package-selected-packages
-   '(csharp-mode dart-mode flycheck go-mode haml-mode lua-mode magit
-                 markdown-mode mustache-mode pager perspective powershell
-                 protobuf-mode rust-mode ssass-mode scss-mode tide yaml-mode))
- '(inhibit-startup-message t))
+   '(company csharp-mode dart-mode flycheck go-mode haml-mode lua-mode magit
+             markdown-mode mustache-mode pager perspective powershell
+             protobuf-mode rust-mode scss-mode ssass-mode tide typescript-mode
+             yaml-mode)))
 
 (when (functionp 'tool-bar-mode)
   (tool-bar-mode -1))
 (menu-bar-mode -1)
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(term-color-black ((t (:background "black" :foreground "dim gray")))))
