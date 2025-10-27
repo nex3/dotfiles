@@ -122,6 +122,7 @@ it's loaded for files matching REGEXP."
 (load-mode 'ruby "\\(\\.\\(rb\\|rake\\|rjs\\|duby\\|gemspec\\|thor\\)\\|Rakefile\\|Capfile\\|Thorfile\\)$")
 (load-mode 'css "\\.css$")
 (load-mode 'js "\\.m?js$")
+(load-mode 'typescript-ts "\\.ts$")
 
 (defmacro my-after-load (name &rest body)
   "Like `eval-after-load', but a macro."
@@ -318,7 +319,6 @@ PACKAGE may be a desc or a package name."
         (forward-sexp)
         (lsp-format-region start (point)))))
 
-  (keymap-set lsp-mode-map "M-a" #'lsp-find-definition)
   (keymap-set lsp-mode-map "M-Q" #'lsp-format-buffer)
   (keymap-set lsp-mode-map "C-M-Q" #'my-lsp-format-sexp)
   (keymap-unset lsp-mode-map "C-S-SPC"))
@@ -462,28 +462,30 @@ The main differences between this and `find-tag' are that
 this cycles through tags when used repeatedly and that
 it doesn't prompt for a tag name."
   (interactive)
-  (if (or (string-equal mode-name "Emacs-Lisp")
-          (string-equal mode-name "Lisp Interaction"))
-      (let* ((sym (let ((sym (variable-at-point t)))
-                    (if (eq sym 0) nil sym)))
-             (type (cond
-                    ((facep sym) 'face)
-                    ((functionp sym) 'function)
-                    ((and sym (boundp sym)) 'variable)
-                    (t (let ((fn (function-called-at-point)))
-                         (when fn (setq sym fn) 'function)))))
-             (file (find-lisp-object-file-name
-                    sym (if (eq type 'function) (symbol-function sym) type))))
-        (if type
-            (funcall (button-type-get (intern (format "help-%s-def" type)) 'help-function)
-                     sym file)
-          (message "%S is not defined" sym)))
-    (if (and last-tag (memq last-command (list this-command 'my-tag-search)))
-        (find-tag last-tag t my-last-tag-was-search)
-      (setq my-last-tag-was-search nil)
-      (find-tag (funcall (or find-tag-default-function
-                             (get major-mode 'find-tag-default-function)
-                             'find-tag-default))))))
+  (cond ((or (string-equal mode-name "Emacs-Lisp")
+             (string-equal mode-name "Lisp Interaction"))
+         (let* ((sym (let ((sym (variable-at-point t)))
+                       (if (eq sym 0) nil sym)))
+                (type (cond
+                       ((facep sym) 'face)
+                       ((functionp sym) 'function)
+                       ((and sym (boundp sym)) 'variable)
+                       (t (let ((fn (function-called-at-point)))
+                            (when fn (setq sym fn) 'function)))))
+                (file (find-lisp-object-file-name
+                       sym (if (eq type 'function) (symbol-function sym) type))))
+           (if type
+               (funcall (button-type-get (intern (format "help-%s-def" type)) 'help-function)
+                        sym file)
+             (message "%S is not defined" sym))))
+        (lsp-mode (lsp-find-definition))
+        (t
+         (if (and last-tag (memq last-command (list this-command 'my-tag-search)))
+             (find-tag last-tag t my-last-tag-was-search)
+           (setq my-last-tag-was-search nil)
+           (find-tag (funcall (or find-tag-default-function
+                                  (get major-mode 'find-tag-default-function)
+                                  'find-tag-default)))))))
 
 (defun my-tag-search (tagname)
   "Search for a tag as a regexp."
