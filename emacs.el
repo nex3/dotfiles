@@ -319,8 +319,119 @@ PACKAGE may be a desc or a package name."
         (forward-sexp)
         (lsp-format-region start (point)))))
 
+  (defvar my-lsp-last-diagnostic nil
+    "The last (FILE DIAGNOSTIC) pair found by `my-lsp-next-diagnostic'.
+
+This may not be in `my-lsp-diagnostic-list' if it was fixed since it was
+last assigned.")
+
+  (defvar my-lsp-last-diagnostic-index 0
+    "The last index in `my-lsp-diagnostic-list' traversed by `my-lsp-next-diagnostic'.")
+
+  (defun my-lsp-diagnostic-list ()
+    "Return a list of LSP diagnostics as (FILE DIAGNOSTIC) pairs.
+
+These are stably sorted by severity."
+    (->>
+     (lsp-diagnostics)
+     ht-items
+     (--mapcat
+      (-let [(file diags) it]
+        (--map `(,file ,it) diags)))
+     (--sort
+      (-let (((_ diag1) it)
+             ((_ diag2) other))
+        (< (lsp:diagnostic-severity? diag1)
+           (lsp:diagnostic-severity? diag2))))))
+
+  (defun my-lsp-position-equal (position-1 position-2)
+    "Returns whether two LSP position structs are equal."
+    (and (equal (lsp:position-line position-1) (lsp:position-line position-2))
+         (equal (lsp:position-character position-1) (lsp:position-character position-2))))
+
+  (defun my-lsp-range-equal (range-1 range-2)
+    "Returns whether two LSP range structs are equal."
+    (and (my-lsp-position-equal (lsp:range-start range-1) (lsp:range-start range-2))
+         (my-lsp-position-equal (lsp:range-end range-1) (lsp:range-end range-2))))
+
+  (defun my-lsp-last-diagnostic-index (diagnostics)
+    "Returns the index of `my-lsp-last-diagnostic' in DIAGNOSTICS, or nil."
+    (-if-let ((needle-file needle-diag) my-lsp-last-diagnostic)
+        (--find-index
+         (-let [(haystack-file haystack-diag) it]
+           (and (equal needle-file haystack-file)
+                (equal (lsp:diagnostic-message needle-diag)
+                       (lsp:diagnostic-message haystack-diag))
+                (my-lsp-range-equal
+                 (lsp:diagnostic-range needle-diag)
+                 (lsp:diagnostic-range haystack-diag))))
+         diagnostics)))
+
+  (defun my-lsp-go-to-diagnostic (file diagnostic)
+    "Switches the current buffer to display DIAGNOSTIC in FILE."
+    (find-file file)
+    (--> diagnostic
+         lsp:diagnostic-range
+         lsp:range-start
+         lsp--position-to-point
+         goto-char))
+
+  (defun my-lsp-next-diagnostic (&optional start-over)
+    "Visits the next diagnostic in the current LSP session.
+
+By default, repeated calls to this (even with edits between them) will
+move to successively later diagnostics, only looping back once all
+diagnostics have been visited. With a prefix argument, this starts over
+from the beginning."
+    (interactive "P")
+    (when start-over
+      (setq my-lsp-last-diagnostic nil)
+      (setq my-lsp-last-diagnostic-index 0))
+    (let* ((diagnostics (my-lsp-diagnostic-list))
+           (index (or
+                   (-if-let (index (my-lsp-last-diagnostic-index diagnostics))
+                       (1+ index))
+                   my-lsp-last-diagnostic-index)))
+      (when (not diagnostics)
+        (error "There are no diagnostics!"))
+      (when (>= index (length diagnostics))
+        (message "Passed last diagnostic, wrapping around...")
+        (setq index 0))
+      (-let [(file diag) (nth index diagnostics)]
+        (setq my-lsp-last-diagnostic (list file diag))
+        (setq my-lsp-last-diagnostic-index index)
+        (my-lsp-go-to-diagnostic file diag))))
+
+  (defun my-lsp-prev-diagnostic (&optional start-over)
+    "Visits the previous diagnostic in the current LSP session.
+
+By default, repeated calls to this (even with edits between them) will
+move to successively later diagnostics, only looping back once all
+diagnostics have been visited. With a prefix argument, this starts over
+from the beginning."
+    (interactive "P")
+    (when start-over
+      (setq my-lsp-last-diagnostic nil)
+      (setq my-lsp-last-diagnostic-index 0))
+    (let* ((diagnostics (my-lsp-diagnostic-list))
+           (index (or
+                   (-if-let (index (my-lsp-last-diagnostic-index diagnostics))
+                       (1- index))
+                   my-lsp-last-diagnostic-index)))
+      (when (not diagnostics)
+        (error "There are no diagnostics!"))
+      (when (< index 0)
+        (message "Passed last diagnostic, wrapping around...")
+        (setq index (1- (length diagnostics))))
+      (-let [(file diag) (nth index diagnostics)]
+        (setq my-lsp-last-diagnostic (list file diag))
+        (setq my-lsp-last-diagnostic-index index)
+        (my-lsp-go-to-diagnostic file diag))))
+
   (keymap-set lsp-mode-map "M-Q" #'lsp-format-buffer)
   (keymap-set lsp-mode-map "C-M-Q" #'my-lsp-format-sexp)
+  (keymap-set lsp-mode-map "C-c n" #'my-lsp-next-diagnostic)
+  (keymap-set lsp-mode-map "C-c p" #'my-lsp-prev-diagnostic)
   (keymap-unset lsp-mode-map "C-S-SPC"))
 
 (my-after-load company
@@ -462,8 +573,8 @@ The main differences between this and `find-tag' are that
 this cycles through tags when used repeatedly and that
 it doesn't prompt for a tag name."
   (interactive)
-  (cond ((or (string-equal mode-name "Emacs-Lisp")
-             (string-equal mode-name "Lisp Interaction"))
+  (cond ((or (eq major-mode 'emacs-lisp-mode)
+             (eq major-mode 'lisp-interaction-mode))
          (let* ((sym (let ((sym (variable-at-point t)))
                        (if (eq sym 0) nil sym)))
                 (type (cond
