@@ -703,7 +703,7 @@ it doesn't prompt for a tag name."
   (declare (indent 2))
   `(define-key my-keymap (kbd ,key)
                ,(if (eq (length fn-or-body) 1)
-                    `#',(nth fn-or-body 1)
+                    `#',(nth 0 fn-or-body)
                   `(lambda ,@fn-or-body))))
 
 (defmacro my-map (key name)
