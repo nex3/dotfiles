@@ -24,9 +24,9 @@
         ui = auto
 [push]
 	default = upstream
-[http]
-	cookiefile = /home/nweiz/.gitcookies
 [url "sso://code/"]
 	insteadof = https://code.googlesource.com/
 [pull]
 	rebase = false
+[protocol "sso"]
+	allow = always
