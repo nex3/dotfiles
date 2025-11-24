@@ -432,7 +432,9 @@ from the beginning."
   (keymap-set lsp-mode-map "C-M-Q" #'my-lsp-format-sexp)
   (keymap-set lsp-mode-map "C-c n" #'my-lsp-next-diagnostic)
   (keymap-set lsp-mode-map "C-c p" #'my-lsp-prev-diagnostic)
-  (keymap-unset lsp-mode-map "C-S-SPC"))
+  (keymap-unset lsp-mode-map "C-S-SPC")
+  (keymap-unset lsp-signature-mode-map "M-n")
+  (keymap-unset lsp-signature-mode-map "M-p"))
 
 (my-after-load company
   (global-company-mode)
