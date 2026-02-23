@@ -303,14 +303,15 @@ PACKAGE may be a desc or a package name."
     (setq forward-sexp-function #'forward-sexp-default-function)
     (setq backward-sexp-function #'backward-sexp-default-function))
 
-  (keymap-unset tide-mode-map "M-.")
-  (keymap-unset tide-mode-map "M-,")
-  (keymap-set tide-mode-map "M-a" #'tide-jump-to-definition))
+  (my-after-load tide-mode
+    (keymap-unset tide-mode-map "M-.")
+    (keymap-unset tide-mode-map "M-,")
+    (keymap-set tide-mode-map "M-a" #'tide-jump-to-definition)))
 
 (my-after-load dart-mode
   (add-hook 'dart-mode-hook #'lsp))
 
-(my-after-load lsp
+(my-after-load lsp-mode
   (defun my-lsp-format-sexp ()
     (interactive)
     (save-excursion
@@ -704,7 +705,8 @@ it doesn't prompt for a tag name."
 (defmacro my-key (key &rest fn-or-body)
   (declare (indent 2))
   `(define-key my-keymap (kbd ,key)
-               ,(if (eq (length fn-or-body) 1)
+               ,(if (and (eq (length fn-or-body) 1)
+                         (symbolp (car fn-or-body)))
                     `#',(nth 0 fn-or-body)
                   `(lambda ,@fn-or-body))))
 
@@ -881,7 +883,8 @@ it doesn't prompt for a tag name."
 
 (my-key "C-M-!" my-shell-command)
 
-(my-key "M-S-s-SPC"
+(my-key "M-S-s-SPC" ()
+  (interactive)
   (insert-register ?\s t))
 
 (ffap-bindings)
