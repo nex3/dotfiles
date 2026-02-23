@@ -25,7 +25,10 @@
 [push]
 	default = upstream
 [url "sso://code/"]
-	insteadof = https://code.googlesource.com/
+	insteadOf = https://code.googlesource.com/
+	insteadOf = https://dart-review.googlesource.com/
+	insteadOf = http://dart.googlesource.com/
+	insteadOf = http://dart-review.googlesource.com/
 [pull]
 	rebase = false
 [protocol "sso"]
