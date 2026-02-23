@@ -165,7 +165,7 @@ function refresh-path {
     PATH=$original_path
 
     if [ -e $HOME/gems ]; then PATH=$HOME/gems/bin:$PATH; fi
-    PATH=/var/lib/gems/1.8/bin/:/usr/local/bin:/usr/local/heroku/bin:$PATH:$HOME/.rvm/bin:$HOME/.pub-cache/bin
+    PATH=/var/lib/gems/1.8/bin/:/usr/local/bin:/usr/local/heroku/bin:$PATH:$HOME/.rvm/bin:$HOME/.pub-cache/bin:$HOME/.pyenv/bin
 
     for bindir in $HOME/bin/*; do
         if [[ -d "$bindir" && ! ":$PATH" =~ ":$bindir" ]]; then
@@ -190,6 +190,12 @@ then
         RUBYLIB="$RUBYLIB:$RIPDIR/active/lib"
         PATH="$PATH:$RIPDIR/active/bin"
         export RIPDIR RUBYLIB PATH
+    fi
+
+    if [ -e $HOME/.pyenv ]; then
+        export PYENV_ROOT="$HOME/.pyenv"
+        export PATH="$PATH:$PYENV_ROOT/bin"
+        eval "$(pyenv init - bash)"
     fi
 
     export LIBRARY_PATH=$HOME/lib:$LIBRARY_PATH
