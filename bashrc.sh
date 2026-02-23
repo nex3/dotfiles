@@ -262,3 +262,5 @@ if [ -f /bin/brew ]; then
 elif [ -f ~/.linuxbrew/bin/brew ]; then
     eval "$(~/.linuxbrew/bin/brew shellenv)"
 fi
+
+if [ -f "$HOME/.cargo/env" ]; then . "$HOME/.cargo/env"; fi
