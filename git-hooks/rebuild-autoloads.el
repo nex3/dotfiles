@@ -1,3 +1,4 @@
+(cd (file-name-parent-directory (file-name-directory load-file-name)))
 (let ((make-backup-files nil)
       (byte-compile-warnings nil)
       (byte-compile-verbose nil)
