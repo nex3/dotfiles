@@ -20,6 +20,7 @@
         msg = commit --allow-empty -m
         prp = !hub pull-request --push
         L = !git-land
+        p = !git -c user.email=nex342@gmail.com
 [color]
         ui = auto
 [push]
