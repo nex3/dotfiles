@@ -165,7 +165,7 @@ function refresh-path {
     PATH=$original_path
 
     if [ -e $HOME/gems ]; then PATH=$HOME/gems/bin:$PATH; fi
-    PATH=/var/lib/gems/1.8/bin/:/usr/local/bin:/usr/local/heroku/bin:$PATH:$HOME/.rvm/bin:$HOME/.pub-cache/bin:$HOME/.pyenv/bin
+    PATH=/var/lib/gems/1.8/bin/:/usr/local/bin:/usr/local/heroku/bin:$PATH:$HOME/.rvm/bin:$HOME/.pub-cache/bin:$HOME/.pyenv/bin:/home/linuxbrew/.linuxbrew/bin
 
     for bindir in $HOME/bin/*; do
         if [[ -d "$bindir" && ! ":$PATH" =~ ":$bindir" ]]; then
