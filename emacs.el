@@ -879,10 +879,10 @@ it doesn't prompt for a tag name."
 
 (custom-set-variables
  '(package-selected-packages
-   '(company csharp-mode dart-mode flycheck go-mode haml-mode lsp-dart lua-mode
-             magit markdown-mode mustache-mode pager perspective powershell
-             protobuf-mode rust-mode scss-mode ssass-mode tide typescript-mode
-             yaml-mode)))
+   '(company csharp-mode dart-mode dash f flycheck go-mode haml-mode lsp-dart
+             lsp-mode lua-mode magit markdown-mode mustache-mode pager
+             perspective powershell protobuf-mode rust-mode s scss-mode
+             ssass-mode tide typescript-mode yaml-mode)))
 
 (when (functionp 'tool-bar-mode)
   (tool-bar-mode -1))
