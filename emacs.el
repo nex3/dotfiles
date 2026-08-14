@@ -245,38 +245,6 @@ The -hook suffix is unnecessary."
     (toggle-word-wrap 1)
     (toggle-truncate-lines -1)))
 
-(my-after-load package
-  (defun my-package-get-desc (package)
-    "Return the description of PACKAGE.
-PACKAGE may be a desc or a package name."
-    (cond
-     ((package-desc-p package) package)
-     ((symbolp package) (assq package package-alist))
-     ((stringp package) (assq (intern package) package-alist))
-     ((listp package) (nth 1 package))))
-
-  (defun my-package-latest-version (package)
-    "Return the latest version number of `package'."
-    (mapconcat #'number-to-string
-               (package-desc-version (my-package-get-desc package))
-               "."))
-
-  (defun my-commit-package (package)
-    "Commit the latest version of `package'."
-    (my-commit-config
-     (format "[Emacs] Add %s version %s."
-             (package-desc-name package)
-             (my-package-latest-version package))))
-
-  (defadvice package-install (after my-commit-package-install (pkg &optional dont-select) activate)
-    (my-commit-package (my-package-get-desc pkg)))
-
-  (defadvice package-delete (after my-commit-package-delete (pkg-desc &optional force nosave) activate)
-    (my-commit-config
-     (format "[Emacs] Delete %s version %s."
-             (package-desc-name pkg-desc)
-             (package-desc-version pkg-desc)))))
-
 (my-after-load eshell
   (persp-make-variable-persp-local 'eshell-buffer-name)
   (my-add-hook persp-created
