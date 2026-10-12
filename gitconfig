@@ -5,7 +5,7 @@
         excludesfile=~/.gitignore.global
 [alias]
         st = status
-        co = !hub checkout
+        co = !git checkout
         ci = commit
         cp = cherry-pick
         fp = format-patch
@@ -18,7 +18,6 @@
         sdiff = diff --stat=150,130
         sshow = show --stat=150,130
         msg = commit --allow-empty -m
-        prp = !hub pull-request --push
         L = !git-land
         p = !git -c user.email=nex342@gmail.com
 [color]
